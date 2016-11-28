@@ -1,0 +1,56 @@
+##Lennon Thomas
+## 11/19/15
+
+## This code creates a Caribbean land mask, then resamples all monthly SST to 1 km resolution and adds
+## land mask to all monthly files. The output files from this code will be stacked into netCDF file.
+
+
+library(rgdal)
+library(raster)
+library(rgeos)
+
+setwd("H:/Documents/Work for waitt/WI 2015/MSP and aquaculture/Monthly modis sst data")
+
+##resample and rescale layer to use as mask
+ext<-c(-87.29167,-57.04167,7.375,30.16667)
+depth = raster("topo30.tif")
+depth <- rotate(depth)
+carib_depth<-crop(depth,ext)
+carib_depth = calc(carib_depth,fun=function(x){ifelse(x<=0,(x*-1),NA)},progress='text',filename='carib_depth.tif',overwrite=TRUE)
+
+SST<-raster("2014SST.tif")
+plot(SST)
+
+slope<-7.17185e-4
+intercept<--2
+scaled_SST<-(slope*SST)+intercept
+
+sst_res = resample(scaled_SST,carib_depth,progress='text',filename='sst_1km.tif',overwrite=TRUE)
+plot(sst_res)
+
+
+##create mask layer where all land values are NAs
+sst_res[sst_res[]>35]<-NA
+sst_res[1:500]
+plot(sst_res)
+writeRaster(sst_res,"mask_layer.tif",overwrite=TRUE)
+mask_later<-raster("mask_layer.tif")
+
+##resample, rescale, and mask all monthly sst layers in year 20XX
+##Change lines 34,37,and 44 to appropriate year
+
+setwd("H:/Documents/Work for waitt/WI 2015/MSP and aquaculture/Monthly modis sst data/cropped tiffs/2005")
+x=1
+for(x in 1:12){
+data<-raster(paste(x,"_2005.tif",sep=""))
+slope<-7.17185e-4
+intercept<--2
+rescaled_SST<-(slope*data)+intercept
+#plot(rescaled_SST)
+resampled_SST<-resample(rescaled_SST,carib_depth)
+#plot(resampled_SST)
+final<-mask(resampled_SST,mask_later,filename=paste(x,"_2005_final.tif",sep=""),inverse=FALSE, maskvale=NA,overwrite=TRUE)
+plot(final)
+max(final[],na.rm=TRUE)
+print(x)
+}
