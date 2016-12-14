@@ -10,3 +10,5 @@
 *.docx
 *.doc
 *.csv
+.Rproj.user
+*.DS_Store

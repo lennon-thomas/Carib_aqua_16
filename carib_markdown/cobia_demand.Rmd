@@ -1,0 +1,147 @@
+---
+title: "Constructing a demand curve for cobia in the Caribbean"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r data load, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(scales)
+
+# Load FAO production data
+fao_wild <- read_csv(file = '../../../Google Drive/Project Data/fao-data/fao_capture_50to14.csv', na = c('...','0 0','-'))
+fao_aqua <- read_csv(file = '../../../Google Drive/Project Data/fao-data/FAO Aquaculture Data Final.csv')
+
+# Load FAO commodity data
+c_value <- read_csv(file = '../../../Google Drive/Project Data/fao-data/Commodity_value_76to13.csv', na = c('...','0 0','-'))
+c_quantity <- read_csv(file = '../../../Google Drive/Project Data/fao-data/Commodity_quantity_76to13.csv', na = c('...','0 0','-'))
+
+# Load price data from my price paper
+prices <- read_csv(file = '../../price-db-sfg/price-db-results/Exvessel Expansion Factor Table.csv') %>%
+  filter(group_for_pairing == 'Miscellaneous pelagic fishes')
+
+# Convert to long format
+commod <- c_quantity %>%
+  gather(key = 'year', value = 'quantity', 5:42) %>%
+  left_join(c_value %>%
+              gather(key = 'year', value = 'value', 5:42)) %>%
+  mutate(quantity = as.numeric(gsub(pattern = ' F', replacement = '', quantity)),
+         value    = as.numeric(gsub(pattern = ' F', replacement = '', value)),
+         year     = as.numeric(year))
+
+fao_wild <- fao_wild %>%
+  gather(key = 'year', value = 'quantity', 8:72) %>%
+  mutate(quantity = as.numeric(gsub(pattern = ' F', replacement = '', quantity)),
+         year = as.numeric(year)) %>%
+  filter(`Measure (Measure)`== "Quantity (tonnes)")
+
+# Subset to cobia
+cobia_export <- commod[grepl('Cobia', commod$`Commodity (Commodity)`),]
+cobia_wild <- filter(fao_wild, `Species (ASFIS species)`=='Cobia')
+cobia_aqua <- filter(fao_aqua, CommName == 'Cobia')
+
+# Export price
+cobia_export <- mutate(cobia_export, export_price = 1000*value/quantity)
+
+# Cobia global production
+cobia_prod <- cobia_wild %>%
+  group_by(year) %>%
+  summarize(catch = sum(quantity, na.rm = T)) %>%
+  left_join(cobia_aqua %>%
+              rename(year = Year) %>%
+              group_by(year) %>%
+              summarize(aqua = sum(AquaProduction, na.rm = T))) %>%
+  mutate(total = catch + aqua)
+
+# Export quantity and value plot
+glbl_export <- cobia_export %>%
+  group_by(year) %>%
+  summarise(quantity = sum(quantity, na.rm = T),
+            mean_price = mean(export_price, na.rm = T))
+
+# Define list of countries
+cntrys<-c('Anguilla','Aruba','Bahamas','Barbados','Bonaire/S.Eustatius/Saba','Bermuda','British Virgin Islands','Cayman Islands' ,'Cuba','Dominica','Dominican Republic','Grenada','Guadeloupe','Haiti','Jamaica','Martinique','Netherlands Antilles','Puerto Rico',
+          'Saint Kitts and Nevis','Saint Lucia','Trinidad and Tobago','Turks and Caicos Is.','US Virgin Islands')
+
+# Caribbean cobia production
+carib_aqua <- cobia_aqua %>%
+  filter(Country %in% cntrys) %>%
+  rename(year = Year) %>%
+  group_by(year) %>%
+  summarize(aqua = sum(AquaProduction, na.rm = T))
+
+# Save csvs of processed FAO data
+# write_csv(fao_wild, path = '../../../Google Drive/Project Data/fao-data/fao_capture_50to14_long.csv')
+# write_csv(fao_aqua, path = '../../../Google Drive/Project Data/fao-data/fao_aqua_50to14_long.csv')
+# write_csv(commod, path = '../../../Google Drive/Project Data/fao-data/fao_exports_76to13_long.csv')
+```
+
+## Cobia Production and Value
+Cobia (*Rachycentron canadum*) is a large (max length of 200 cm) marine fish found around the world in tropical and subtropical waters. Cobia are found in a variety of habitats, both nearshore and pelagic, and feed on crabs, fishes, and squids. Cobia production has grown significantly over the last several decades, increasing from `r prettyNum(cobia_prod[31,2], big.mark = ',')` MT in 1980, all from wild fisheries, to `r prettyNum(sum(cobia_prod[64,2] + cobia_prod[64,3]), big.mark = ',')` MT in 2013, with aquaculture accounting for 75% of the total (Figure 1). Despite the increase in cobia production, the cobia market is almost entirely a local market, with only a small fraction (4,555 MT;`r 100*(4558/sum(cobia_prod[64,2] + cobia_prod[64,3]))`%) of global production in 2012. Furthermore, export production has thus far been very volatile, rising from just five MT in 2011, to 4,558 MT in 2012 before falling to 374 MT in 2013 (Figure 1).
+
+```{r production, echo=FALSE, warning=FALSE, message=F, fig.cap= 'Global production and total exports of cobia by the wild fishery and aquaculture sectors', fig.width=6.5, fig.height=4}
+
+# Global production figure
+cobia_prod %>%
+  left_join(glbl_export) %>%
+  rename(Aquaculture       = aqua,
+         `Wild\nfisheries` = catch,
+         Exports           = quantity) %>%
+  gather(key = 'metric', value = 'quantity', 2:5) %>%
+  filter(year > 1979) %>%
+  ggplot(aes(x = year, y = quantity, color = metric)) +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  labs(x     = 'Year',
+       y     = 'Metric tons (MT)',
+       color = 'Sector') +
+  theme_bw()
+```
+
+The global market for cobia is currently very small, with just `r 100*(glbl_export$quantity[37] / cobia_prod$total[63])`% (`r glbl_export$quantity[37]` MT) of total production exported in 2012. The export price of cobia is declining and approaching the global median export price of its commodity category, *Miscellaneous pelagic fisheries* (Figure 2).
+
+```{r prices, echo=F, warning=FALSE, message=FALSE, fig.cap = 'Global median export prices ($US/MT) for cobia and the ISSCAAP species group that it belongs to, Miscellaneous pelagic fishes', fig.width=6.5, fig.height=4}
+# Plot cobia price and global export price for species category
+cobia_export %>%
+  group_by(year) %>%
+  summarize(price = median(export_price, na.rm = T)) %>%
+  ggplot(aes(x = year, y = price)) +
+  geom_line() +
+  geom_line(data = prices, aes(x = Year, y = export_price), linetype = 2) +
+  scale_y_continuous(labels = comma) +
+  coord_cartesian(xlim = c(2005:2013)) +
+  theme_bw()
+```
+  
+\newpage  
+  
+$Price (p_{t+1}) = p_t - b(\sum{x_t})$
+
+```{r demand, echo=F, warning=FALSE, message=FALSE, fig.cap = 'Global demand curve for cobia', fig.width=6.5, fig.height=4}
+
+quant <- seq(from = sum(cobia_export$quantity[cobia_export$year==2012], na.rm = T), to = 100000, by = 100)
+p <- mean(cobia_export$export_price[cobia_export$year==2012], na.rm = T)
+
+# Build dataframe simulating price changes resulting from quantity
+d <- data_frame(quantity = quant,
+                old_quant = lag(quantity, default = quantity[1]),
+                perc_quant = (quant - old_quant) / old_quant,
+                price = NA)
+
+for(a in 1:nrow(d)) {
+  if(a == 1) d$price[a] <- p
+  else d$price[a] <- d$price[a-1] - 0.8*d$price[a-1]*d$perc_quant[a]
+}                
+                
+# Find new price in each year
+ggplot(d, aes(x = quantity, y = price)) +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(labels = comma) +
+  theme_bw()
+
+```
+
