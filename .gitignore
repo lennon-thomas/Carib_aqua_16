@@ -11,3 +11,7 @@
 *.doc
 *.csv
 .Rproj.user
+<<<<<<< HEAD
+=======
+*.DS_Store
+>>>>>>> 15c62e06bb93b1c950cfd662490a1dd05d6d83ae
