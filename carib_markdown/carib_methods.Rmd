@@ -1,3 +1,6 @@
+library(knitr)
+library(pandoc)
+
 ---
 title: "Cobia Aquaculutre in the Caribbean"
 output:
@@ -6,6 +9,7 @@ output:
   word_document:
     toc: yes
 ---
+
 
 ## Introduction
 
@@ -54,24 +58,32 @@ IV) Introducing our study
 
 The area of focus for this study is the territorial waters surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1). This area was defined using a spatial layer of Exclusive Economic Zone (EEZ) boundaries for the 28 island countries from VLIZ (2014). 
 
-### Factors affecting offshore aquaculture suitability 
+### Suitability Assessment
 
-The first step in our analysis was to conduct an assessment to identify areas that were suitable for the development of offshore cobia mariculture. To determine areas in the Caribbean suitable for offshore cobia mariculture development, we considered factors related to existing ocean use and the technical requirements for installation of offshore SeaStation cages.
+The first step in our analysis was to conduct an assessment to identify areas that were suitable for the development of offshore  mariculture. To determine areas in the Caribbean suitable for offshore mariculture development, we considered factors related to existing ocean use and the technical requirements for installation of offshore SeaStation cages.
 
-To develop aquaculture sustainably, conflicts between other users and uses of the marine environment should be minimized (Longdill et al. 2008). We identified existing offshore uses of ocean area in the Caribbean Sea to determine areas that were already designated or used for other purposes that would not be suitable for offshore aquaculture development. We obtained spatial data on designated marine protected areas, shipping activity, and locations of existing benthic oil structures and deep sea mining permits (Table 1). Areas designated as marine protected or conservation areas, and areas with benthic oil rigs structure and permits for deep sea bed mining were scored as unsuitable for the development of offshore mariculture. Areas with a shipping activity higher than XX were also considered unsuitable for offshore aquaculture.
+To develop mariculture sustainably, conflicts between other users and uses of the marine environment should be minimized (Longdill et al. 2008).We obtained spatial data on designated marine protected areas, shipping activity, and locations of existing benthic oil structures(Table 1). Areas that have been designated as marine protected or conservation areas, and areas with existing benthic oil rig structure were scored as unsuitable for the development of offshore mariculture. Areas that fell within the top 10% of relative shipping activity were also scored unsuitable for offshore mariculture development.
 
-We considered depth and current speed to identify areas that met the technical requirements for installing offshore SeaStation cages (Kapetsky et al. 2013) (Table 1). SeaStation is a submersible, self-tensioned, single rim cage designed for offshore aquaculture. Seastation is the most widely used offshore aquaculture cage in the U.S., and are also currently used in the world’s largest open ocean finfish farm in the world, Open Blue, located in Panama (Loverich 2000; Open Blue 2016).The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m.  In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly (Scott and Muir 2006). 
+To identify areas that met the technical requirements for the installation of offshore SeaStation cages we considered depth and current speed (Kapetsky et al. 2013) (Table 1). SeaStation is a submersible, self-tensioned, single rim cage designed for offshore aquaculture. Seastation is the most widely used offshore aquaculture cage in the U.S., (Loverich 2000; Open Blue 2016).The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m.  In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly (Scott and Muir 2006). Spatial bathymetry data were obtained from Becker *et al.* (2009), and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. 
 
-Spatial bathymetry data were obtained from Becker *et al.* (2009), and areas that fell within a 25-90 m depth were scored as suitable. For current speeds, SeaStation cages are suitable for areas experiencing currents velocities up to 1 $\frac{m}s$ (Loverich 2007). We obtained 10 years (2005-2015) of Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research (ESR) (Table 1). The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 $\frac{m}s$ were scored as unsuitable for the development of offshore mariculture.
+SeaStation cages are suitable for areas experiencing currents velocities up to 1 $\frac{m}s$ (Loverich 2007). We obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research (ESR 2009) (Table 1). The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 $\frac{m}s$ were scored as unsuitable for the development of offshore mariculture.
 
-We considered depth and current speed to determine areas that met the technical requirements for installing offshore SeaStation cages (Table 1). The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m.  In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly (Scott and Muir 2006). For current speeds, SeaStation cages are suitable for areas experiencing currents velocities up to 1 $\frac{m}s$ (Loverich 2007).
 
-### Data
+All spatial data layers listed in Table 1 were converted to raster format with a 1 km^2^ spatial resolution. Data files that had a resolution > 1 km^2^ were interpolated to the 1 km^2^ grid using nearest neighbor technique. We then compiled spatial data layers in a boolean overlay to identify cells that were not already designated or utilized for other purposes, and that met the technical requirements for the installation of offshore SeaStation cages.
 
-We obtained spatial data layers on existing designated marine protected areas, shipping activity, benthic oil structure, and deep sea mining permits (Table 1). Areas that have been designated 
 
-### Suitability assessment
-All layers were converted to raster format with a 1 km^2^ spatial resolution. X, X, and X ( x km resolution) were interpolated to the 1 km^2^ grid using nearest neighbor technique. We then compiled spatial data layers to identify cells that were not already designated or utilized for other purposes, and that met the technical requirements for the installation of offshore SeaStation cages (Table 1). All data layers were converted to raster format, and interpolated to a 1 km^2^ resolution using Nearest Neighbor (NGB) techniques. 
+```{r kable, echo=FALSE, warning=FALSE}
+data<-read.csv("table_1.csv",check.names=FALSE)
+#knitr::kable(head(data),caption="Table 1. Spatial data layers used in suitablility analysis to #identify cells suitable for cobia offshore mariculture",row.names=FALSE, #align=c('c','c','l','c'),padding=10)
+library(pander)
+set.alignment("center")
+names(data) <- pandoc.strong.return(names(data))
+pander::pandoc.table(data,justify=c('center','center','center','center'),split.cells=c(9,9,45,20),split.tables=Inf,caption="Table 1. Spatial data layers used in suitablility analysis to #identify cells suitable for cobia offshore mariculture")
+```
+
+
+
+
 
 ### Farm Design
 
