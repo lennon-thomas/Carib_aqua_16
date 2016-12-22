@@ -1,8 +1,8 @@
 ---
 title: "Constructing a demand curve for cobia in the Caribbean"
 output:
-  html_document: default
   html_notebook: default
+  html_document: default
   pdf_document: default
   word_document: default
 ---
@@ -144,4 +144,6 @@ ggplot(d, aes(x = quantity, y = price)) +
   theme_bw()
 
 ```
+
+
 
