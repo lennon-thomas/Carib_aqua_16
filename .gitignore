@@ -10,6 +10,22 @@
 *.docx
 *.doc
 *.csv
+*.db
+*.mxd
+*.prj
+*.sbn
+*.sbx
+*.xml
+*.shx
+*.sbn
+*.pdf
+*.cpg
+*.xml
+*.ovr
+*.tfw
+*.dat
+*.nit
+*.adf
 .Rproj.user
 <<<<<<< HEAD
 =======
