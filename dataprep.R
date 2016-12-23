@@ -1,5 +1,5 @@
 # Caribbean Aquaculture Dataprep
-
+# all raw data files are located here:https://ucsb.app.box.com/files/0/f/12037510712/raw
 rm(list = ls())
 
 
@@ -25,14 +25,14 @@ carib_depth = calc(carib_depth,fun=function(x){ifelse(x<=0,(x*-1),NA)},progress=
 #-----------------------------------------------------------------
 # EEZs data from: http://www.marineregions.org/downloads.php
 
-EEZ = readOGR(dsn="Suitability/raw/EEZ",layer="rgn_gcs")
-
+EEZ = readOGR(dsn="Suitability/raw/EEZ",layer="eez")
 
 ext<-c(-87.29167,-57.04167,7.375,30.16667)
+
 carib_eez<-crop(EEZ,ext,progress='text')
 
-writeOGR(carib_eez, dsn="Suitability/tmp",driver="ESRI Shapefile", layer="carib_eez_shape")
-
+writeOGR(carib_eez, dsn="Suitability/tmp/EEZ",driver="ESRI Shapefile", layer="carib_eez_shape")
+land<-readOGR( dsn="Suitability/tmp/EEZ",layer="carib_eez_shape")
 carib_eez_raster<-rasterize(carib_EEZ,carib_depth,field=ifelse(carib_EEZ$rgn_type %in% c('eez','eez-disputed'),
                                                                carib_EEZ$rgn_id,NA),progress='text')
 carib_eez_raster_mask <- mask(carib_eez_raster,carib_depth,progress='text',filename='Suitability/tmp/carib_eez_ocean.tif',overwrite=T)
