@@ -9,7 +9,7 @@
 *.lzw
 *.docx
 *.doc
-
+*.dbf
 *.db
 *.mxd
 *.prj
