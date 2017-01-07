@@ -25,18 +25,19 @@ carib_depth = calc(carib_depth,fun=function(x){ifelse(x<=0,(x*-1),NA)},progress=
 #-----------------------------------------------------------------
 # EEZs data from: http://www.marineregions.org/downloads.php
 
-EEZ = readOGR(dsn="Suitability/raw/EEZ",layer="eez")
+EEZ = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/raw/EEZ",layer="eez",stringsAsFactors=FALSE)
 
 ext<-c(-87.29167,-57.04167,7.375,30.16667)
 
-carib_eez<-crop(EEZ,ext,progress='text')
+#carib_eez<-crop(EEZ,ext,progress='text')
 
-writeOGR(carib_eez, dsn="Suitability/tmp/EEZ",driver="ESRI Shapefile", layer="carib_eez_shape")
-land<-readOGR( dsn="Suitability/tmp/EEZ",layer="carib_eez_shape")
-carib_eez_raster<-rasterize(carib_EEZ,carib_depth,field=ifelse(carib_EEZ$rgn_type %in% c('eez','eez-disputed'),
-                                                               carib_EEZ$rgn_id,NA),progress='text')
+#writeOGR(carib_eez, dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",driver="ESRI Shapefile", layer="carib_eez_shape2")
+
+carib_eez<-readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ", layer="carib_eez_shape2")
+land<-readOGR( dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape2")
+carib_eez$PolygonID<-as.numeric(as.character(carib_eez$PolygonID))
+carib_eez_raster<-rasterize(carib_eez,carib_depth,field=carib_eez$PolygonID,progress='text')
 carib_eez_raster_mask <- mask(carib_eez_raster,carib_depth,progress='text',filename='Suitability/tmp/carib_eez_ocean.tif',overwrite=T)
-
 
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
