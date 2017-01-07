@@ -19,21 +19,25 @@ I) Summary and importance of global aquaculture production
 
     a. Brief summary of ecological, social and economic benefits of aquaculture  
     
-    b. Projected increase in seafood demand and aquaculture as the most likely means to fill this demand (i.e., limited ability of wild fisheries to increase production)  
+    b. Projected increase in seafood demand and aquaculture as the most likely means to fill this demand (i.e., limited ability of wild fisheries to increase production) 
     
-    c. Description of factors that must be considered when determining aquaculture production potential of a given region (physical, ecological, social, and economical (?))~ To determine the sustainable aquaculture production capacity of an area or region, four dimensions must be considered:  ecological, social, physical, and production [@mckindsey_review_2006]. The ecological capacity is defined as the maximum aquaculture production that can be sustained in a region without impacting ecological processes, services, populations or communities in an environment (Dunn et al. 2013). The social capacity of an area for aquaculture production is broadly defined as the maximum aquaculture production that can be developed in a region without adverse social impacts (REF). The physical capacity of a region relates to the amount of space available that meet the technological constraints of the aquaculture, and/or environmental requirements of the aquaculture infrastructure and species being cultured (Dunn et al.2013). The production capacity is typically defined at the farm level, and refers to the maximum production that is feasible given the aquaculture systems and technology available, species being cultured, and economic conditions.  
+    c. Despite strong arguments for aquaculture growth to meet increasing seafood demand at a global scale, how aquaculture development and growth can and should be realized at a regional scale requires an understanding of the sustainable and economically viable production potential of a region 
+    
+    d.	Description of factors that must be considered when determining aquaculture production potential of a given region ( see McKindsey et al. 2006; Dunn et al. 2013). 
+      * physical
+      * ecological
+      * social
+      * economic
   
 II)	The Caribbean as a region where aquaculture development could be particularly beneficial   
     
-    a. The Caribbean Sea is home to 9% of the world’s coral reefs, and has a population of over 42 million people, many who depend on the area’s marine resources for subsistence and income (WRI 2006)  
+    a. Caribbean seafood consumption and production (include information on seafood exports and imports)  
     
-    b. Caribbean seafood consumption and production (include information on seafood exports and imports)  
+    b. Describe current aquaculture production occurring in the Caribbean (minimal)  
     
-    c. Describe current aquaculture production occurring in the Caribbean  
+    c. Recently, further development of aquaculture has been identified as a priority in the Caribbean to reduce reliance on imports and provide a new source of income and livelihoods.  
     
-    d. Recently, further development of aquaculture has been identified as a priority in the Caribbean  
-    
-    e. Potential for land-based and coastal aquaculture in the Caribbean is extremely limited (explain why…..limited space on land, limited freshwater, limited energy resources, environmental concerns with coastal aquaculture), suggesting the need to look to offshore aquaculture  
+    d. Potential for land-based and coastal aquaculture in the Caribbean is extremely limited (explain why…..limited space on land, limited freshwater, limited energy resources, environmental concerns with coastal aquaculture), suggesting the need to look to offshore aquaculture  
   
 III) Offshore aquaculture is an emerging approach to mariculture where farms are some distance offshore  
 
@@ -41,26 +45,24 @@ III) Offshore aquaculture is an emerging approach to mariculture where farms are
     
     b. Brief discussion of advantages of offshore aquaculture (specifically in the Caribbean)  
     
-    c. Likely species/technology in the Caribbean  
+    c. Likely species/technology in the Caribbean ((concluding that cobia is one of the more promising species because it is fast growing, has had demonstrated success in offshore farms, is a high value species, etc. and thus is the focus of our analysis))  
     
-        i.	Overview of cobia biology and mariculture  
-        ii.	SeaStation submerged cages  
+IV) IV)	Overview of cobia biology and cobia farming (this section should make it clear why SST was not a necessary layer in our suitability assessment , but was important to consider in our growth model).
   
-  
-IV) Introducing our study  
+V) Introducing our study  
 
     a. Offshore aquaculture is nearly untapped in the Caribbean, raising questions about what the actual potential is, how that potential varies across the many EEZs of the Caribbean, and what factors are currently most likely to be limiting development 
     
-    b. Using high resolution spatial data, we develop a spatial bioeconomic model to estimate the total production potential (in terms of weight and profit) of offshore aquaculture in the Caribbean. We examine the spatial distribution of offshore aquaculture potential to identify ‘hotspots’ for potential future offshore aquaculture development, and how it is distributed across space. Additionally, we examine the variation of individual farm profitability between and across EEZ to determine the importance of site selection in aquaculture development and to quantify the potential benefits of strategic spatial planning.  We explore these results under several regionally scaled production capacity scenarios, and identify the main parameters constraining production in our model. 
+    b. Using high resolution spatial data, we develop a spatial bioeconomic model to estimate the total production potential (in terms of weight and profit) of offshore aquaculture in the Caribbean, using cobia as a case study. We examine the spatial distribution of offshore aquaculture potential to identify ‘hotspots’ for potential future offshore aquaculture development, and how it is distributed across space. Additionally, we examine the variation of individual farm profitability between and across EEZs to determine the importance of site selection in aquaculture development and to quantify the potential benefits of strategic spatial planning.  We explore these results under several regionally scaled production capacity scenarios, and identify the main parameters constraining production in our model. Our approach could be applied to other farmed species or applied to other regions, and our results can help to chart a course for a sustainable and economically prosperous offshore aquaculture industry in the Caribbean. 
 
 
 # Methods  
 
 ## Description of study region
 
-The area of focus for this study is the territorial waters surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1). This area was defined using a shape file of the Exclusive Economic Zone (EEZ) boundaries for all island countries  from @vliz_maritime_2014. 
+The area of focus for this tudy is the Territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1). We did not consider the poteintial of offshore aquaculture development in the high seas for this stud. A shape file was obtained from VLIZ [-@vliz_maritime_2014] was used to define the maritime boundaries for all island countries. 
 
-```{r Caribbean EEZ tmap, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="**Figure 1.** The area included in this study is indicated in Blue. EEZ boundary data from VLIZ (2014)",fig.width=6.5, fig.height=4}
+```{r Caribbean EEZ tmap, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="**Figure 1.** Th study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2014).",fig.width=6.5, fig.height=4}
 
 library(tmap)
 library(rgdal)
@@ -78,14 +80,14 @@ land$la<-ifelse(land@data$GeoName %in% country,"lightblue","white")
 
 ## Suitability Assessment
 
-The first step in our analysis was to conduct an assessment to identify areas that were suitable for the development of offshore  mariculture. To determine what areas were suitable, we considered 6 factors (Table 1). To develop mariculture sustainably, conflicts between other users and uses of the marine environment should be minimized [@longdill_integrated_2008]. Additionally, offshore mariculture is only feasible in areas that meet the techinical requirements of the current offshore cage technology, without creating large additional installation and maitenance costs.  SeaStation is  designed for offshore aquaculture. Seastation, a submersible, self-tensioned, single rim cage requires a minimum site depth for installation of 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m.  In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly [@scott_offshore_2000]. SeaStation cages are suitable for areas experiencing currents velocities up to 1 $\frac{m}s$ [@loverich_case_2010].
+The first step in our analysis was to conduct an assessment to identify areas that are potentially suitable for the development of offshore  mariculture. To determine what areas are suitable, we considered 6 factors: depth, current speed, shipping activity, oil sturctures, and areas designated for conservation (Table 1). 
+
+We conducted our suitability assessment assuming the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@loverich_case_2010; Open Blue 2016).The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m. In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly [@scott_offshore_2000]. It is possible in the future, deeper depths could become more feasible from an economic and engineering perspective, and this maximum depth limit could be adjusted accordingly in subsequent analyses. Spatial bathymetry data were obtained from Becker *et al* [-@becker_global_2009a], and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. Additionally, SeaStation cages can withstand consistent current velocities up to 1 m/s (Loverich 2007). To identify areas with unsuitably high current velocities, we obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research [@esr_oscar_2009]. The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 m/s were scored as unsuitable for the development of offshore mariculture.
+
+To identify areas currently designated or utilized for other purposes, and for that reason unsuitable for offshore mariculture development, we obtained spatial data on: shipping activity, existing benthic oil structures, areas permitted for deep sea bed mining, and areas that have been designated as Marine Protected Areas or Conservation Priority areas (Table 1). Areas that fell in the 10% of the highest relative shipping activity, designated for conservation or deep sea bed mining purposes, and with existing benthic oil structures were considered unsuitable for offshore aquaculture development. 
 
 
-
-To identify areas currently designated or utilized for other purposes, and unsuitable for offshore mariculture development, we obtained spatial data on: shipping activity, existing benthic oil structures, areas permitted for deep sea bed mining, and areas that have been designated as Marine Protected or Conservation Priority areas (Table 1). Areas that fell in the 10% of the highest relative shipping activity, designated for conservation or deep sea bed mining purposes, and with existing benthic oil structures were considered unsuitable for offshore mariculture development. To identify areas that met the technical requirements for the installation of offshore SeaStation cages we considered depth and current speed [@mcdaidkapetsky_global_2013]. Bathymetry data were obtained from Becker *et al* [-@becker_global_2009a], and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. To identify areas with potential of high current velocities, e obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research [@esr_oscar_2009] (Table 1). The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 $\frac{m}s$ were scored as unsuitable for the development of offshore mariculture
-
-
-All spatial data layers listed in Table 1 were converted to raster format with a 1 km^2^ spatial resolution. Data files that had a resolution > 1 km^2^ were interpolated to the 1 km^2^ grid using 'nearest neighbor technique'. All 1 km^2 cells from each layer that fell outside of the suitable threshold, were given a score of zero. We then stacked all data layers in a boolean overay to identify areas suitable for offshore mariculture development based on the criteria in Table 1.   
+All spatial data layers listed in Table 1 were converted to raster format with a 1 km^2^ spatial resolution. Data files that had a resolution > 1 km^2^ were interpolated to the 1 km^2^ grid using 'nearest neighbor technique' in R's raster package [@Hijmans_introduction_2012]. All 1 km^2 cells from each layer that fell outside of the suitable threshold, were given a score of zero. We then stacked all data layers in a boolean overlay to identify areas suitable for offshore mariculture development based on the criteria in Table 1.   
 
 
 ```{r kable, echo=FALSE, warning=FALSE, message=FALSE}
@@ -99,17 +101,19 @@ pander::pandoc.table(data,justify=c('center','center','center','left','left','ce
 
 ## Farm Design
 
-SeaStation cages are typically configured using a grid mooring system that includes grid, anchor, and mooring lines secured at varying distances from the cages [@fredriksson_design_2004; @xu_research_2015).We developed a hypothetical farm design for a 1 km^2^ cell that has has 16 6,400 m^3^ SeaStation cages configured in two eight-cell grid mooring systems that occupies a total space of approximately (~0.48 km^2^) and has a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m (Loverich 2010).
+To estimate production, we assumed a fixed farm design across our study region. SeaStation cages are typically configured using a grid mooring system that includes grid, anchor, and mooring lines secured at varying distances from the cages [@fredriksson_design_2004; @xu_research_2015).We developed a hypothetical farm design for a 1 km^2^ cell that  has 16 SeaStation cages (each 6,400 m^3^) SeaStation cages configured in two eight-cell grid mooring systems that occupy a total space of approximately (~0.48 km^2^) and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@loverich_case_2010].
 
-This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona that has an eight-cage SeaStation with a total cage volume of 64,000 m^3^ (Sims et al. 2013). The total cage volume per unit of total farm area of this hypothetical design falls within the range of total cage volume per unit area of total farm area offshore mariculture farm off the coast of Kona (Sims et al. 2013), and another offshore mariculture farm using SeaStation cages in the Gulf of Maine [@fredriksson_design_2004]; @decew_assessment_2010). Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that total farm area should be twice the size of the total area occupied by farm infrastructure (NOAA 2009).
+This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ (Sims et al. 2013). The total cage volume per unit of total farm area of this hypothetical design falls within the range of total cage volume per unit area of farm area for the Kona farm [@sims_kona_] and another offshore farm using SeaStation cages in the Gulf of Maine [@fredriksson_design_2004]; @decew_assessment_2010). Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico specifying
+that total farm area should be twice the size of the total area occupied by farm infrastructure (GMFMC and NOAA 2009).
 
-To maintain a steady supply of product, commercial aquaculture farms typically stage the stocking of cages so that indivdiuals of harvestable size are available year round. Cobia take on average, 12 months to grow from fingerling to a harvestable size ().A intial stocking density of 7.2 grams per m^3^ produced higher growth rates for cobia in the Caribbean than cages stocked at a higher initial density [@benetti_growth_2010]. We assume that the stocking of individual cages within a farm is staged at monthly time step. This means that for any given month, there will be between 1 and 5 cages with cobia at a harvestable age. We set the intial stock density of cages at 7.2 grams per m^3, which is equivalent to 2.3 juveniles with an average weight of 3 grams [@benetti_growth_2010].
+To maintain a steady supply of product, commercial aquaculture farms typically stage the stocking of cages so that indivdiuals of harvestable size are available year round. Cobia take on average, 12 months to grow from fingerling to a harvestable size (). We assume that the stocking of individual cages within a farm is staged at monthly time step. This means that for any given month, there will be between 1 and 5 cages with cobia at a harvestable age. We set the intial stock density of cages at 7.2 grams per m^3, which is equivalent to 2.3 juveniles with an average weight of 3 grams [@benetti_growth_2010].This stocking density has been shown to produce higher growth rates for cobia in the Caribbean than cages stocked at a higer density [@bennetti_growth_2010].
 
 ## Bioeconomic Model
 
-We applied a bioeconomic model to estimate the production (in terms of cobia biomass (mt) and profit ($)) of individual farms developed in each of the 1 km^2^ cells that were identified as suitable for the development of offshore aquaculture.  Only farms that generated profit over a ten year period were ultimately considered feasible for development.
+We applied a bioeconomic model to estimate the production (in terms of cobia biomass yield (mt) and profit ($)) of individual farms developed in each of the 1 km^2^ cells that were identified as suitable for the development of offshore aquaculture.  Only farms that generated positive profit over a ten year period were ultimately considered feasible for development.
 
-We used a thermal performance curve (TPC) to model temperature dependent growth of cobia (Klinger et al. . Temperature is one of the primary abiotic factors controlling growth in fish, including cobia [@benetti_growth_2010], and something that cannot be controlled in offshore mariculture grow-out settings. We used 10 years of satellite-based sea surface temperatures (SST) (NASA 2014) to calculate 1 km2 resolution spatial data layers of average monthly SST. 
+### Biological Model 
+We used a thermal performance curve (TPC) to model temperature dependent growth of cobia (Klinger et al. ) Temperature is one of the primary abiotic factors controlling growth in fish, including cobia [@benetti_growth_2010], and is a factor that cannot be controlled in offshore mariculture grow-out settings. We used 10 years of satellite-based sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. 
 
 We assume a t_min_ of 22 C and a t_max_ of 32 C (REF). Monthly biomass $BM$ is then calculated for each month, at each individual farm as:
 
@@ -119,16 +123,17 @@ where $D$, is the initial stocking density ($\frac{kg}{m^3}$ ) of each farm, and
  
 Monthly biomass is then summed, to determine total annual biomass ($B_t$) at each farm.
 
-Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature, assuming an initial stocking density of XX, and a natural mortality ($M$) rate of XX [@Benetti_growth_2010]. 
+Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature, assuming an initial stocking density of XX, and a natural mortality ($M$) rate of XX [@benetti_growth_2010]. 
 
-Using parameters we derived from the literature, the economic model estimates total annual operating costs ($TC_t$) for year 1 ($t = 1$) as:  
+###Economic Model
+Using cost parameters we derived from the literature for each EEZ (Table 2), and parameters that were fixed across all sites (Table 3), the economic model estimates total annual operating costs ($TC_t$) for year 1 ($t = 1$) as:  
 $TC_{t = 1} = SC + OC_{t = 1}$
 
 Where $SC$ represents capital expenditures (start up costs) as:  
 
 $SC_{t=1} = E_{depth} + I_{distance,EEZ} + P_{EEZ}$
 
-where $E$ represents materials and equipment costs as a function of depth, I represent installation costs as a function of distance from shore and EEZ, and $P$ represents the cost of an aquaculture permit or lease as a function of EEZ (Table 2). 
+where $E$ represents materials and equipment costs as a function of depth, I represent installation costs as a function of the farm's distance from shore and, base installation cost depnding on EEZ, and $P$ represents the cost of an aquaculture permit or lease as a function of EEZ (Table 2). 
 
 $OC_t$ represents annual operating costs at each year $t$:
 
@@ -150,28 +155,27 @@ The total profit ($TP$) for each farm over $t$ years was calculated as:
 
 $TP = \displaystyle\sum_t^{10}TR_t -\biggl[\displaystyle\sum_t^{10}SC_t + \displaystyle\sum_t^{10}OC_t\biggr]$
 
-The economic model uses parameters derived from the literature to estimate start-up costs and annual operational costs for each 1 $km^2$ farm, and estimates farm profits based on production (mt) estimated from the biological model, and an assumed fixed market price for cobia. (Table 2). Startup costs include: 
 
-We calculated the total annual revenue and biomass (mt) generated by each farm over a ten year period, and only farms that generate positive revenue will be considered feasible. Feasible farms within each EEZ were then ranked according to revenue (highest to lowest). We then examined the range of estimated revenues generated by farms within an EEZ, and compared the highest and lowest revenue generating farms across EEZs.
+We calculated the total summed biomass (mt) over a ten year period, and the 10 year Net Present Value (NPV), and only farms that generate positive revenue are considered feasible for development. Feasible farms within each EEZ were then ranked according to: 1. yield, and 2.profit (highest to lowest). We then examined the range of estimated yields and profits generated by farms within an EEZ, and compared the highest and lowest revenue generating farms across EEZs.
 
 ## Production Capacity (regional ecological carrying capacity)
 
-Determining the aquaculture production level that a given region (in this case, EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem, currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale due to lack of extensive offshore aquaculture development in comparable ecosystems. This production potential is often assessed at the farm level by taking in to account localized oceanographic and ecological characterstics at a specific aquaculture site location (REF). Far less is known about potential cumulative ecosystem impacts of aquaculture development at the regional scale.
+Determining the aquaculture production level that a given region (in this case, an EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem [REF], currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale due to lack of extensive offshore aquaculture development.
 ```{r GOM FMP,echo=FALSE,warning=FALSE,message=FALSE}
 Totalarea<-35643
 Totalproduction<-29000
 Productionrate<-Totalproduction/Totalarea
 ```
 
-Guidelines for aquaculture development in U.S. waters of the Gulf of Mexico listed in a recent Fishery Management Plan stated that all aquaculture farms should be a minimum of 3 km apart and set a precautionary production limit of `r prettyNum(Totalproduction)` mt for a total area of `r prettyNum(Totalarea)` km^2^ identified for aquaculture developement, or `r prettyNum(Productionrate)` mt/ km^2^. This production limit was identified as precautionary and based on historical wild fisheries capture for the region, due to lack of better methods or information to inform the ecological capacity of the region. To determine where this specified limit on production per unit area compared to production per unit area in other regions, we conduced a global production assessment to determine the range of aquaculture per unit of suitable area for all EEZs. We obtained total marine aquaculture production by country for 2014 from FAO and calculated the total area in a suitable depth range (0-90 m) for aquaculture by EEZ using global 1 km^2^ resolution bathymetry data from Becker *et al* [-@becker_global_2009a].
+Guidelines for aquaculture development in U.S. waters of the Gulf of Mexico listed in a recent Fishery Management Plan stated that all aquaculture farms should be a minimum of 3 km apart and set a precautionary production limit of `r prettyNum(Totalproduction, big.mark=",")` mt for a total area of `r prettyNum(Totalarea,big.mark=",")` km^2^ identified for aquaculture developement, or `r prettyNum(Productionrate,big.mark=",")` mt/ km^2^. This production limit was identified as precautionary and based on historical wild fisheries capture for the region, due to lack of better methods or information on the ecological capacity of the region. To determine how this specified limit on production per unit area compared to limits applied in other regions, we conducted a global assessment of production per uit of suitable area for all EEZs. We obtained total marine aquaculture production by country, which included finfish, invertebrate, and algae aquaculture production, for 2014 from FAO and calculated the total area in a suitable depth range (0-90 m) for aquaculture by EEZ using global 1 km^2^ resolution bathymetry data from Becker *et al* [-@becker_global_2009a]. Total marine aquaculture production included finfish, invertebrates, and algae, thus We did not apply a minimum depth limit, because some these species are farmed in shalower water than finfish cage culture can happen. Although this not allow for a direct comparison to production modelled in our study, it provides another benchmark for comparison.
 
-Because determining an ecological production capacity at a larger spatial scale (ie. EEZ) is difficult, we investigate a range of potential regional production limit scenarios at the EEZ scale for the Caribbean:
+We then investigate a range of potential regional production limit scenarios at the EEZ scale for the Caribbean:
 
 1. No production limit- There is no regionally specified production limit
-2. High production limit- We set the production limit by identifying the EEZ with highest production per unit area globally from our  production assessment and multiply that value by the total area identfied as suitable for offshore aquaculture development in each EEZ.
-3. Precautionary limit- The production limit for each EEZ is specified by multiplying the production per unit area value specified for the Gulf of Mexico (`rProductionrate) by the total area identified as suitable for offshore aquaculture development in  each EEZ.
+2. High production limit- We set the production limit by identifying the EEZ worldwide with highest production per unit area globally from our  production assessment and multiply that value by the total area identfied as suitable for offshore aquaculture development in each EEZ in the Caribbean.
+3. Precautionary limit- The production limit for each EEZ is specified by multiplying the production per unit area value specified for the Gulf of Mexico (`rProductionrate,big.mark=",") by the total area identified as suitable for offshore aquaculture development in  each EEZ.
 
-Under each scenario, individual farms were developed in order of highest annual revenue. Once a single farm is developed, all farms falling within 3 km in any direction from that farm are excluded (not developed).
+Under each scenario, individual farms were developed in order of highest annual revenue. Once a single farm is developed, all farms falling within 3 km in any direction from that farm are excluded (not developed), to decrease the chance of negative cumulative enviornmental impacts on the surrounding ecosystem.
 
 We then examined and compared the following under each production capacity scenario:
 •	Total production (in terms of profit and weight) for the entire study (Caribbean) region
@@ -183,10 +187,225 @@ Finally, we determined the main factors contributing to variability of farm and 
 	
 # Results
 
+##Suitability Assessment
+```{r Suitabiliby Analysis, echo=FALSE,warning=FALSE,message=FALSE}
+library(raster)
+library(rgdal)
+
+#This creates a spatial layer of 1km2 cells that may be suitable for cobia aquaculture, and estimates the number of suitable cells in each EEZ and accounted for by each factor
+
+##Assigns a zero to international waters and 1 to waters inside EEZ
+raw_eez<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
+#codes<-read.csv("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/country_codes.csv")
+non_countries<-c(54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221) 
+
+for (i in 1:length(non_countries)){
+ raw_eez[raw_eez==non_countries[i]]<-0
+}
+raw_eez[raw_eez==0]<-NA
+eez<-raw_eez
+eez[eez>0]<-1
+
+###Assigns depth values to either a 1 (between 25-90 m depth) or 0
+carib_depth<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+carib_depth<-mask(carib_depth,eez,inverse=FALSE,maskvalues=1)
+carib_depth[is.na(carib_depth)]<-0
+carib_depth[carib_depth<25]<-0
+carib_depth[carib_depth>90]<-0
+land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+carib_depth<-mask(carib_depth,land,inverse=FALSE,maskvalues=NA,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_depth.tif",overwrite=TRUE)
+carib_depth[carib_depth!=0]<-1
+
+###Assigns cells with MPAs present a zero
+MPA<-raster('C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_mpa_layer.tif')
+MPA<-mask(MPA,eez,inverse=FALSE,maskvalues=1)
+land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+suitableMPA<-mask(MPA,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_MPA.tif",overwrite=TRUE)
+
+###Assigns cells either a 1 (< 1 m/s )  or 0 based on current velocity
+u<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_u.tif")
+v<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_v.tif")
+s<-stack(u,v)
+current<-calc(s,fun=function(x){max(abs(x),na.rm=FALSE)})
+current<-mask(current,eez,inverse=FALSE,maskvalues=1)
+current<-mask(current,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/final_carib_current.tif",overwrite=TRUE)
+current[current>1]<-0
+current[current==1]<-0
+current[current!=0]<-1
+
+###ssigns a 0 to cells with the top 10% of highest shipping activity
+ships<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_ship.tif")
+ships[is.na(ships)]<-0.1
+ships<-mask(ships,eez,inverse=FALSE,maskvalues=1)
+top<-unique(ships) #5949970
+top<-sort(top,decreasing=TRUE)
+num<-(length(top)*.10)
+top_num<-top[1:num]
+ship_threshold<-min(top_num)
+ships[ships>ship_threshold]<-0 ## 0.4 was chosen as an arbitary threshold for now
+ships[ships==ship_threshold]<-0
+ships<-mask(ships,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_shipping.tif",overwrite=TRUE)
+ships[ships>0]<-1
+
+###Assigns a 0 to cells with the benthic oil structures
+oil<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_oil.tif")
+oil<-mask(oil,eez,inverse=FALSE,maskvalues=1)
+oil[oil==1]<-100
+oil[oil==0]<-1
+oil[oil==100]<-0
+
+
+##Create dataframe summarizing the total suitable area based on each factor (area function needs NAs)
+
+factors<-c("EEZ","Depth","Maximum current velocity","Marine Protected Areas","Shipping Activity","Benthic Oil Structure","Deep Sea Mining")
+df<-data.frame(matrix(nrow=7, ncol=3))
+colnames(df)<-c("Factor", "Suitable Area (km2)", "Percent of Total Study Area")
+df$Factor<-factors
+
+###Total EEZ area
+eez2<-eez
+eez2[eez2==0]<-NA
+eez_area<-as.data.frame(area(eez2,na.rm=TRUE))
+eez_total_area<-sum(eez_area,na.rm=TRUE)
+df[1,2]<-eez_total_area
+df[1,3]<-100
+
+###Total depth area
+carib_depth2<-carib_depth
+carib_depth2[carib_depth2==0]<-NA
+depth_area<-as.data.frame(area(carib_depth2,na.rm=TRUE))
+total_depth_area<-sum(depth_area,na.rm=TRUE)
+df[2,2]<-total_depth_area
+df[2,3]<-total_depth_area/eez_total_area*100
+
+### Total MPA area
+MPA2<-suitableMPA
+MPA2[MPA2==0]<-NA
+MPA_area<-as.data.frame(area(MPA2,na.rm=TRUE))
+total_MPA_area<-sum(MPA_area,na.rm=TRUE)
+df[4,2]<-total_MPA_area
+df[4,3]<-total_MPA_area/eez_total_area*100
+
+### Total current area
+current2<-current
+current2[current2==0]<-NA
+current_area<-as.data.frame(area(current2,na.rm=TRUE))
+total_current_area<-sum(current_area,na.rm=TRUE)
+df[3,2]<-total_current_area
+df[3,3]<-total_current_area/eez_total_area*100
+
+### Total shipping area
+ships2<-ships
+ships2[ships2==0]<-NA
+ship_area<-as.data.frame(area(ships2,na.rm=TRUE))
+total_ship_area<-sum(ship_area,na.rm=TRUE)
+df[5,2]<-total_ship_area
+df[5,3]<-total_ship_area/eez_total_area*100
+
+### Total oil area
+oil2<-oil
+oil2[oil2==0]<-NA
+oil_area<-as.data.frame(area(oil2,na.rm=TRUE))
+total_oil_area<-sum(oil_area,na.rm=TRUE)
+df[6,2]<-total_oil_area
+df[6,3]<-total_oil_area/eez_total_area*100
+
+### Total Deep sea area
+df[7,2]<-eez_total_area
+df[7,3]<-eez_total_area/eez_total_area*100
+
+###final dataframe
+df<-df[order(df$`Suitable Area`,decreasing=TRUE),]
+
+
+#Boolean Overlay to identify final suitable cells using all layers and calculate
+s = stack(carib_depth,suitableMPA,current,ships,eez,oil)
+all<-stackApply(s,indices=c(1,1,1,1,1,1),fun=prod,na.rm=FALSE)
+all<-mask(all,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif",overwrite=TRUE)
+all[all==0]<-NA
+suitable_area<-as.data.frame(area(all,na.rm=TRUE))
+final_suitable_area<-sum(suitable_area,na.rm=TRUE)
+percent_total<-final_suitable_area/eez_total_area*100
+
+
+# Calculate total suitable area by country
+EEZ = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape2")
+EEZ$PolygonID<-as.numeric(as.character(EEZ$PolygonID))
+for (i in 1:length(non_countries)){
+ EEZ$PolygonID[EEZ$PolygonID==non_countries[i]]<-0
+}
+EEZ$PolygonID[EEZ$PolygonID==0]<-NA
+
+countries<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
+for (i in 1:length(non_countries)){
+ countries[countries==non_countries[i]]<-0
+}
+countries[countries==0]<-NA
+
+#country<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_eez.tif")
+names<-data.frame(matrix(NA,nrow=38,ncol=3))
+
+EEZ2<-as.data.frame(EEZ)
+c<-EEZ2[,c(1,3,22)]
+c<-na.omit(c)
+c<-c[-38,]
+area_all<-area(all,na.rm=TRUE)
+eez_area<-zonal(area_all,countries,fun='sum')
+
+i=1
+for (i in 1:nrow(eez_area)){
+m<-as.integer(eez_area[i,1])
+names[i,1]<-m
+n<-c$GeoName[c$PolygonID==m]
+n<-as.character(n[1])
+names[i,2]<-n
+a<-c$Area_km2[c$PolygonID==m]
+a<-as.integer(a[1])
+names[i,3]<-a
+}
+
+cells<-cbind(eez_area,names,c$Area_km2)
+cells<-cells[,-3]
+cells[order(cells$sum,decreasing=TRUE),]
+write.csv(cells,"C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable area by country.csv")
+
+####Plot suitable area using tmaps######
+test<-select(country)
+library(tmap)
+data(World)
+
+land = readOGR(dsn="tmp",layer="carib_eez_shape")
+land$la<-ifelse(land@data$rgn_type=="land","pink","white")
+
+suitable<-tm_shape(land)+
+  tm_fill("la")+
+tm_shape(all)+
+  tm_raster(showNA=FALSE,legend.show=FALSE)+
+tm_shape(land)+
+  tm_borders()
+
+save_tmap(suitable,filename="datalayer plots/suitability.png")
+tm.layout(legend.position=c("right","top"))
+
+
+```
+
+Based on the factors and criteria described in Table 1, we found a total of XX km^2^ of area suitable for aquaculture development in the Caribbean (Figure 2).  The total area available based on the criteria for each factor are listed in Table 4. XX was the largest constraining factor in detemrining areas suitable for offshore aquaculture. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions. 
+
+The identified suitable areas were not distributed evenly across EEZs (Table 5). XX included XX% of the total suitable area, and XX EEZs did not contain any areas that were identified as suitable.
+
+##Production Capacity
+
+##Production capacity
+### Regional
+### By EEZ
+
+# Discussion
 #References
 
-NASA Goddard Space Flight Center, Ocean Ecology Laboratory, Ocean Biology Processing Group; (2014): MODIS-Terra Daily 4 km Sea Surface Temperature Data; NASA Goddard Space Flight Center, Ocean Ecology Laboratory, Ocean Biology Processing Group. http://doi.org/{DOI} Accessed on January 3, 2016.
+NASA Goddard Space Flight Center, Ocean Ecology Laboratory, Ocean Biology Processing Group; (2014): MODIS-Terra Daily 4 km Sea Surface Temperature Data; http://doi.org/{DOI} Accessed on January 3, 2016.
 
-NOAA Gulf of Mexico Fishery Management Plan. 2009.
+GMFMC (Gulf of Mexico Fishery Management Council)and NOAA (National Oceanic and Atmospheric Administration)(2009) Fishery management plan for regulating
+offshore marine aquaculture in the Gulf of Mexico. GMFMC, Tampa, FL.http://gulfcouncil.org/Beta/GMFMCWeb/Aquaculture/Aquaculture%20FMP%20PEIS%20Final%202-24-09.pdf
 
 OceanSpar 2013.
