@@ -182,10 +182,8 @@ test<-select(country)
 library(tmap)
 data(World)
 
-land = readOGR(dsn="tmp",layer="carib_eez_shape")
-land$la<-ifelse(land@data$rgn_type=="land","grey","white")
-
-
+land = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape")
+land$la<-ifelse(land@data$Pol_type=="200NM","blue","orange")
 
 suitable<-tm_shape(land)+
   tm_fill("la")+

@@ -16,7 +16,8 @@ setwd("Y:/Documents/Work for waitt/WI 2016/Caribbean-Aquaculture") #work compute
 # Depth data from: http://topex.ucsd.edu/WWW_html/srtm30_plus.html
 
 depth = raster("Suitability/raw/topo30.tif")
-depth <- rotate(depth)
+depth <- rotate(depth,progress='text')
+r_depth<-raster("Y:/Documents/Work for waitt/WI 2016/Caribbean-Aquaculture/Suitability/tmp/topo30.tif")
 carib_depth<-crop(depth,ext)
 carib_depth = calc(carib_depth,fun=function(x){ifelse(x<=0,(x*-1),NA)},progress='text',filename='Suitability/tmp/carib_depth.tif')
 
@@ -34,7 +35,7 @@ ext<-c(-87.29167,-57.04167,7.375,30.16667)
 #writeOGR(carib_eez, dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",driver="ESRI Shapefile", layer="carib_eez_shape2")
 
 carib_eez<-readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ", layer="carib_eez_shape2")
-land<-readOGR( dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape2")
+carib_eez@data$PolygonID<-carib_eez@data$PolygonID[carib_eez@data$PolygonID==123]<-1000land<-readOGR( dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape2")
 carib_eez$PolygonID<-as.numeric(as.character(carib_eez$PolygonID))
 carib_eez_raster<-rasterize(carib_eez,carib_depth,field=carib_eez$PolygonID,progress='text')
 carib_eez_raster_mask <- mask(carib_eez_raster,carib_depth,progress='text',filename='Suitability/tmp/carib_eez_ocean.tif',overwrite=T)
@@ -329,11 +330,16 @@ plot(caribship)
 
 #-----------------------------------------------------------------------------
 ## Oil rig data from:https://www.nceas.ucsb.edu/globalmarine2008/impacts
+carib_depth<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+oil2<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/2013stablelights.tif")
+oil2<-crop(oil2,carib_depth,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_oil2.tif",overwrite=TRUE)
+oil2<-mask(oil2,carib_depth,maskvalue=NA,inverse=FALSE)
+plot(oil2)
 
 oil<-raster("Suitability/raw/oil_lzw.tif")
-crs(oil)<-"+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"
+crs(oil)<-"+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +no_defs"
 projectRaster(oil,crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0",filename="Suitability/raw/oil_proj.tif")
-oil<-raster("Suitability/raw/oil_proj.tif")
+oil2<-raster("Suitability/raw/oil_proj.tif")
 plot(oil,col="black")
 crop(oil, carib_depth,filename="Suitability/tmp/carib_oil.tif",overwrite=TRUE)
 oil<-raster("tmp/carib_oil.tif")
@@ -344,3 +350,13 @@ oil[is.na(oil)]<-0
 mask(oil,carib_depth,maskvalue=NA,filename="Suitability/final/suitable_oil.tif",overwrite=TRUE)
 oil<-raster("Suitability/final/suitable_oil.tif")
 plot(oil)
+
+
+## Coral reefs data from: http://data.unep-wcmc.org/datasets/1
+coral<-readOGR(dsn="Suitability/raw/coral/01_Data", layer="14_001_WCMC008_CoralReef2010_v1_3")
+carib_depth<-raster("Suitability/tmp/carib_depth.tif")
+carib_coral<-crop(coral,ext,progress='text',filename='Suitability/tmp/carib_coral.tif')
+carib_coral@data$COV_TYPE<-as.character(carib_coral@data$COV_TYPE)
+coral_raster<-rasterize(carib_coral,carib_depth,field=2,progress='text')
+coral_raster[is.na(coral_raster)]<-0
+coral_raster<-mask(coral_raster,carib_depth,maskvalue=NA,inverse=FALSE,filename="Suitability/tmp/carib_coral_raster.tif",overwrite=TRUE)
