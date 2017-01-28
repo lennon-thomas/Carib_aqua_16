@@ -3,11 +3,11 @@ title: "Charting an Aquaculture Future for the Caribbean"
 author: Lennon R. Thomas, Tyler Clavelle, Dane Klinger, Rebecca Gentry, Jamie Afflerbach,
   and Sarah E.Lester
 output:
-  html_document:
+  word_document:
     toc: yes
   html_notebook:
     toc: yes
-  word_document:
+  html_document:
     toc: yes
 bibliography: carib_aquaculture.bib
 ---
@@ -60,7 +60,7 @@ V) Introducing our study
 
 ## Description of study region
 
-The area of focus for this study is the Caribbean Sea. The physical enviornment of the Caribbean Sea is spatially heterogeneous [@chollett_2012] is the Territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1).  We did not consider the poteintial of offshore aquaculture development in the high seas for this study. A shape file was obtained from VLIZ [-@vliz_maritime_2014] was used to define the maritime boundaries for all island countries. 
+The area of focus for this studyis the Territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1).  We did not consider the poteintial of offshore aquaculture development in the high seas for this study. A shape file was obtained from VLIZ [-@vliz_maritime_2014] was used to define the maritime boundaries for all island countries. 
 
 ```{r Caribbean EEZ tmap, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="**Figure 1.** The study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2014).",fig.width=6.5, fig.height=4}
 
@@ -75,6 +75,7 @@ land$la<-ifelse(land@data$PolygonID %in% country,"lightblue","white")
   tm_fill("la")+
   tm_borders()+
    tm_legend()
+ rm(World)
 ```
 
 
@@ -91,7 +92,7 @@ names(data) <- pandoc.strong.return(names(data))
 pander::pandoc.table(data,justify=c('center','center','center','left','left'),split.cells=c(9,9,9,40,10),split.tables=Inf,caption=" Spatial data layers used in suitability analysis to identify cells suitable for cobia offshore mariculture")
 ```
 
-We conducted our suitability assessment assuming the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@loverich_case_2010; Open Blue 2016).The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m. In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly [@scott_offshore_2000]. It is possible in the future, deeper depths could become more feasible from an economic and engineering perspective, and this maximum depth limit could be adjusted accordingly in subsequent analyses. Spatial bathymetry data were obtained from Becker *et al* [-@becker_global_2009a], and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. Additionally, SeaStation cages can withstand consistent current velocities up to 1 m/s (Loverich 2007). To identify areas with unsuitably high current velocities, we obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research [@esr_oscar_2009]. The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 m/s were scored as unsuitable for the development of offshore aquaculture.
+We conducted our suitability assessment assuming the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@loverich_case_2010; Open Blue 2016].The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m. In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly [@scott_offshore_2000]. It is possible in the future, deeper depths could become more feasible from an economic and engineering perspective, and this maximum depth limit could be adjusted accordingly in subsequent analyses. Spatial bathymetry data were obtained from Becker *et al* [-@becker_global_2009a], and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. Additionally, SeaStation cages can withstand consistent current velocities up to 1 m/s (Loverich 2007). To identify areas with unsuitably high current velocities, we obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research [@esr_oscar_2009]. The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 m/s were scored as unsuitable for the development of offshore aquaculture.
 
 To identify areas currently designated or utilized for other purposes, and for that reason unsuitable for offshore mariculture development, we obtained spatial data on: shipping activity, existing benthic oil structures, areas permitted for deep sea bed mining, and areas that have been designated as Marine Protected Areas or Conservation Priority areas (Table 1). Areas that fell in the 10% of the highest relative shipping activity, designated for conservation or deep sea bed mining purposes, and with existing benthic oil structures were considered unsuitable for offshore aquaculture development. 
 
@@ -100,12 +101,12 @@ All spatial data layers listed in Table 1 were converted to raster format with a
 
 ## Farm Design
 
-To estimate production, we assumed a fixed farm design across our study region. SeaStation cages are typically configured using a grid mooring system that includes grid, anchor, and mooring lines secured at varying distances from the cages [@fredriksson_design_2004; @xu_research_2015).We developed a hypothetical farm design for a 1 km^2^ cell that  has 16 SeaStation cages (each 6,400 m^3^)  configured in two eight-cell grid mooring systems that occupy a total space of approximately ~0.48 km^2^ and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@loverich_case_2010].
+To estimate production, we assumed a fixed farm design across our study region. SeaStation cages are typically configured using a grid mooring system that includes grid, anchor, and mooring lines secured at varying distances from the cages [@fredriksson_design_2004; @xu_research_2015].We developed a hypothetical farm design for a 1 km^2^ cell that  has 16 SeaStation cages (each 6,400 m^3^)  configured in two eight-cell grid mooring systems that occupy a total space of approximately ~0.48 km^2^ and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@loverich_case_2010].
 
-This cage configuration is similar to a 0.4 km^2^ offshore aquaculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ (Sims et al. 2013). The total cage volume per unit of total farm area of our hypothetical design falls within the range of total cage volume per unit area of farm area for the Kona farm [@sims_kona_2012] and another offshore farm using SeaStation cages in the Gulf of Maine [@fredriksson_design_2004]; @decew_assessment_2010). Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico specifying
+This cage configuration is similar to a 0.4 km^2^ offshore aquaculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ (Sims et al. 2013). The total cage volume per unit of total farm area of our hypothetical design falls within the range of total cage volume per unit area of farm area for the Kona farm [@sims_kona_2012] and another offshore farm using SeaStation cages in the Gulf of Maine [@fredriksson_design_2004]; [@decew_assessment_2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico specifying
 that total farm area should be twice the size of the total area occupied by farm infrastructure (GMFMC and NOAA 2009).
 
-To maintain a steady supply of product, commercial aquaculture farms typically stage the stocking of cages so that indivdiuals of harvestable size are available year round. Cobia take on average, 12 months to grow from fingerling to a harvestable size (). We assume that the stocking of individual cages within a farm is staged at a monthly time step. This means that for any given month, there will be between 1 and 5 cages with cobia at a harvestable age. We set the intial stock density of cages at 7.2 grams per m^3^, which is equivalent to 2.3 juveniles with an average weight of 3 grams [@benetti_growth_2010].This stocking density has been shown to produce higher growth rates for cobia in the Caribbean than cages stocked at a higer density [@benetti_growth_2010].
+To maintain a steady supply of product, commercial aquaculture farms typically stage the stocking of cages so that indivdiuals of harvestable size are available year round. Cobia take on average, 12 months to grow from fingerling to a harvestable size [@benetti_advances_2008]. We assume that the stocking of individual cages within a farm is staged at a monthly time step. This means that for any given month, there will be between 1 and 5 cages with cobia at a harvestable age. We set the intial stock density of cages at 7.2 grams per m^3^, which is equivalent to 2.3 juveniles with an average weight of 3 grams [@benetti_growth_2010].This stocking density has been shown to produce higher growth rates for cobia in the Caribbean than cages stocked at a higer density [@benetti_growth_2010].
 
 ## Bioeconomic Model
 
@@ -114,15 +115,15 @@ We applied a bioeconomic model to estimate the production (in terms of cobia bio
 ### Biological Model 
 We used a thermal performance curve (TPC) to model temperature dependent growth of cobia (Klinger et al. ) Temperature is one of the primary abiotic factors controlling growth in fish, including cobia [@benetti_growth_2010], and is a factor that cannot be controlled in offshore mariculture grow-out settings. We used 10 years of satellite-based sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. 
 
-We assume a t_min_ of 22 C and a t_max_ of 32 C (REF). Monthly biomass, $BM$, is then calculated for each month, at each individual farm as:
+We assume a t_min_ of 22 C [@_cobia_] and a t_max_ of 32 C [@benetti_growth_2010;@mcdaidkapetsky_global_2013] . Monthly biomass, $BM$, is then calculated for each month, at each individual farm as:
 
 * INSERT DANE'S THERMAL PERFORMANCE CURVE EQUATION *
 
-where $D$, is the initial stocking density ($\frac{kg}{m^3}$ ) of each farm, and $M$, the monthly natural mortality rate is assumed fixed at XX.
+where $D$, is the initial stocking density ($\frac{kg}{m^3}$ ) of each cage, and $S$, the total survival rate is assumed to be 95% [@benetti_advances_2008].
  
 Monthly biomass is then summed, to determine total annual biomass ($B_t$) at each farm.
 
-Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature, assuming an initial stocking density of XX, and a natural mortality ($M$) rate of XX [@benetti_growth_2010]. 
+Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature.
 
 ###Economic Model
 Using cost parameters that we derived from the literature for each EEZ (Table 2), and parameters that were fixed across all sites (Table 3), the economic model estimates total annual operating costs ($TC_t$) for year 1 ($t = 1$) as:  
@@ -157,7 +158,7 @@ $TP = \displaystyle\sum_t^{10}TR_t -\biggl[\displaystyle\sum_t^{10}SC_t + \displ
 
 We calculated the total summed biomass (mt) over a ten year period, and the 10 year Net Present Value (NPV), and only farms that generate positive revenue are considered feasible for development. Feasible farms within each EEZ were then ranked according to:  yield and profit (highest to lowest). We then examined the range of estimated yields and profits generated by farms within an EEZ, and compared the highest and lowest yield and revenue generating farms across EEZs.
 
-## Production Capacity (regional ecological carrying capacity)
+## Production Capacity (regional, ecological carrying capacity)
 
 Determining the aquaculture production level that a given region (in this case, an EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem [REF], currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale.
 ```{r GOM FMP,echo=FALSE,warning=FALSE,message=FALSE}
@@ -188,14 +189,14 @@ Finally, to identify the current major hurdles to the development of offshore aq
 
 ##Suitability Assessment
 ```{r Suitabiliby Analysis, echo=FALSE,warning=FALSE,message=FALSE}
-library(raster)
-library(rgdal)
-
-#This creates a spatial layer of 1km2 cells that may be suitable for cobia aquaculture, and estimates the number of suitable cells in each EEZ and accounted for by each factor
-
-#Assigns a zero to international waters and 1 to waters inside EEZ
+ library(raster)
+ library(rgdal)
+# 
+# #This creates a spatial layer of 1km2 cells that may be suitable for cobia aquaculture, and estimates the number of suitable cells in each EEZ and accounted for by each factor
+# 
+# #Assigns a zero to international waters and 1 to waters inside EEZ
 raster_eez<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
-non_countries<-c(81,103,112,263,54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221,120) 
+non_countries<-c(81,103,112,263,54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221,120)
 for (i in 1:length(non_countries)){
  raster_eez[raster_eez==non_countries[i]]<-0
 }
@@ -203,153 +204,155 @@ raster_eez[raster_eez==0]<-NA
 eez<-raster_eez
 eez[eez>0]<-1
 
-
-#Assigns depth values to either a 1 (between 25-90 m depth) or 0
-carib_depth<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
-carib_depth<-mask(carib_depth,eez,inverse=FALSE,maskvalues=1)
-carib_depth[is.na(carib_depth)]<-0
-carib_depth[carib_depth<25]<-0
-carib_depth[carib_depth>90]<-0
-land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
-carib_depth<-mask(carib_depth,land,inverse=FALSE,maskvalues=NA,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_depth.tif",overwrite=TRUE)
-carib_depth[carib_depth!=0]<-1
-
-#Assigns cells with MPAs present a zero
-MPA<-raster('C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_mpa_layer.tif')
-MPA<-mask(MPA,eez,inverse=FALSE,maskvalues=1)
-land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
-suitableMPA<-mask(MPA,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_MPA.tif",overwrite=TRUE)
-
-#Assigns cells either a 1 (< 1 m/s )  or 0 based on current velocity
-u<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_u.tif")
-v<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_v.tif")
-s<-stack(u,v)
-current<-calc(s,fun=function(x){max(abs(x),na.rm=FALSE)})
-current<-mask(current,eez,inverse=FALSE,maskvalues=1)
-current<-mask(current,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/final_carib_current.tif",overwrite=TRUE)
-current[current>1]<-0
-current[current==1]<-0
-current[current!=0]<-1
-
-#Assigns a 0 to cells with the top 10% of highest shipping activity
-ships<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_ship.tif")
-ships[is.na(ships)]<-0.1
-ships<-mask(ships,eez,inverse=FALSE,maskvalues=1)
-top<-unique(ships) #5949970
-top<-sort(top,decreasing=TRUE)
-num<-(length(top)*.10)
-top_num<-top[1:num]
-ship_threshold<-min(top_num)
-ships[ships>ship_threshold]<-0 ## 0.4 was chosen as an arbitary threshold for now
-ships[ships==ship_threshold]<-0
-ships<-mask(ships,land,maskvalues=NA,inverse=FALSE)
-#,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_shipping.tif",overwrite=TRUE)
-ships[ships>0]<-1
-
-###Assigns a 0 to cells with the benthic oil structures
-oil<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_oil.tif")
-oil<-mask(oil,eez,inverse=FALSE,maskvalues=1)
-oil[oil==1]<-100
-oil[oil==0]<-1
-oil[oil==100]<-0
-
-##Assigns a 0 to cells with coral reefs
-coral<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_coral_raster.tif")
-coral<-mask(coral,eez,inverse=FALSE,maskvalues=1)
-coral[coral==0]<-1
-coral[coral==2]<-0
-##Create dataframe summarizing the total suitable area based on each factor (area function needs NAs)
-
-factors<-c("EEZ","Depth","Shipping Activity","Marine Protected Areas","Maximum current velocity", "Coral Presence","Benthic Oil Structure","Deep Sea Mining")
-df<-data.frame(matrix(nrow=8, ncol=3))
-colnames(df)<-c("Factor", "Suitable Area (km2)", "Percent of Total Study Area")
-df$Factor<-factors
-
-###Total EEZ area
+# 
+# #Assigns depth values to either a 1 (between 25-90 m depth) or 0
+# carib_depth<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+# carib_depth<-mask(carib_depth,eez,inverse=FALSE,maskvalues=1)
+# carib_depth[is.na(carib_depth)]<-0
+# carib_depth[carib_depth<25]<-0
+# carib_depth[carib_depth>90]<-0
+# land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+# carib_depth<-mask(carib_depth,land,inverse=FALSE,maskvalues=NA,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_depth.tif",overwrite=TRUE)
+# carib_depth[carib_depth!=0]<-1
+# 
+# #Assigns cells with MPAs present a zero
+# MPA<-raster('C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_mpa_layer.tif')
+# MPA<-mask(MPA,eez,inverse=FALSE,maskvalues=1)
+# land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
+# suitableMPA<-mask(MPA,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_MPA.tif",overwrite=TRUE)
+# 
+# #Assigns cells either a 1 (< 1 m/s )  or 0 based on current velocity
+# u<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_u.tif")
+# v<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_v.tif")
+# s<-stack(u,v)
+# current<-calc(s,fun=function(x){max(abs(x),na.rm=FALSE)})
+# current<-mask(current,eez,inverse=FALSE,maskvalues=1)
+# current<-mask(current,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/final_carib_current.tif",overwrite=TRUE)
+# current[current>1]<-0
+# current[current==1]<-0
+# current[current!=0]<-1
+# 
+# #Assigns a 0 to cells with the top 10% of highest shipping activity
+# ships<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_ship.tif")
+# ships[is.na(ships)]<-0.1
+# ships<-mask(ships,eez,inverse=FALSE,maskvalues=1)
+# top<-unique(ships) #5949970
+# top<-sort(top,decreasing=TRUE)
+# num<-(length(top)*.10)
+# top_num<-top[1:num]
+# ship_threshold<-min(top_num)
+# ships[ships>ship_threshold]<-0 ## 0.4 was chosen as an arbitary threshold for now
+# ships[ships==ship_threshold]<-0
+# ships<-mask(ships,land,maskvalues=NA,inverse=FALSE)
+# #,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_shipping.tif",overwrite=TRUE)
+# ships[ships>0]<-1
+# 
+# ###Assigns a 0 to cells with the benthic oil structures
+# oil<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_oil.tif")
+# oil<-mask(oil,eez,inverse=FALSE,maskvalues=1)
+# oil[oil==1]<-100
+# oil[oil==0]<-1
+# oil[oil==100]<-0
+# 
+# ##Assigns a 0 to cells with coral reefs
+# coral<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_coral_raster.tif")
+# coral<-mask(coral,eez,inverse=FALSE,maskvalues=1)
+# coral[coral==0]<-1
+# coral[coral==2]<-0
+# ##Create dataframe summarizing the total suitable area based on each factor (area function needs NAs)
+# 
+# factors<-c("EEZ","Depth","Shipping Activity","Marine Protected Areas","Maximum current velocity", "Coral Presence","Benthic Oil Structure","Deep Sea Mining")
+# df<-data.frame(matrix(nrow=8, ncol=3))
+# colnames(df)<-c("Factor", "Suitable Area (km2)", "Percent of Total Study Area")
+# df$Factor<-factors
+# 
+# ###Total EEZ area
 eez2<-eez
 eez2[eez2==0]<-NA
 eez_area<-as.data.frame(area(eez2,na.rm=TRUE))
 eez_total_area<-sum(eez_area,na.rm=TRUE)
-df[1,2]<-eez_total_area
-df[1,3]<-100
-
-###Total depth area
-carib_depth2<-carib_depth
-carib_depth2[carib_depth2==0]<-NA
-depth_area<-as.data.frame(area(carib_depth2,na.rm=TRUE))
-total_depth_area<-sum(depth_area,na.rm=TRUE)
-df[2,2]<-total_depth_area
-df[2,3]<-total_depth_area/eez_total_area*100
-carib_depth2[is.na(carib_depth2)]<-0
-
-
-### Total shipping area
-ships2<-ships
-total_ship<-stack(carib_depth2,ships2)
-total_ship<-stackApply(total_ship,indices=c(1,1),fun=prod,na.rm=TRUE)
-total_ship[total_ship==0]<-NA
-ship_area<-as.data.frame(area(total_ship,na.rm=TRUE))
-total_ship_area<-sum(ship_area,na.rm=TRUE)
-df[3,2]<-total_ship_area
-df[3,3]<-total_ship_area/eez_total_area*100
-ships2[is.na(ships2)]<-0
-
-### Total MPA area
-MPA2<-suitableMPA
-total_MPA<-stack(carib_depth2,ships2,MPA2)
-total_MPA<-stackApply(total_MPA,indices=c(1,1,1),fun=prod,na.rm=FALSE)
-total_MPA[total_MPA==0]<-NA
-total_MPA<-as.data.frame(area(total_MPA,na.rm=TRUE))
-total_MPA_area<-sum(total_MPA,na.rm=TRUE)
-df[4,2]<-total_MPA_area
-df[4,3]<-total_MPA_area/eez_total_area*100
-MPA2[is.na(MPA2)]<-0
-
-### Total current area
-current2<-current
-total_current<-stack(carib_depth2,ships2,MPA2,current2)
-total_current<-stackApply(total_current,indices=c(1,1,1,1),fun=prod,na.rm=FALSE)
-total_current[total_current==0]<-NA
-current_area<-as.data.frame(area(total_current,na.rm=TRUE))
-total_current_area<-sum(current_area,na.rm=TRUE)
-df[5,2]<-total_current_area
-df[5,3]<-total_current_area/eez_total_area*100
-
-
-##Total coral area
-coral2<-coral
-total_coral<-stack(carib_depth2,ships2,MPA2,current2,coral2)
-total_coral<-stackApply(total_coral,indices=c(1,1,1,1,1),fun=prod,na.rm=FALSE)
-total_coral[total_coral==0]<-NA
-total_coral<-as.data.frame(area(total_coral,na.rm=TRUE))
-total_coral_area<-sum(total_coral,na.rm=TRUE)
-df[6,2]<-total_coral_area
-df[6,3]<-total_coral_area/eez_total_area*100
-
-### Total oil area
-oil2<-oil
-total_oil<-stack(carib_depth2,ships2,MPA2,current2,coral2,oil2)
-total_oil<-stackApply(total_oil,indices=c(1,1,1,1,1,1),fun=prod,na.rm=FALSE)
-total_oil[total_oil==0]<-NA
-oil_area<-as.data.frame(area(total_oil,na.rm=TRUE))
-total_oil_area<-sum(oil_area,na.rm=TRUE)
-df[7,2]<-total_oil_area
-df[7,3]<-total_oil_area/eez_total_area*100
-
-
-### Total Deep sea area
-df[8,2]<-total_oil_area
-df[8,3]<-total_oil_area/eez_total_area*100
-
-###final dataframe
-df<-df[order(df$`Suitable Area`,decreasing=TRUE),]
-colnames(df)<-c("Factor","Suitable Area (km2)","Percent Area Suitable")
-write.csv(df,"table2.csv",sep="")
-
-#Boolean Overlay to identify final suitable cells using all layers and calculate
-s = stack(carib_depth,suitableMPA,current,ships,eez,oil,coral)
-s<-stackApply(s,indices=c(1,1,1,1,1,1,1),fun=prod,na.rm=FALSE)
-all<-mask(s,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif",overwrite=TRUE)
+#df[1,2]<-eez_total_area
+#df[1,3]<-100
+# 
+# ###Total depth area
+# carib_depth2<-carib_depth
+# carib_depth2[carib_depth2==0]<-NA
+# depth_area<-as.data.frame(area(carib_depth2,na.rm=TRUE))
+# total_depth_area<-sum(depth_area,na.rm=TRUE)
+# df[2,2]<-total_depth_area
+# df[2,3]<-total_depth_area/eez_total_area*100
+# carib_depth2[is.na(carib_depth2)]<-0
+# 
+# 
+# ### Total shipping area
+# ships2<-ships
+# total_ship<-stack(carib_depth2,ships2)
+# total_ship<-stackApply(total_ship,indices=c(1,1),fun=prod,na.rm=TRUE)
+# total_ship[total_ship==0]<-NA
+# ship_area<-as.data.frame(area(total_ship,na.rm=TRUE))
+# total_ship_area<-sum(ship_area,na.rm=TRUE)
+# df[3,2]<-total_ship_area
+# df[3,3]<-total_ship_area/eez_total_area*100
+# ships2[is.na(ships2)]<-0
+# 
+# ### Total MPA area
+# MPA2<-suitableMPA
+# total_MPA<-stack(carib_depth2,ships2,MPA2)
+# total_MPA<-stackApply(total_MPA,indices=c(1,1,1),fun=prod,na.rm=FALSE)
+# total_MPA[total_MPA==0]<-NA
+# total_MPA<-as.data.frame(area(total_MPA,na.rm=TRUE))
+# total_MPA_area<-sum(total_MPA,na.rm=TRUE)
+# df[4,2]<-total_MPA_area
+# df[4,3]<-total_MPA_area/eez_total_area*100
+# MPA2[is.na(MPA2)]<-0
+# 
+# ### Total current area
+# current2<-current
+# total_current<-stack(carib_depth2,ships2,MPA2,current2)
+# total_current<-stackApply(total_current,indices=c(1,1,1,1),fun=prod,na.rm=FALSE)
+# total_current[total_current==0]<-NA
+# current_area<-as.data.frame(area(total_current,na.rm=TRUE))
+# total_current_area<-sum(current_area,na.rm=TRUE)
+# df[5,2]<-total_current_area
+# df[5,3]<-total_current_area/eez_total_area*100
+# 
+# 
+# ##Total coral area
+# coral2<-coral
+# total_coral<-stack(carib_depth2,ships2,MPA2,current2,coral2)
+# total_coral<-stackApply(total_coral,indices=c(1,1,1,1,1),fun=prod,na.rm=FALSE)
+# total_coral[total_coral==0]<-NA
+# total_coral<-as.data.frame(area(total_coral,na.rm=TRUE))
+# total_coral_area<-sum(total_coral,na.rm=TRUE)
+# df[6,2]<-total_coral_area
+# df[6,3]<-total_coral_area/eez_total_area*100
+# 
+# ### Total oil area
+# oil2<-oil
+# total_oil<-stack(carib_depth2,ships2,MPA2,current2,coral2,oil2)
+# total_oil<-stackApply(total_oil,indices=c(1,1,1,1,1,1),fun=prod,na.rm=FALSE)
+# total_oil[total_oil==0]<-NA
+# oil_area<-as.data.frame(area(total_oil,na.rm=TRUE))
+# total_oil_area<-sum(oil_area,na.rm=TRUE)
+# df[7,2]<-total_oil_area
+# df[7,3]<-total_oil_area/eez_total_area*100
+# 
+# 
+# ### Total Deep sea area
+# df[8,2]<-total_oil_area
+# df[8,3]<-total_oil_area/eez_total_area*100
+# 
+# ###final dataframe
+# df<-df[order(df$`Suitable Area`,decreasing=TRUE),]
+# colnames(df)<-c("Factor","Suitable Area (km2)","Percent Area Suitable")
+# write.csv(df,"table2.csv",sep="")
+# 
+# #Boolean Overlay to identify final suitable cells using all layers and calculate
+# s = stack(carib_depth,suitableMPA,current,ships,eez,oil,coral)
+# s<-stackApply(s,indices=c(1,1,1,1,1,1,1),fun=prod,na.rm=FALSE)
+# all<-mask(s,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif",overwrite=TRUE)
+#library(raster)
+all<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif")
 all[all==0]<-NA
 suitable_area<-as.data.frame(area(all,na.rm=TRUE))
 final_suitable_area<-sum(suitable_area,na.rm=TRUE)
@@ -359,53 +362,53 @@ percent_total<-final_suitable_area/eez_total_area*100
 
 
 # Calculate total suitable area by country
-EEZ = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape")
-EEZ$PolygonID<-as.numeric(as.character(EEZ$PolygonID))
-for (i in 1:length(non_countries)){
- EEZ$PolygonID[EEZ$PolygonID==non_countries[i]]<-0
-}
-EEZ<-EEZ[EEZ$PolygonID!=0,]
-EEZ$Pol_type<-as.character(EEZ$Pol_type)
-EEZ<-EEZ[EEZ$Pol_type!="Disputed",]
-
-
-countries<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
-for (i in 1:length(non_countries)){
- countries[countries==non_countries[i]]<-0
-}
-countries[countries==0]<-NA
-
-#country<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_eez.tif")
-names<-data.frame(matrix(NA,nrow=33,ncol=3))
-
-EEZ2<-as.data.frame(EEZ)
-c<-EEZ2[,c(1,3,22)]
-c<-na.omit(c)
-c<-c[-34,] #eliminates joint regime for Honodurus/Cayman Is. bc not showing up in carib_eez_ocean raster file
-area_all<-area(all,na.rm=TRUE)
-eez_area<-zonal(area_all,countries,fun='sum')
-unique(countries)
-
-for (i in 1:nrow(eez_area)){
-m<-as.integer(eez_area[i,1])
-names[i,1]<-m
-n<-c$GeoName[c$PolygonID==m]
-n<-as.character(n[1])
-names[i,2]<-n
-a<-c$Area_km2[c$PolygonID==m]
-a<-as.integer(a[1])
-names[i,3]<-a
-}
-
-cells<-cbind(names,c$Area_km2,eez_area)
-cells$X2<-gsub("Exclusive Economic Zone","EEZ",cells$X2)
-cells<-cells[,-c(1,3,5)]
-cells<-cells[order(cells$sum,decreasing=TRUE),]
-percent_area<-cells$sum/cells$'c$Area_km2'*100
-cells<-cbind(cells,percent_area)
-colnames(cells)<-c("Island Country EEZ", "Total EEZ area (km2)","Suitable Area (km2)", "Percent of EEZ Suitable for Offshore Aquaculture")
-cells<-as.data.frame(cells)
-write.csv(cells,"C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable area by country.csv")
+# EEZ = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape")
+# EEZ$PolygonID<-as.numeric(as.character(EEZ$PolygonID))
+# for (i in 1:length(non_countries)){
+#  EEZ$PolygonID[EEZ$PolygonID==non_countries[i]]<-0
+# }
+# EEZ<-EEZ[EEZ$PolygonID!=0,]
+# EEZ$Pol_type<-as.character(EEZ$Pol_type)
+# EEZ<-EEZ[EEZ$Pol_type!="Disputed",]
+# 
+# 
+# countries<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
+# for (i in 1:length(non_countries)){
+#  countries[countries==non_countries[i]]<-0
+# }
+# countries[countries==0]<-NA
+# 
+# #country<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_eez.tif")
+# names<-data.frame(matrix(NA,nrow=33,ncol=3))
+# 
+# EEZ2<-as.data.frame(EEZ)
+# c<-EEZ2[,c(1,3,22)]
+# c<-na.omit(c)
+# c<-c[-34,] #eliminates joint regime for Honodurus/Cayman Is. bc not showing up in carib_eez_ocean raster file
+# area_all<-area(all,na.rm=TRUE)
+# eez_area<-zonal(area_all,countries,fun='sum')
+# unique(countries)
+# 
+# for (i in 1:nrow(eez_area)){
+# m<-as.integer(eez_area[i,1])
+# names[i,1]<-m
+# n<-c$GeoName[c$PolygonID==m]
+# n<-as.character(n[1])
+# names[i,2]<-n
+# a<-c$Area_km2[c$PolygonID==m]
+# a<-as.integer(a[1])
+# names[i,3]<-a
+# }
+# 
+# cells<-cbind(names,c$Area_km2,eez_area)
+# cells$X2<-gsub("Exclusive Economic Zone","EEZ",cells$X2)
+# cells<-cells[,-c(1,3,5)]
+# cells<-cells[order(cells$sum,decreasing=TRUE),]
+# percent_area<-cells$sum/cells$'c$Area_km2'*100
+# cells<-cbind(cells,percent_area)
+# colnames(cells)<-c("Island Country EEZ", "Total EEZ area (km2)","Suitable Area (km2)", "Percent of EEZ Suitable for Offshore Aquaculture")
+# cells<-as.data.frame(cells)
+# write.csv(cells,"C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable area by country.csv")
 
 ```
 Based on the factors and criteria described in Table 1, we found a total of  `r prettyNum(final_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_total,big.mark.=",")`% of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 2).
@@ -425,7 +428,7 @@ tm_shape(land)+
 tm_shape(all)+
   tm_raster(showNA=FALSE,legend.show=FALSE,colorNA=NULL)
 
-
+rm(World)
 ```
 
 The total area identified as suitable based on each of the factors considered in our analysis are listed in Table 4. 
@@ -452,40 +455,38 @@ pander::pandoc.table(table3,round=2,digits=2,big.mark=",",justify=c('center','ce
 The identified suitable areas were not distributed evenly across EEZs (Table 5). The Bahamas EEZ contained the largest amount of suitable area and Trinidad and Tobago and Saba's EEZs included the highest percentages of suitable area (>10%), while no suitable areas were identified in the EEZ's of Guadeloupe, Saint Martin or Martinque. 
 
 ##Production Capacity
-```{r}
-final_area<-read.csv("Suitability/final/suitable area by country.csv")
-final_area<-final_area[,c(2,3,4)]
-
-#Gulf of Mexico Suitable Area
-gom_area<-35643 #km^2
-
-#Gulf of Mexico production capacity
-gom_prod<-29000 #metric tons
-
-#Gulf of Mexico production per unit area
-gom_prod_per_area<-gom_prod/gom_area #mt/km
-#gom_prod_per_area<-813.36 kg/km
-gom_eez<-98629
-gom_prod2<-gom_prod/gom_eez
-colnames(final_area)<-c("Country","EEZ_area","Suitable_area")
-
-##Make data frame calculating eco capacity using GOM production per unit area
-library(dplyr)
-total_area_info<-final_area %>%
-  mutate(Prop_suitable_EEZ = Suitable_area/EEZ_area*100)%>%
-  mutate(Gom__capacity_mt = gom_prod_per_area*Suitable_area)
-
-## World production capacity (see eco_capacity_prep for data layer prep)
-#depth < = 100 m
-depth<-raster('Suitability/tmp/world_suitable_depth.tif')
+# ```{r}
+# final_area<-read.csv("Suitability/final/suitable area by country.csv")
+# final_area<-final_area[,c(2,3,4)]
+# 
+# #Gulf of Mexico Suitable Area
+# gom_area<-35643 #km^2
+# 
+# #Gulf of Mexico production capacity
+# gom_prod<-29000 #metric tons
+# 
+# #Gulf of Mexico production per unit area
+# gom_prod_per_area<-gom_prod/gom_area #mt/km
+# #gom_prod_per_area<-813.36 kg/km
+# gom_eez<-98629
+# gom_prod2<-gom_prod/gom_eez
+# colnames(final_area)<-c("Country","EEZ_area","Suitable_area")
+# 
+# ##Make data frame calculating eco capacity using GOM production per unit area
+# library(dplyr)
+# total_area_info<-final_area %>%
+#   mutate(Prop_suitable_EEZ = Suitable_area/EEZ_area*100)%>%
+#   mutate(Gom__capacity_mt = gom_prod_per_area*Suitable_area)
+# 
+# ## World production capacity (see eco_capacity_prep for data layer prep)
+# #depth < = 100 m
+# depth<-raster('Suitability/tmp/world_suitable_depth.tif')
 
 
 
 ```
 
 ##Production capacity
-### Regional
-### By EEZ
 
 # Discussion
 
@@ -503,3 +504,5 @@ WDPA Updates
 OceanSpar 2013.
 
 UNEP-WCMC, WorldFish Centre, WRI, TNC (2010). Global distribution of warm-water coral reefs, compiled from multiple sources including the Millennium Coral Reef Mapping Project. Version 1.3. Includes contributions from IMaRS-USF and IRD (2005), IMaRS-USF (2005) and Spalding et al. (2001). Cambridge (UK): UNEP World Conservation Monitoring Centre. URL: http://data.unep-wcmc.org/datasets/1
+
+#Apendix
