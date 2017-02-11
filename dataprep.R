@@ -11,6 +11,7 @@ library(ncdf4)
 
 
 setwd("Y:/Documents/Work for waitt/WI 2016/Caribbean-Aquaculture") #work computer directory
+boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Depth data from: http://topex.ucsd.edu/WWW_html/srtm30_plus.html
@@ -20,26 +21,31 @@ depth <- rotate(depth,progress='text')
 r_depth<-raster("Y:/Documents/Work for waitt/WI 2016/Caribbean-Aquaculture/Suitability/tmp/topo30.tif")
 carib_depth<-crop(depth,ext)
 carib_depth = calc(carib_depth,fun=function(x){ifelse(x<=0,(x*-1),NA)},progress='text',filename='Suitability/tmp/carib_depth.tif')
-
+carib_depth<-raster('Suitability/tmp/carib_depth.tif')
 
 #-----------------------------------------------------------------
 #-----------------------------------------------------------------
 # EEZs data from: http://www.marineregions.org/downloads.php
 
-EEZ = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/raw/EEZ",layer="eez",stringsAsFactors=FALSE)
+EEZ = readOGR(dsn=paste(boxdir,"Suitability/raw/EEZ",sep=""),layer="eez",stringsAsFactors=FALSE)
 
 ext<-c(-87.29167,-57.04167,7.375,30.16667)
 
-#carib_eez<-crop(EEZ,ext,progress='text')
+carib_eez<-crop(EEZ,ext,progress='text')
 
-#writeOGR(carib_eez, dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",driver="ESRI Shapefile", layer="carib_eez_shape2")
+writeOGR(carib_eez, dsn=paste(boxdir,"Suitability/tmp",sep=""),driver="ESRI Shapefile", layer="carib_eez_shape",overwrite=TRUE)
 
-carib_eez<-readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ", layer="carib_eez_shape2")
+carib_eez<-readOGR(dsn=paste(boxdir,"Suitability/tmp",sep=""), layer="carib_eez_shape")
 carib_eez@data$PolygonID<-carib_eez@data$PolygonID[carib_eez@data$PolygonID==123]<-1000land<-readOGR( dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape2")
 carib_eez$PolygonID<-as.numeric(as.character(carib_eez$PolygonID))
 carib_eez_raster<-rasterize(carib_eez,carib_depth,field=carib_eez$PolygonID,progress='text')
 carib_eez_raster_mask <- mask(carib_eez_raster,carib_depth,progress='text',filename='Suitability/tmp/carib_eez_ocean.tif',overwrite=T)
+country<-as.vector(c(48,49,50,52,53,56,57,60,64,65,66,71,72,75,79,83,84,85,86,87,88,89,91,92,93,94,95,99,100,101,110,111,122,123))
 
+carib_suitable_eez<-carib_eez_raster_mask[carib_eez_raster_mask %in% country==1]
+carib_eez_raster_mask[carib_eez_raster_mask>1]<-0
+plot(carib_suitable_eez)
+writeRaster(carib_suitable_eez,paste(boxdir,"Suitability/tmp/suitable_eez.tif",sep="")
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 
