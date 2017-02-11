@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2017-01-24 13:02:27
+[georeference]
+nrows=21600
+ncols=24000
+xmin=-100.004166666
+ymin=-90.004166667
+xmax=99.995833334
+ymax=89.995833333
+projection=+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
+[data]
+datatype=FLT8S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=1
+maxvalue=90
+nodatavalue=-1.7e+308
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=world_suitable_depth

@@ -1,0 +1,30 @@
+Resources associated to the research article:
+
+***
+Iliana Chollett, Peter J. Mumby, Frank E. Müller-Karger,  Chuanmin Hu (2012). Physical environments of the Caribbean Sea. Limnology and Oceanography. 57:1233-1244
+***
+
+
+PECS_regions.lyr
+GIS layer of physicochemical regions. The descriptors of each cluster include the average and standard deviation from the input variables (average sea surface temperature, minimum monthly mean  sea surface temperature, maximum monthly mean  sea surface temperature, water quality proxy and salinity)
+Please use layer (.lyr) files in order to get the same simbology used in the paper. 
+No data=-2
+Land=-1
+
+PECS_hurricanes.lyr
+GIS layer of number of hurricanes category 1-5 experienced between 1851 and 2008
+Please use layer (.lyr) files in order to get the same simbology used in the paper. 
+No data=-2
+Land=-1
+
+PECS_exposure.lyr
+GIS layer of average wave exposure for the period 1999-2008. Units are Joules per cubic meter. Scale is transformed in natural logarithm.
+Please use layer (.lyr) files in order to get the same simbology used in the paper. 
+No data=-2
+Land=-1
+
+clusters_characteristics.xlsx
+This file has the information contained in Table I of the manuscript with average and standard deviation of each input variable for each physicochemical region
+
+Chollett_et_al_2012_PECS.pdf
+Manuscript
