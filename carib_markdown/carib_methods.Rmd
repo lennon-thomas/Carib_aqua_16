@@ -67,8 +67,9 @@ The area of focus for this studyis the Territorial waters and Exclusive Economic
 library(tmap)
 library(rgdal)
 data(World)
+boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 
-land = readOGR( dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape")
+land = readOGR( dsn=paste(boxdir,"Suitability/tmp",sep=""),layer="carib_eez_shape")
 country<-c(48,49,50,52,53,56,57,60,64,65,66,71,72,75,79,83,84,85,86,87,88,89,91,92,93,94,95,99,100,101,110,111,122,123)
 land$la<-ifelse(land@data$PolygonID %in% country,"lightblue","white")
  tm_shape(land)+
@@ -89,10 +90,11 @@ data<-read.csv("table_1.csv",check.names=FALSE)
 library(pander)
 set.alignment("center")
 names(data) <- pandoc.strong.return(names(data))
-pander::pandoc.table(data,justify=c('center','center','center','left','left'),split.cells=c(9,9,9,40,10),split.tables=Inf,caption=" Spatial data layers used in suitability analysis to identify cells suitable for cobia offshore mariculture")
+print(data)
+#pander::pandoc.table(data,caption=" Spatial data layers used in suitability analysis to identify cells suitable for cobia offshore mariculture")
 ```
 
-We conducted our suitability assessment assuming the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@loverich_case_2010; Open Blue 2016].The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 90 m. In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly [@scott_offshore_2000]. It is possible in the future, deeper depths could become more feasible from an economic and engineering perspective, and this maximum depth limit could be adjusted accordingly in subsequent analyses. Spatial bathymetry data were obtained from Becker *et al* [-@becker_global_2009a], and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. Additionally, SeaStation cages can withstand consistent current velocities up to 1 m/s (Loverich 2007). To identify areas with unsuitably high current velocities, we obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research [@esr_oscar_2009]. The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 m/s were scored as unsuitable for the development of offshore aquaculture.
+We conducted our suitability assessment assuming the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@loverich_case_2010; Open Blue 2016].The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis was set at 100 m [@kapetsky2013]. In waters deeper than 90 m, cage installation and inspection of mooring and anchoring systems is more difficult and costly [@scott_offshore_2000]. It is possible in the future, deeper depths could become more feasible from an economic and engineering perspective, and this maximum depth limit could be adjusted accordingly in subsequent analyses. Spatial bathymetry data were obtained from Becker *et al* [-@becker_global_2009a], and areas that fell within a 25-90 m depth were scored as suitable for offshore mariculture development. Additionally, SeaStation cages can withstand consistent current velocities up to 1 m/s (Loverich 2007). To identify areas with unsuitably high current velocities, we obtained 10 years (2005-2015) of monthly average current data from Ocean Surface Current Analysis Real-time (OSCAR) zonal and meridional surface current velocity estimates from JPL Physical Oceanography DAAC and developed by Earth Space Research [@esr_oscar_2009]. The absolute maximum zonal and meridional velocities for each cell in our study area were calculated, and any cell with a maximum zonal or meridional velocity greater than 1 m/s were scored as unsuitable for the development of offshore aquaculture.
 
 To identify areas currently designated or utilized for other purposes, and for that reason unsuitable for offshore mariculture development, we obtained spatial data on: shipping activity, existing benthic oil structures, areas permitted for deep sea bed mining, and areas that have been designated as Marine Protected Areas or Conservation Priority areas (Table 1). Areas that fell in the 10% of the highest relative shipping activity, designated for conservation or deep sea bed mining purposes, and with existing benthic oil structures were considered unsuitable for offshore aquaculture development. 
 
@@ -126,6 +128,7 @@ Monthly biomass is then summed, to determine total annual biomass ($B_t$) at eac
 Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature.
 
 ###Economic Model
+## Farm Costs
 Using cost parameters that we derived from the literature for each EEZ (Table 2), and parameters that were fixed across all sites (Table 3), the economic model estimates total annual operating costs ($TC_t$) for year 1 ($t = 1$) as:  
 $TC_{t = 1} = SC + OC_{t = 1}$
 
@@ -139,11 +142,23 @@ $OC_t$ represents annual operating costs at each year $t$:
 
 $OC_t = (u_{wave_exposure} * w * d_{EEZ}) + (\frac{distance}{b} * w * d_{EEZ} * r) + (distance * b * g_{EEZ} * e * t) + (f_t +h_t)$
 
-Where $u$ is the hours required at each site as a function of wave exposure, $w$ is the number of workers required to service a farm, and $d$ is the hourly wage per worker as a function of EEZ, $distance$ is distance from shore (km), $b$ is average boat speed to site, $r$ is the number of trips required per month for running the farm, $g$ is the cost of fuel as function of EEZ, $e$ is the average fuel efficiency of the vessel, $f$ is the cost of fingerlings in year $t$, and $h$ is the cost of feed in year $t$. The global market for cobia is currently very small, with just 8.5% of production (4,555 MT) exported in 2012. We assume that cobia aquaculture in the Caribbean will be an export commodity and thus increased production in the Caribbean will affect the global price of cobia $c_t$ as follows:
+Where $u$ is the hours required at each site as a function of wave exposure, $w$ is the number of workers required to service a farm, and $d$ is the hourly wage per worker as a function of EEZ, $distance$ is distance from shore (km), $b$ is average boat speed to site, $r$ is the number of trips required per month for running the farm, $g$ is the cost of fuel as function of EEZ, $e$ is the average fuel efficiency of the vessel, $f$ is the cost of fingerlings in year $t$, and $h$ is the cost of feed in year $t$. 
+
+##Risks
+
+##Cobia Supply and Demand Curve
+We created a supply and demand curve for cobia to estimate a set price for cobia.
+The global market for cobia is currently very small, with just 8.5% of production (4,555 MT) exported in 2012. We assume that cobia aquaculture in the Caribbean will be an export commodity and thus increased production in the Caribbean will affect the global price of cobia $c_t$ as follows:
 
 $c_{t+1} = c_t - 0.8c_{t}(\frac{\Delta_{x}}{x_{t-1}})$
 
 Where $c_{t+1}$ is the global price of cobia (\$) in the following year and $\frac{\Delta_{x}}{x_{t-1}}$ is the percent change in Caribbean production from the previous year. The constant 0.8 represents the price elasticity of demand and suggests that for every 1% increase in price there is a 0.8% decrease in consumption.
+
+To create a supply curve, we estimated the the total production of cobia at every price from 0 to XX at $0.05 increments. The intersection of the supply and demand curve was set as the price for cobia in the Caribbean. 
+
+The supply curve was estimated using several scenarios demonstrating different assumptions about risk: no risk, low risk and high risk. 
+
+##Total Farm Revenue
 
 Total annual revenue, $TR$, for each year $t$,  for each farm was calculated as :
 
@@ -188,90 +203,41 @@ Finally, to identify the current major hurdles to the development of offshore aq
 # Results
 
 ##Suitability Assessment
-```{r Suitabiliby Analysis, echo=FALSE,warning=FALSE,message=FALSE}
- library(raster)
- library(rgdal)
-# 
-# #This creates a spatial layer of 1km2 cells that may be suitable for cobia aquaculture, and estimates the number of suitable cells in each EEZ and accounted for by each factor
-# 
-# #Assigns a zero to international waters and 1 to waters inside EEZ
-raster_eez<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
-non_countries<-c(81,103,112,263,54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221,120)
-for (i in 1:length(non_countries)){
- raster_eez[raster_eez==non_countries[i]]<-0
-}
-raster_eez[raster_eez==0]<-NA
-eez<-raster_eez
-eez[eez>0]<-1
+```{r Read in results from suitabiliby analysis, echo=FALSE,warning=FALSE,message=FALSE}
+ 
+#Read in final suitability layers
 
-# 
-# #Assigns depth values to either a 1 (between 25-90 m depth) or 0
-# carib_depth<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
-# carib_depth<-mask(carib_depth,eez,inverse=FALSE,maskvalues=1)
-# carib_depth[is.na(carib_depth)]<-0
-# carib_depth[carib_depth<25]<-0
-# carib_depth[carib_depth>90]<-0
-# land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
-# carib_depth<-mask(carib_depth,land,inverse=FALSE,maskvalues=NA,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_depth.tif",overwrite=TRUE)
-# carib_depth[carib_depth!=0]<-1
-# 
-# #Assigns cells with MPAs present a zero
-# MPA<-raster('C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_mpa_layer.tif')
-# MPA<-mask(MPA,eez,inverse=FALSE,maskvalues=1)
-# land<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_depth.tif")
-# suitableMPA<-mask(MPA,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_MPA.tif",overwrite=TRUE)
-# 
-# #Assigns cells either a 1 (< 1 m/s )  or 0 based on current velocity
-# u<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_u.tif")
-# v<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/final_max_int_v.tif")
-# s<-stack(u,v)
-# current<-calc(s,fun=function(x){max(abs(x),na.rm=FALSE)})
-# current<-mask(current,eez,inverse=FALSE,maskvalues=1)
-# current<-mask(current,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/final_carib_current.tif",overwrite=TRUE)
-# current[current>1]<-0
-# current[current==1]<-0
-# current[current!=0]<-1
-# 
-# #Assigns a 0 to cells with the top 10% of highest shipping activity
-# ships<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_ship.tif")
-# ships[is.na(ships)]<-0.1
-# ships<-mask(ships,eez,inverse=FALSE,maskvalues=1)
-# top<-unique(ships) #5949970
-# top<-sort(top,decreasing=TRUE)
-# num<-(length(top)*.10)
-# top_num<-top[1:num]
-# ship_threshold<-min(top_num)
-# ships[ships>ship_threshold]<-0 ## 0.4 was chosen as an arbitary threshold for now
-# ships[ships==ship_threshold]<-0
-# ships<-mask(ships,land,maskvalues=NA,inverse=FALSE)
-# #,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_shipping.tif",overwrite=TRUE)
-# ships[ships>0]<-1
-# 
-# ###Assigns a 0 to cells with the benthic oil structures
-# oil<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable_oil.tif")
-# oil<-mask(oil,eez,inverse=FALSE,maskvalues=1)
-# oil[oil==1]<-100
-# oil[oil==0]<-1
-# oil[oil==100]<-0
-# 
-# ##Assigns a 0 to cells with coral reefs
-# coral<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_coral_raster.tif")
-# coral<-mask(coral,eez,inverse=FALSE,maskvalues=1)
-# coral[coral==0]<-1
-# coral[coral==2]<-0
-# ##Create dataframe summarizing the total suitable area based on each factor (area function needs NAs)
-# 
-# factors<-c("EEZ","Depth","Shipping Activity","Marine Protected Areas","Maximum current velocity", "Coral Presence","Benthic Oil Structure","Deep Sea Mining")
-# df<-data.frame(matrix(nrow=8, ncol=3))
-# colnames(df)<-c("Factor", "Suitable Area (km2)", "Percent of Total Study Area")
-# df$Factor<-factors
-# 
+suit_files<-list.files(paste(boxdir,'Suitability/final',sep=""),full.names=T,pattern='tif')
+suit_list<-lapply(suit_files,raster)
+suit_all<-brick(suit_list)
+name<-names(suit_all)
+suit_all[suit_all==0]<-NA
+names(suit_all)<-name
+
+
+suit_all[[1]]
+plot(suit_all[[1]])
+#Create dataframe summarizing the total suitable area based on each factor (area function needs NAs)
+factors<-name
+df<-data.frame(matrix(nrow=7, ncol=3))
+colnames(df)<-c("Factor", "Suitable Area (km2)", "Percent of Total Study Area")
+df$Factor<-factors
+i=2
+#calculate total suitable area for each layer
+for (i in 1:nlayers(suit_all)){
+  
+  l_area<-as.data.frame(area(suit_all[[i]],na.rm=TRUE))
+  t_area<-sum(l_area,na.rm=TRUE)
+  df[i,2]<-t_area
+}
+
+
 # ###Total EEZ area
-eez2<-eez
-eez2[eez2==0]<-NA
-eez_area<-as.data.frame(area(eez2,na.rm=TRUE))
-eez_total_area<-sum(eez_area,na.rm=TRUE)
-#df[1,2]<-eez_total_area
+# eez2<-eez
+# eez2[eez2==0]<-NA
+# eez_area<-as.data.frame(area(eez2,na.rm=TRUE))
+# eez_total_area<-sum(eez_area,na.rm=TRUE)
+# #df[1,2]<-eez_total_area
 #df[1,3]<-100
 # 
 # ###Total depth area
@@ -348,28 +314,19 @@ eez_total_area<-sum(eez_area,na.rm=TRUE)
 # write.csv(df,"table2.csv",sep="")
 # 
 # #Boolean Overlay to identify final suitable cells using all layers and calculate
-# s = stack(carib_depth,suitableMPA,current,ships,eez,oil,coral)
-# s<-stackApply(s,indices=c(1,1,1,1,1,1,1),fun=prod,na.rm=FALSE)
-# all<-mask(s,land,maskvalues=NA,inverse=FALSE,filename="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif",overwrite=TRUE)
-#library(raster)
-all<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif")
-all[all==0]<-NA
-suitable_area<-as.data.frame(area(all,na.rm=TRUE))
-final_suitable_area<-sum(suitable_area,na.rm=TRUE)
-percent_total<-final_suitable_area/eez_total_area*100
+#percent_total<-final_suitable_area/eez_total_area*100
 #all<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/Suitable areas.tif")
 
-
-
 # Calculate total suitable area by country
-# EEZ = readOGR(dsn="C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/EEZ",layer="carib_eez_shape")
-# EEZ$PolygonID<-as.numeric(as.character(EEZ$PolygonID))
-# for (i in 1:length(non_countries)){
-#  EEZ$PolygonID[EEZ$PolygonID==non_countries[i]]<-0
-# }
-# EEZ<-EEZ[EEZ$PolygonID!=0,]
-# EEZ$Pol_type<-as.character(EEZ$Pol_type)
-# EEZ<-EEZ[EEZ$Pol_type!="Disputed",]
+ eez = readOGR(dsn=paste(boxdir,"/Suitability/tmp",sep=""),layer="carib_eez_shape")
+ eez$PolygonID<-as.numeric(as.character(eez$PolygonID))
+ noncountries<-c(81,103,112,263,54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221,120)
+ for (i in 1:length(non_countries)){
+  eez$PolygonID[eez$PolygonID==noncountries[i]]<-0
+ }
+ eez<-eez[eez$PolygonID!=0]
+ eez$Pol_type<-as.character(eez$Pol_type)
+ eez<-eez[eez$Pol_type!="Disputed",]
 # 
 # 
 # countries<-raster("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/tmp/carib_eez_ocean.tif")
@@ -446,7 +403,7 @@ Depth was the largest constraining factor, with less than 2% of the total study 
 . 
 ```{r table 3, echo=FALSE, warning=FALSE, message=FALSE}
 library(pander)
-table3<-read.csv("C:/Users/Lennon Thomas/Desktop/Carib_aqua_16/Suitability/final/suitable area by country.csv")
+table3<-read.csv("table3.csv")
 table3<-table3[,-1]
 set.alignment("center")
 names(table3) <- pandoc.strong.return(names(table3))
@@ -486,7 +443,7 @@ The identified suitable areas were not distributed evenly across EEZs (Table 5).
 
 ```
 
-##Production capacity
+##Bioecnomic Model
 
 # Discussion
 
