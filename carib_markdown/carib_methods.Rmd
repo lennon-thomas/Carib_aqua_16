@@ -110,9 +110,28 @@ that total farm area should be twice the size of the total area occupied by farm
 
 To maintain a steady supply of product, commercial aquaculture farms typically stage the stocking of cages so that indivdiuals of harvestable size are available year round. Cobia take on average, 12 months to grow from fingerling to a harvestable size [@benetti_advances_2008]. We assume that the stocking of individual cages within a farm is staged at a monthly time step. This means that for any given month, there will be between 1 and 5 cages with cobia at a harvestable age. We set the intial stock density of cages at 7.2 grams per m^3^, which is equivalent to 2.3 juveniles with an average weight of 3 grams [@benetti_growth_2010].This stocking density has been shown to produce higher growth rates for cobia in the Caribbean than cages stocked at a higer density [@benetti_growth_2010].
 
+
+
 ## Bioeconomic Model
 
 We applied a bioeconomic model to estimate the production (in terms of cobia biomass yield (mt) and profit ($)) of individual farms developed in each of the 1 km^2^ cells that were identified as suitable for offshore aquaculture.  Only farms that generated positive profit over a ten year period were ultimately considered feasible for development.
+
+
+
+##BioEconomic Model
+
+The value of each farm was estimated using an economic model. Annual cobia production for each farm was mutiplied by the price of cobia to give annual farm reveneue. Farm profits were determinded. We then amortized annual profit in relation to an economic discount rate. Discounted profit were summed over a 10 year horizion to estimate the net present value (NPV):
+
+NPV = profits/(1+d)
+
+We also estimated the equivalent annual annuity of each sector's NPV over a 10 year time horizion for each site:
+
+C= d(NPV)
+1-(1+d)^-T
+
+###Discount Rate
+To predict federal direct investment in a country, three levels of risk are considered: polictical, financial, and economic[@erb1996]. Political risk was determinded by using the sum of the six Worldwide Governance Indicators [@kaufmann2010]: voice and accountability, political stability, government effectiveness, regulatory quality, rule of law, and control of corruption.
+###Production and costs
 
 ### Biological Model 
 We used a thermal performance curve (TPC) to model temperature dependent growth of cobia (Klinger et al. ) Temperature is one of the primary abiotic factors controlling growth in fish, including cobia [@benetti_growth_2010], and is a factor that cannot be controlled in offshore mariculture grow-out settings. We used 10 years of satellite-based sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. 
@@ -127,8 +146,6 @@ Monthly biomass is then summed, to determine total annual biomass ($B_t$) at eac
 
 Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature.
 
-###Economic Model
-## Farm Costs
 Using cost parameters that we derived from the literature for each EEZ (Table 2), and parameters that were fixed across all sites (Table 3), the economic model estimates total annual operating costs ($TC_t$) for year 1 ($t = 1$) as:  
 $TC_{t = 1} = SC + OC_{t = 1}$
 
@@ -144,9 +161,8 @@ $OC_t = (u_{wave_exposure} * w * d_{EEZ}) + (\frac{distance}{b} * w * d_{EEZ} * 
 
 Where $u$ is the hours required at each site as a function of wave exposure, $w$ is the number of workers required to service a farm, and $d$ is the hourly wage per worker as a function of EEZ, $distance$ is distance from shore (km), $b$ is average boat speed to site, $r$ is the number of trips required per month for running the farm, $g$ is the cost of fuel as function of EEZ, $e$ is the average fuel efficiency of the vessel, $f$ is the cost of fingerlings in year $t$, and $h$ is the cost of feed in year $t$. 
 
-##Risks
+### Cobia price
 
-##Cobia Supply and Demand Curve
 We created a supply and demand curve for cobia to estimate a set price for cobia.
 The global market for cobia is currently very small, with just 8.5% of production (4,555 MT) exported in 2012. We assume that cobia aquaculture in the Caribbean will be an export commodity and thus increased production in the Caribbean will affect the global price of cobia $c_t$ as follows:
 
@@ -154,7 +170,7 @@ $c_{t+1} = c_t - 0.8c_{t}(\frac{\Delta_{x}}{x_{t-1}})$
 
 Where $c_{t+1}$ is the global price of cobia (\$) in the following year and $\frac{\Delta_{x}}{x_{t-1}}$ is the percent change in Caribbean production from the previous year. The constant 0.8 represents the price elasticity of demand and suggests that for every 1% increase in price there is a 0.8% decrease in consumption.
 
-To create a supply curve, we estimated the the total production of cobia at every price from 0 to XX at $0.05 increments. The intersection of the supply and demand curve was set as the price for cobia in the Caribbean. 
+To create a supply curve, we estimated the the total production of cobia at every price from 0 to XX at $0.05 increments. The intersection of the supply and demand curve was set as the price for cobia in the Caribbean at the curren. 
 
 The supply curve was estimated using several scenarios demonstrating different assumptions about risk: no risk, low risk and high risk. 
 
