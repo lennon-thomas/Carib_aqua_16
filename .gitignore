@@ -7,8 +7,7 @@
 
 *.nc
 *.lzw
-*.docx
-*.doc
+
 *.dbf
 *.db
 *.mxd
