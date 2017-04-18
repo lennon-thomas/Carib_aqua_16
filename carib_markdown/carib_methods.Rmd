@@ -173,7 +173,11 @@ Where $c_{t+1}$ is the global price of cobia (\$) in the following year and $\fr
 To create a supply curve, we estimated the the total production of cobia at every price from 0 to XX at $0.05 increments. The intersection of the supply and demand curve was set as the price for cobia in the Caribbean at the curren. 
 
 The supply curve was estimated using several scenarios demonstrating different assumptions about risk: no risk, low risk and high risk. 
-
+## Investment Risk
+ 
+Barriers to the development of aquaculture in the Caribbean are lack of infrastructure, and polictical and economic stability, factors that deter private sector investors [@Rojas2007]
+ 
+ Major limitations to aquaculture development in the Caribbean region include lack of political and economic stability, which make aquaculture 
 ##Total Farm Revenue
 
 Total annual revenue, $TR$, for each year $t$,  for each farm was calculated as :
