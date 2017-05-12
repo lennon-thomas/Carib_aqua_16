@@ -19,8 +19,9 @@ bibliography: carib_aquaculture.bib
 fig_width <- 8
 fig_asp <- .65
 knitr::opts_chunk$set(echo = FALSE, message = F, warning = F,
-                      fig.asp = fig_asp, fig.width = fig_width,
-                      dev = 'cairo_pdf')
+                      fig.asp = fig_asp, fig.width = fig_width
+                      #,dev = 'cairo_pdf'
+                      )
 ```
 
 ```{r load run}
@@ -29,15 +30,15 @@ library (hrbrthemes)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(Cairo)
+#library(Cairo)
 library(tmap)
 library(rgdal)
 library(pander)
 library(raster)
 
 data(World)
-boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16')
-
+#boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16')
+boxdir<-("/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016")
 font_size = 18
 
 font_family = 'Helvetica'
@@ -105,7 +106,7 @@ The area of focus for this study is the Territorial waters and Exclusive Economi
 ```{r Caribbean EEZ tmap, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="The study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2014)."}
 
 
-land = readOGR( dsn=paste(boxdir,"/Suitability/tmp/",sep=""),layer="carib_eez_shape")
+land = readOGR(dsn=('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/tmp'),layer="carib_eez_shape")
 country<-c(48,49,50,52,53,56,57,60,64,65,66,71,72,75,79,83,84,85,86,87,88,89,91,92,93,94,95,99,100,101,110,111,122,123)
 land$la<-ifelse(land@data$PolygonID %in% country,"lightblue","white")
  tm_shape(land)+
@@ -146,9 +147,31 @@ To maintain a steady supply of product, commercial mariculture farms typically s
 
 ## Bioeconomic Model ##
 
-We applied a bio-economic model to estimate the production (in terms of cobia biomass yield (*mt*) and Net Present Value (*NPV*)) over a 10 year horizon of our hypothetical cobia farm (described above) for all 1 km^2^ areas that were identified as physically suitable. Only farms that generated positive NPV over the ten year period were considered economically feasible for development.
+We applied a bio-economic model to estimate the production (in terms of cobia biomass yield (*mt*) and Net Present Value (*NPV*)) over a 10 year horizon for our hypothetical cobia farm (described above) for all 1 km^2^ cell in our study area that were identified as physically suitable. Only farms that generated positive NPV over the ten year period were considered economically feasible for development.
 
-### Biological (growth) Model ###
+NPV = revenue/(1+d)
+
+We also estimated the equivalent annual annuity of each sector's NPV over a 10 year time horizion for each site:
+
+C= d(NPV)
+
+1-(1+d)^-
+
+NPV=discount rate*revenue
+
+Methods for calculating revenue and discount rate are described in the following sections. 
+
+Total annual revenue, $TR$, for each year $t$,  for each farm was calculated as :
+
+$TR_t = ( B_t c_t) – (B_t c_t j_{EEZ})$ 
+
+Where $j$ is the export tax as a function of EEZ. 
+
+The total profit ($TP$) for each farm over $t$ years was calculated as:
+
+$TP = \displaystyle\sum_t^{10}TR_t -\biggl[\displaystyle\sum_t^{10}SC_t + \displaystyle\sum_t^{10}OC_t\biggr]$
+
+#### Biological (growth) Model To calculate Profits ####
 
 Temperature is one of the primary abiotic factors controlling growth in fish, including cobia [@Brett1979], and is a factor that cannot be easily controlled in offshore mariculture grow-out settings [@Tidwell2012]. To reflect spatial differences in productivity across farms attributed to temperature variations, we used a thermal performance curve (TPC) to model temperature dependent individual growth of cobia. pWe used 10 years of satellite-based sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST:
 
@@ -156,13 +179,15 @@ where *tmin is XX, tmax is XX, and max growth occurs at topt, and SST is the ave
 
 Annual production (Pt) at each farm is then calculated as: 
 
-number of cage *(sum of harvest from a cage over a year = biomass in month i-1 + growth k ** cages are stocked in a way to optimize growth. 
+number of cage *(sum of harvest from a cage over a year = biomass in month i-1 + growth k * cages are stocked in a way to optimize growth. 
 
 where $D$, is the initial stocking density  of each cage, and $S$, the total survival rate is assumed to be 95% [@benetti_advances_2008].
  
 Monthly biomass is then summed, to determine total annual biomass ($B_t$) at each farm.
 
 Where $B_t$ estimates biomass (mt) in month $t$ as a function of average monthly sea surface temperature.
+
+#### Costs ####
 
 Using cost parameters that we derived from the literature for each EEZ (Table 2), and parameters that were fixed across all sites (Table 3), the economic model estimates total annual operating costs ($TC_t$) for year 1 ($t = 1$) as:  
 $TC_{t = 1} = SC + OC_{t = 1}$
@@ -179,46 +204,7 @@ $OC_t = (u_{wave_exposure} * w * d_{EEZ}) + (\frac{distance}{b} * w * d_{EEZ} * 
 
 Where $u$ is the hours required at each site as a function of wave exposure, $w$ is the number of workers required to service a farm, and $d$ is the hourly wage per worker as a function of EEZ, $distance$ is distance from shore (km), $b$ is average boat speed to site, $r$ is the number of trips required per month for running the farm, $g$ is the cost of fuel as function of EEZ, $e$ is the average fuel efficiency of the vessel, $f$ is the cost of fingerlings in year $t$, and $h$ is the cost of feed in year $t$
 
-### Economic Model ###
-
-We used an economic model to estimate the net present value (NPV) of each farm by summing discounted profits (d) over a 10 year horizion:
-
-NPV = profits/(1+d)
-
-We also estimated the equivalent annual annuity of each sector's NPV over a 10 year time horizion for each site:
-
-C= d(NPV)
-1-(1+d)^-
-NPV=discount rate*revenue
-
-A desicription of the methods we used to calculate a countries discount rate (d) can be found in the section below. A farm's revenue in year t was calculated as:
-P = R - C
-
-Where costs (c) is:
-
-C =start up costs + annual costs 
-
-We calculated the startup cost for a Farm  (*C*) as a function of depth< distance from shore, and EEZ:
-
-Where x,x,x
-
-Annual costs are a function of distance from shore and EEZ:
-xx
-Where x, x, x.
-
-Annual cobia production for each farm was mutiplied by the price of cobia to give annual farm reveneue (R):
-
-Where p is price. Description of how P was set
-
-### Discount Rate ###
-
-We incorporate the foreign investment risk associated with a country into the discount rate. In general, both political and economic conditions of a country determine how much risk is associated with investing in that country, and thus how much foreign direct investment is likely to occur (Schneider and Frey 1985). Political and economic instability has been identified as a major limiting factor to aquaculture development in the Caribbean (Rojas and Wadsworth 2007), with potential investors concerned that policies affecting aquaculture business will shift before they are able to make a profit. Here, we modify previously published methodologies for quantifying country investment risk to quantify a country’s relative investment risk in the Caribbean, where limited data on economic and political conditions are available. 
-
-Bhalla [-@Bhalla1983] developed the Foreign Investment Risk Matrix (FIRM) to assist investors in classifying the political and economic risks associated with investing in different countries using discrete risk categories. An expanded version of FIRM was developed by McGowan and Moeller [-@McGowanJr2009] that utilizes three political and three economic continuous risk variables that are readily available for most countries (Table 1). For each variable, a country’s rating is determined by transforming the data for that variable to a scale of 1 (low risk) to 5 (high risk) and multiplying by the specified weight to determine the variable’s final score (R x W) (Table 1).  Political and economic risk scores are calculated by taking the sum of final scores for all three variable, and the total risk score is calculated by multiplying the political and economic risk scores by the specified weight and then summing the values. The weights shown in Table 1 were arbitrarily chosen by McGowan and Moeller [-@McGowanJr2009]. In practice, they recommend weighting variables according to relevance and importance to the particular project that is being assessed.
-
-Limited data was available for the risk variables decribed by McGowan and Moeller [-@McGowanJr2009]for Caribbean islad countries. Only three countries in our study had data available for the “conflict” variable and only nine had data available for all five of the other McGowan and Moeller risk variables. Therefore, to calculate risk scores for the island countries in our region, we identified comparable, substitute risk variables for each of McGowan and Moeller’s risk variables that had data more widely available for the region. We then calculated Pearson’s correlation coefficients and significance vales between McGowan and Moeller’s risk variables and our selected substitute variables using countries that had data available for both sets to validate our substitute variables (Table XX). Although there were not enough data for the conflict variable in the Caribbean to calculate a correlation coefficient, we assumed WRI’s political stability score was a logical substitute. GDP per capita data were widely available, thus a substitute component for this variable was not necessary.
-
-### Cobia Price ###
+### Cobia Price ####
 
 We created a supply and demand curve for cobia to estimate a set price for cobia.
 The global market for cobia is currently very small, with just 8.5% of production (4,555 MT) exported in 2012. We assume that cobia aquaculture in the Caribbean will be an export commodity and thus increased production in the Caribbean will affect the global price of cobia $c_t$ as follows:
@@ -229,29 +215,13 @@ Where $c_{t+1}$ is the global price of cobia (\$) in the following year and $\fr
 
 To create a supply curve, we estimated the the total production of cobia at every price from 0 to XX at $0.05 increments. The intersection of the supply and demand curve was set as the price for cobia in the Caribbean at the curren. 
 
-The supply curve was estimated using several scenarios demonstrating different assumptions about risk: no risk, low risk and high risk. 
-<<<<<<< HEAD
+### Discount Rate ###
 
-## Total Farm Revenue ##
-=======
-## Investment Risk
- 
-Barriers to the development of aquaculture in the Caribbean are lack of infrastructure, and polictical and economic stability, factors that deter private sector investors [@Rojas2007]
- 
- Major limitations to aquaculture development in the Caribbean region include lack of political and economic stability, which make aquaculture 
-##Total Farm Revenue
->>>>>>> 39eba1ed430fa1a317b394f5fea9d9ec658f6513
+Barriers to the development of aquaculture in the Caribbean are lack of infrastructure, and polictical and economic stability, factors that deter private sector investors [@Rojas2007]We incorporate the foreign investment risk associated with a country into the discount rate. In general, both political and economic conditions of a country determine how much risk is associated with investing in that country, and thus how much foreign direct investment is likely to occur (Schneider and Frey 1985). Political and economic instability has been identified as a major limiting factor to aquaculture development in the Caribbean (Rojas and Wadsworth 2007), with potential investors concerned that policies affecting aquaculture business will shift before they are able to make a profit. Here, we modify previously published methodologies for quantifying country investment risk to quantify a country’s relative investment risk in the Caribbean, where limited data on economic and political conditions are available. 
 
-Total annual revenue, $TR$, for each year $t$,  for each farm was calculated as :
+Bhalla [-@Bhalla1983] developed the Foreign Investment Risk Matrix (FIRM) to assist investors in classifying the political and economic risks associated with investing in different countries using discrete risk categories. An expanded version of FIRM was developed by McGowan and Moeller [-@McGowanJr2009] that utilizes three political and three economic continuous risk variables that are readily available for most countries (Table 1). For each variable, a country’s rating is determined by transforming the data for that variable to a scale of 1 (low risk) to 5 (high risk) and multiplying by the specified weight to determine the variable’s final score (R x W) (Table 1).  Political and economic risk scores are calculated by taking the sum of final scores for all three variable, and the total risk score is calculated by multiplying the political and economic risk scores by the specified weight and then summing the values. The weights shown in Table 1 were arbitrarily chosen by McGowan and Moeller [-@McGowanJr2009]. In practice, they recommend weighting variables according to relevance and importance to the particular project that is being assessed.
 
-$TR_t = ( B_t c_t) – (B_t c_t j_{EEZ})$ 
-
-Where $j$ is the export tax as a function of EEZ. 
-
-The total profit ($TP$) for each farm over $t$ years was calculated as:
-
-$TP = \displaystyle\sum_t^{10}TR_t -\biggl[\displaystyle\sum_t^{10}SC_t + \displaystyle\sum_t^{10}OC_t\biggr]$
-
+Limited data was available for the risk variables decribed by McGowan and Moeller [-@McGowanJr2009]for Caribbean islad countries. Only three countries in our study had data available for the “conflict” variable and only nine had data available for all five of the other McGowan and Moeller risk variables. Therefore, to calculate risk scores for the island countries in our region, we identified comparable, substitute risk variables for each of McGowan and Moeller’s risk variables that had data more widely available for the region. We then calculated Pearson’s correlation coefficients and significance vales between McGowan and Moeller’s risk variables and our selected substitute variables using countries that had data available for both sets to validate our substitute variables (Table XX). Although there were not enough data for the conflict variable in the Caribbean to calculate a correlation coefficient, we assumed WRI’s political stability score was a logical substitute. GDP per capita data were widely available, thus a substitute component for this variable was not necessary.
 
 We calculated the total summed biomass (mt) over a ten year period, and the 10 year Net Present Value (NPV), and only farms that generate positive revenue are considered feasible for development. Feasible farms within each EEZ were then ranked according to:  yield and profit (highest to lowest). We then examined the range of estimated yields and profits generated by farms within an EEZ, and compared the highest and lowest yield and revenue generating farms across EEZs.
 
@@ -268,18 +238,28 @@ Guidelines for aquaculture development in U.S. waters of the Gulf of Mexico list
 
 We then investigated a range of potential regional production limit scenarios at the EEZ scale for the Caribbean:
 
-1. No production limit- There is no regionally specified production limit
+1. No production limit- There is no regionally specified production limit (demand curve is limiting)
 2. High production limit- We set the production limit by identifying the EEZ worldwide with highest production per unit area from our  production assessment and multiply that value by the total area identfied as suitable for offshore aquaculture development in each EEZ in the Caribbean.
 3. Precautionary limit- The production limit for each EEZ is determined by multiplying the production per unit area value specified for the Gulf of Mexico (`rProductionrate,big.mark=",") by the total area identified as suitable for offshore aquaculture development in  each EEZ.
 
 Under each scenario, individual farms were developed in order of highest annual revenue. Once a single farm is developed, all farms falling within 3 km in any direction from that farm are excluded (not developed) to decrease the chance of negative cumulative enviornmental impacts on the surrounding ecosystem.
 
 We then examined and compared the following under each production capacity scenario:
-•	Total production (in terms of profit and weight) for the entire study (Caribbean) region
-•	Total production (in terms of profit and weight) for each EEZ
-•	Range of individual farm production within EEZs (to the see potential gains of strategic spatial planning) and across EEZs (to determine the island countries with the greatest potential for offshore aquaculture development)
+*	Total production (in terms of profit and weight) for the entire study (Caribbean) region
+*	Total production (in terms of profit and weight) for each EEZ
+*	Range of individual farm production within EEZs (to the see potential gains of strategic spatial planning) and across EEZs (to determine the island countries with the greatest potential for offshore aquaculture development)
+
+## Sensitivity analysis ##
 
 Finally, to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we determined the main factors contributing to variability of farm and EEZ level aquaculture production by performing a suite of sensitivity analyses. 
+
+Specifically, we compared the output at both the individual farm, EEZ, and regional level by running the model under a range of values for the following parameters:
+
+* Range of suitable depths
+* Costs fingerling and feed 
+* Cobia price
+  - shift in demand curve
+* Risk parameters
 
 	
 # Results #
@@ -289,7 +269,7 @@ Finally, to identify the current major hurdles to the development of offshore aq
  
 #Read in final suitability layers
 
-suit_files<-list.files(paste(boxdir,"/Suitability/final",sep=""),full.names=T,pattern='tif')
+suit_files<-list.files('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/final',full.names=T,pattern='tif')
 suit_list<-lapply(suit_files,raster)
 suit_all<-brick(suit_list)
 name<-names(suit_all)
@@ -397,10 +377,10 @@ for (i in 1:nlayers(suit_all)){
 # 
 # #Boolean Overlay to identify final suitable cells using all layers and calculate
 #percent_total<-final_suitable_area/eez_total_area*100
-all<-raster(paste(boxdir,"/Suitability/results/Suitable areas.tif",sep=""))
+all<-raster('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/results/Suitable areas.tif')
 
 # Calculate total suitable area by country
- eez = readOGR(dsn=paste(boxdir,"/Suitability/tmp",sep=""),layer="carib_eez_shape")
+ eez = readOGR(dsn='/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/tmp',layer="carib_eez_shape")
  eez$PolygonID<-as.numeric(as.character(eez$PolygonID))
  noncountries<-c(81,103,112,263,54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221,120)
  for (i in 1:length(noncountries)){
@@ -458,7 +438,7 @@ Based on the factors and criteria described in Table 1, we found a total of  r p
 library(tmap)
 data(World)
 
-land = readOGR(dsn=paste(boxdir,"/Suitability/tmp",sep=""),layer="carib_eez_shape")
+land = readOGR(dsn='/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/tmp',layer="carib_eez_shape")
 land$la<-ifelse(land@data$PolygonID %in% noncountries,"white","lightblue")
 
 tm_shape(land)+
@@ -471,7 +451,7 @@ rm(World)
 ```
 
 The total area identified as suitable based on each of the factors considered in our analysis are listed in Table 4. 
-```{r table 2, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table 2, echo=FALSE, warning=FALSE, message=FALSE, include=FALSE}
 library(pander)
 df<-read.csv("table2.csv")
 df<-df[,-1]
@@ -482,7 +462,7 @@ pander::pandoc.table(df,justify=c('center','center','center'),split.cells=c(20,9
 
 Depth was the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
 . 
-```{r table 3, echo=FALSE, warning=FALSE, message=FALSE}
+```{r table 3, echo=FALSE, warning=FALSE, message=FALSE, include=FALSE}
 library(pander)
 table3<-read.csv("table3.csv")
 table3<-table3[,-1]

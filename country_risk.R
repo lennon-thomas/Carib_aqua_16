@@ -14,7 +14,7 @@ write.csv(matrix$r,"economic/risk/r_values.csv")
 write.csv(matrix$P,"economic/risk/p_values.csv")
 
 
-# Rescale values to 1 -5 range
+# Rescale values to 1 (low risk) -5 (high risk) range
 
 data<-data %>%
          mutate(GDP_rescale = rescale(data$GDP.per.capita,to = c(1,5)),
@@ -22,21 +22,27 @@ data<-data %>%
            pol_sta_rescale = rescale(data$Political.Stability,to = c(1,5)),
            con_cor_rescale = rescale(data$Control.of.Corruption,to = c(1,5)),
            fdi_rescale = rescale(data$FDI,to = c(1,5)),
-           cpi_rescale = rescale(data$CPI.Growth,to = c(1,5))) 
+           cpi_rescale = rescale(data$CPI.Growth,to = c(1,5))) %>%
+        mutate(GDP_final = 5.1 - GDP_rescale,
+               reg_q_final = 5.1 - reg_q_rescale,
+               pol_final = 5.1 - pol_sta_rescale,
+               corr_final = 5.1 - con_cor_rescale,
+               fdi_final = 5.1 - fdi_rescale,
+               cpi_final = 5.1 - cpi_rescale)
 
 write.csv( data,"economic/risk/economic_parameters_rescale.csv")
 
 # create new dataframe with rescaled data
 
-re_data<-data[,c(1,21:26)]
+re_data<-data[,c(1,27:32)]
 
 re_data<-re_data %>%
   #gather(key=index,value=value,2:7) %>%
   arrange(Island.Country.EEZ) %>%
   group_by(Island.Country.EEZ) %>%
-  summarize(political_score=((0.35*reg_q_rescale)+(0.35*pol_sta_rescale)+(0.3*con_cor_rescale)),
-                             economic_score=((0.3*GDP_rescale)+(0.35*fdi_rescale)+(0.35*cpi_rescale))) %>%
-  mutate(risk_score=(0.4*political_score)+(0.6*economic_score))
+  summarise(political_score = mean(reg_q_final,pol_final,corr_final, na.rm = TRUE, trim = 0),
+            economic_score = mean(GDP_final, fdi_final, cpi_final, na.rm = TRUE, trim = 0)) %>%
+  mutate(risk_score=(0.5*political_score)+(0.5*economic_score))
 
 
 
