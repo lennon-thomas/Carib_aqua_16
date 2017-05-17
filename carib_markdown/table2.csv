@@ -1,9 +1,8 @@
-"","Factor","Suitable Area (km2)","Percent Area Suitable"
-"1","EEZ",2938812.87554744,100
-"2","Depth",60501.165231586,2.05869403033413
-"3","Shipping Activity",57983.7909320174,1.97303446621168
-"4","Marine Protected Areas",49457.2602688926,1.68289926454333
-"5","Maximum current velocity",48478.2661426336,1.64958669352512
-"6","Coral Presence",47638.293942235,1.62100466955934
-"7","Benthic Oil Structure",46895.3980812942,1.59572589570061
-"8","Deep Sea Mining",46895.3980812942,1.59572589570061
+Farm Specification,Value
+Cage volume (m^3^),"6,400"
+Number of cages,16
+Harvest size (kg),5
+Harvest density (kg/m^3^),15
+Harvest density (# of individuals per cage),"16,000"
+Natural mortality rate (M),
+Stocking density (# of individuals per cage),
