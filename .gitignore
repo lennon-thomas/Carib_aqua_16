@@ -4,7 +4,7 @@
 *.Ruserdata
 *.tif
 *.shp
-
+carib_markdown/**.docx
 *.nc
 *.lzw
 
@@ -26,7 +26,5 @@
 *.nit
 *.adf
 .Rproj.user
-<<<<<<< HEAD
-=======
 *.DS_Store
->>>>>>> 15c62e06bb93b1c950cfd662490a1dd05d6d83ae
+
