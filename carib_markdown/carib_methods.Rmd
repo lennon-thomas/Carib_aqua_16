@@ -6,21 +6,21 @@ output:
   word_document:
     fig_caption: yes
     toc: yes
+  html_document:
+    toc: yes
 fonttype: Calibri
 bibliography: carib_aqua_16.bib
 ---
 ```{r setup, warning=FALSE , echo=FALSE}
 
-fig_width <- 8
-fig_asp <- .65
-knitr::opts_chunk$set(echo = FALSE, message = F, warning = F,
-                      fig.asp = fig_asp, fig.width = fig_width
-                    
-                      )
+knitr::opts_chunk$set(echo = FALSE,
+                      message = F,
+                      warning = F,
+                      fig.width = 6.5)
 
 ```
 
-```{r load run, echo = FALSE}
+```{r load_run}
 rm(list=ls())
 library (hrbrthemes)
 library(dplyr)
@@ -46,12 +46,12 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
-# user <- 'lennon'
+#user <- 'tyler'
+ user <- 'lennon'
 
 if(user == 'lennon') {
 # boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16')
-boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/')
+boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 } else boxdir <- '../../../Box Sync/'
 
 ## Read in data tables
@@ -91,19 +91,10 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Joint regime area Colombia / Jamaica",
                    "Joint regime area Honduras / Cayman Islands",
                    "Joint regime area Colombia / Dominican Republic")
+
+load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
+#load('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/results/suitability_results.Rdata')
 ```
-
-```{r table captions, echo=FALSE}
-
-table_nums <- captioner::captioner(prefix = "Table")
-
-Table.1_cap <- table_nums(name = "Table 1", 
-                        caption = "Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
-Table.2_cap <- table_nums(name = "Table 2", 
-                        caption = "Farm design specification for our hypothetical 1 km^2^ offshore cobia farms")
-```
-
-
 
 
 # Abstract
@@ -163,21 +154,17 @@ The development of aquaculture in the Caribbean has been identified as an avenue
 
 Our study domain includes the territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea is the area of focus for our study (Figure 1). All analyses were performed at a 1 km^2^ spatial resolution. We did not consider the potential of offshore aquaculture development in the high seas or disputed waters. A shapefile from VLIZ [-@VLIZ2014] was used to define the maritime boundaries for all island countries. 
 
-```{r fig1.Caribbean EEZ tmap, echo=FALSE, warning=FALSE,message=FALSE, fig.cap="The study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2016)."}
+```{r fig1.tmap, fig.cap="The study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2016)."}
 
-
-land = readOGR(dsn=paste0(boxdir,'Carib_aqua_16/Suitability/tmp'),layer="carib_eez_shape",verbose = FALSE)
-country<-c(48,49,50,52,53,56,57,60,64,65,66,71,72,75,79,83,84,85,86,87,88,89,91,92,93,94,95,99,100,101,110,111,122,123)
-land$la<-ifelse(land@data$GeoName %in% carib_countries,"lightblue","white")
- tm_shape(land)+
-  tm_fill("la",alpha=0.5)+
+EEZ$countries <- ifelse (EEZ@data$GeoName %in% carib_countries,"lightblue",
+                        "white")
+tm_shape(EEZ)+
+  tm_fill("countries",alpha=0.5)+
   tm_borders()+
-   tm_legend()+
-   tm_grid(x = NA, y = NA, n.x =5, n.y = 5,
-  col = "grey", lwd = 1, alpha = .5, labels.size = 1, labels.col = NA,
-   labels.inside.frame = FALSE)+
-    tm_xlab("Longitude",size=1.2) +
-	#tm_ylab("Latitude",size=1.2)+
+  tm_legend()+
+  tm_grid(x = NA, y = NA, n.x =5, n.y = 5,
+    col = "grey", lwd = 1, alpha = .5, labels.size = 1, labels.col = NA,
+    labels.inside.frame = FALSE)+
   tm_layout( inner.margins = rep(.09, 4))
   
  rm(World)
@@ -189,7 +176,8 @@ land$la<-ifelse(land@data$GeoName %in% carib_countries,"lightblue","white")
 We develop a spatial bioeconomic model to estimate the production potential (in terms of biomass (*t*) and Net Present Value (NPV)) for offshore cobia mariculture in the Caribbean region (Figure 1). The first steps of our analyses were to identify 1 km^2^ sites throughout the study region that would be suitable for mariculture development and create a hypothetical farm design for all suitable sites. Next, we apply a temperature performance curve (TPC) to predict temperature-dependent growth of cobia at each farm and establish a supply and demand curve to set global cobia market price according to our regional production estimates. Finally, we use the estimated price and cost parameters derived from the literature to calculate Net Present Value (*NPV*) over a 10 year time horizon. We assume that only farms that have a positive NPV after 10 years will be developed. 
 
 
-```{r fig2, echo=FALSE,fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
+```{r fig2, fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
+
 knitr::include_graphics('modelflow/modelflow2/Slide1.png')
 ```
 
@@ -198,10 +186,10 @@ knitr::include_graphics('modelflow/modelflow2/Slide1.png')
 
 The first step in our analysis was to conduct an assessment to identify areas that are potentially suitable for the development of offshore  mariculture. To determine what areas are suitable, we considered 6 factors: depth, current speed, coral reef presence, shipping activity, oil structures, and areas designated for conservation (Table 1). 
 
-```{r table1, echo=FALSE, warning=FALSE, results='asis'}
+```{r table1, results='asis'}
 
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
-pandoc.table(table1 %>%
+pander::pandoc.table(table1 %>%
                rename(Layer       = Spatial.Data.Layer,
                       Source      = Data.Source,
                       Description = Data.and.Analysis.Description,
@@ -229,9 +217,8 @@ the total mariculture farm area should be twice the size of the total area occup
 To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year round (ref).Cobia take twelve months on average to grow from fingerling (~XX kg) to a harvestable size of 5 - 6 kg [@Holland] . For our cobia farms, we assume that between 1 and 5 cages at each farm are stocked with cobia fingerlings each month. The number of fingerlings stocked in each cage remained constant, and was calculated assuming constant natural mortality (*M^1^*)of XX (ref) and a conservative harvest density of 15 *$\frac{kg}{m^3}$* ), (or 16,000 individual fish per cage). This means that it  take between 1 and 1.5 years for the cobia farms to reach their  operational capacity (reach production potential), which is a reasonable assumption because most commercial farms scale production gradually [REF].  
 
 ```{r table2, results='asis'}
-# panderOptions("digits", 2)
-# pander(table2)
-pandoc.table(table2,
+
+pander::pandoc.table(table2,
              digits = 2,
              caption = 'Table 2: Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
              split.cells = c(80,20))
@@ -326,14 +313,8 @@ For each scenario, we examine and compare the following:
 *	Range of individual farm production within EEZs (to the see potential gains of strategic spatial planning) and across EEZs (to determine the island countries with the greatest potential for offshore aquaculture development)
 
 ### Ecological Implications
+
 Determining the aquaculture production level that a given region (in this case, an EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem (CA SeaGrant study?), currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale.
-
-```{r GOM FMP,echo=FALSE,warning=FALSE,message=FALSE}
-Totalarea<-35643
-Totalproduction<-29000
-Productionrate<-Totalproduction/Totalarea
-```
-
 
 We examine the production estimates for each scenario and determine how they compare to two proxies we define as ecological capacity limits: 
 
@@ -343,132 +324,65 @@ We examine the production estimates for each scenario and determine how they com
 # Results
 
 ## Suitability Assessment 
-```{r Read in results from suitabiliby analysis, message=FALSE, echo=FALSE,warnings=FALSE}
- 
-# #Read in final suitability layers
-# 
-# suit_files<-list.files('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/final',full.names=T,pattern='tif')
-# suit_list<-lapply(suit_files,raster)
-# suit_all<-brick(suit_list)
-# name<-names(suit_all)
-# suit_all[suit_all==0]<-NA
-# names(suit_all)<-name
-# 
-# suit_all[[1]]
-# 
-# 
-# #Create dataframe summarizing the total suitable area based on each factor (area function needs NAs)
-# factors<-name
-# df<-data.frame(matrix(nrow=7, ncol=3))
-# colnames(df)<-c("Factor", "Suitable Area (km2)", "Percent of Total Study Area")
-# df$Factor<-factors
-# i=1
-# 
-# #calculate total suitable area for each layer
-# for (i in 1:nlayers(suit_all)){
-#   
-#   l_area<-as.data.frame(area(suit_all[[i]],na.rm=TRUE))
-#   t_area<-sum(l_area,na.rm=TRUE)
-#   df[i,2]<-t_area
-# }
+
+
+Based on the factors and criteria described in Table 1, we found a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, round = 0) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
+
+```{r fig.3,}
+g_antilles_fig<-  tm_shape(GA_suit) +
+                    tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas"), title = "Greater Antilles") +
+                  tm_shape(GA,is.master = TRUE) +
+                    tm_fill(col="lightblue",alpha = 0.4,title = "Greater Antilles") +
+                    tm_borders(lwd = 1.2) +
+                    tm_legend(main.title.size = 2, main.title="Greater Antilles", position = c("right","top"))
+                   
+                 
+                  
+
+luc_arc_suitable.fig<- tm_shape(LUC_suit) +
+                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
+                       tm_shape(LUC,is.master = TRUE) +
+                          tm_fill(col="lightblue",alpha = 0.4,title ="TESt") +
+                          tm_borders(lwd = 1.2) +
+                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"),main.title = "Lucayan Archipelago")
 
 
 
-  # Boolean Overlay to identify final suitable cells using all layers and calculate
- #percent_total<-final_suitable_area/eez_total_area*100
-all<-raster(paste0(boxdir,'Carib_aqua_16/Suitability/results/Suitable areas.tif'))
+lee_ant_suitable.fig<- tm_shape(LEE_suit) +
+                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
+                       tm_shape(LEE,is.master = TRUE) +
+                          tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
+                          tm_borders(lwd = 1.2) +
+                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"), main.title = "Leeward Antilles")
 
-  #Calculate total suitable area by country
- #eez = readOGR(dsn='/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/tmp',layer="carib_eez_shape")
- #eez$PolygonID<-as.numeric(as.character(eez$PolygonID))
- #noncountries<-c(81,103,112,263,54,55,62,63,98,108,109,125,126,128,271,272,273,274,108,164,129,130,131,132,133,135,139,163,167,255,221,120)
- #for (i in 1:length(noncountries)){
-#  eez$PolygonID[eez$PolygonID==noncountries[i]]<-0
-# }
- #eez<-eez[eez$PolygonID!=0,]
- #eez$Pol_type<-as.character(eez$Pol_type)
- #eez<-eez[eez$Pol_type!="Disputed",]
-  
-  
-  #countries<-raster(paste(boxdir,"/Suitability/tmp/carib_eez_ocean.tif",sep=""))
-  #for (i in 1:length(non_countries)){
-  # countries[countries==non_countries[i]]<-0
-  #}
-  # countries[countries==0]<-NA
-  # 
-  #  country<-raster(paste(boxdir,"/Suitability/final/suitable_eez.tif",sep=""))
-  # names<-data.frame(matrix(NA,nrow=33,ncol=3))
-  # 
-  # EEZ2<-as.data.frame(EEZ)
-  # c<-EEZ2[,c(1,3,22)]
-  # c<-na.omit(c)
-  # c<-c[-34,]  eliminates joint regime for Honodurus/Cayman Is. bc not showing up in carib_eez_ocean raster file
-  # area_all<-area(all,na.rm=TRUE)
-  # eez_area<-zonal(area_all,countries,fun='sum')
-  # unique(countries)
-  # 
-  # for (i in 1:nrow(eez_area)){
-  # m<-as.integer(eez_area[i,1])
-  # names[i,1]<-m
-  # n<-c$GeoName[c$PolygonID==m]
-  # n<-as.character(n[1])
-  # names[i,2]<-n
-  # a<-c$Area_km2[c$PolygonID==m]
-  # a<-as.integer(a[1])
-  # names[i,3]<-a
-  # }
-  
-  # cells<-cbind(names,c$Area_km2,eez_area)
-  # cells$X2<-gsub("Exclusive Economic Zone","EEZ",cells$X2)
-  # cells<-cells[,-c(1,3,5)]
-  # cells<-cells[order(cells$sum,decreasing=TRUE),]
-  # percent_area<-cells$sum/cells$'c$Area_km2'*100
-  # cells<-cbind(cells,percent_area)
-  # colnames(cells)<-c("Island Country EEZ", "Total EEZ area (km2)","Suitable Area (km2)", "Percent of EEZ Suitable for Offshore Aquaculture")
-  # cells<-as.data.frame(cells)
-  # write.csv(cells,"../Suitability/final/suitable area by country.csv")
+
+less_ant_suitable.fig<- tm_shape(LS_suit) +
+                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
+                       tm_shape(LS,is.master = TRUE) +
+                          tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
+                          tm_borders(lwd = 1.2) +
+                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"), main.title = "Lesser Antilles")
+
+
+all_plots<- tmap_arrange(g_antilles_fig, luc_arc_suitable.fig,lee_ant_suitable.fig,less_ant_suitable.fig)
 
 ```
-Based on the factors and criteria described in Table 1, we found a total of  `r prettyNum(Totalarea,big.mark=",")` km^2^, or `r prettyNum(100*Productionrate, digits = 0)`% of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 2).
 
-```{r Fig. 4 Caribbean EEZ suitablility tmap, echo=FALSE,  warning=FALSE, message=FALSE, fig.cap=" Areas identified as suitable for the development of offshore aquaculture within each EEZ are indicated in dark red",fig.width=6.5, fig.height=4}
+The suitable area based on each of the factors considered in our analysis are listed in Table 4. 
 
-####Plot suitable area using tmaps######
-data(World)
 
-land = readOGR(dsn=paste0(boxdir,'Carib_aqua_16/Suitability/tmp'),layer="carib_eez_shape",verbose=FALSE)
-land$la<-ifelse(land@data$PolygonID %in% carib_countries,"lightblue","white") 
-
-tm_shape(land)+
-  tm_fill("la",alpha=0.6)+
-  tm_borders()+
-tm_shape(all)+
-  tm_raster(showNA=FALSE,legend.show=FALSE,colorNA="white")
-
-rm(World)
-```
-
-The total area identified as suitable based on each of the factors considered in our analysis are listed in Table 4. 
-```{r table 2, echo=FALSE, warning=FALSE, message=FALSE,inclue=FALSE}
-
-df<-read.csv("table2.csv")
-df<-as.vector(df[,-1])
-set.alignment("center")
-#names(df) <- pandoc.strong.return(names(df))
-#pander::pandoc.table(df,justify=c('center','center','center'),split.cells=c(20,9,9),split.tables=Inf,caption="Total area of identified as suitable for the development of offshore aquaculture and percent of total study area identified as suitable based on each factor included in our assessment",round=2,big.mark=",")
-```
 
 Depth was the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
 . 
-```{r table 3, echo=FALSE, warning=FALSE, message=FALSE,include=FALSE}
+```{r table4, results='asis'}
 
-table3<-read.csv(paste(boxdir,"Carib_aqua_16/Suitability/results/suitable area by country.csv",sep=""))
-table3<-table3[,-1]
-set.alignment("center")
-names(table3) <- pandoc.strong.return(names(table3))
-pander::pandoc.table(table3,round=2,digits=2,big.mark=",",justify=c('center','center','center'),split.cells=c(20,9,9),split.tables=Inf,caption="Total area of each EEZ, area identified as suitable for offshore aquaculture development within each EEZ, and percent of total EEZ that is suitable")
+pander::pandoc.table(country_suitable,
+                     big.mark = ',',
+                     round = 2,
+                     caption = "Table XX: Estimated suitable area (km^2^ by EEZ")
 ```
-The identified suitable areas were not distributed evenly across EEZs (Table 5). The Bahamas EEZ contained the largest amount of suitable area and Trinidad and Tobago and Saba's EEZs included the highest percentages of suitable area (>10%), while no suitable areas were identified in the EEZ's of Guadeloupe, Saint Martin or Martinique. 
+
+The identified suitable areas were not distributed evenly across EEZs (Table 5). The `r country_suitable[which.max(country_suitable[,3]),1]` contained the largest amount of suitable area and `r country_suitable[1,1]` (`r country_suitable[1,4]` %) and `r country_suitable[2,1]` (`r country_suitable[2,4]` %) included the highest percentages of suitable area (>10%), while no suitable areas were identified in the EEZ's of Guadeloupe, Saint Martin or Martinique. 
 
 ## Bioecnomic Model 
 
@@ -495,18 +409,8 @@ Specifically, we compared the output at both the individual farm, EEZ, and regio
 
 NASA Goddard Space Flight Center, Ocean Ecology Laboratory, Ocean Biology Processing Group; (2014): MODIS-Terra Daily 4 km Sea Surface Temperature Data; http://doi.org/{DOI} Accessed on January 3, 2016.
 
-GMFMC (Gulf of Mexico Fishery Management Council)and NOAA (National Oceanic and Atmospheric Administration)(2009) Fishery management plan for regulating
-offshore marine aquaculture in the Gulf of Mexico. GMFMC, Tampa, FL.http://gulfcouncil.org/Beta/GMFMCWeb/Aquaculture/Aquaculture%20FMP%20PEIS%20Final%202-24-09.pdf
-
-IUCN and UNEP-WCMC (2017), The World Database on Protected Areas (WDPA) [On-line], [January 2017], Cambridge, UK: UNEP-WCMC. Available at: www.protectedplanet.net.
-
-WDPA Updates
-
-OceanSpar 2013.
-
-UNEP-WCMC, WorldFish Centre, WRI, TNC (2010). Global distribution of warm-water coral reefs, compiled from multiple sources including the Millennium Coral Reef Mapping Project. Version 1.3. Includes contributions from IMaRS-USF and IRD (2005), IMaRS-USF (2005) and Spalding et al. (2001). Cambridge (UK): UNEP World Conservation Monitoring Centre. URL: http://data.unep-wcmc.org/datasets/1
 
 # Appendix
 
 ##removed text (just in case we need later)
-Guidelines for aquaculture development in U.S. waters of the Gulf of Mexico listed in a recent Fishery Management Plan stated that all aquaculture farms should be a minimum of 3 km apart and set a production limit of `r prettyNum(Totalproduction, big.mark=",")` mt for a total area of `r prettyNum(Totalarea,big.mark=",")` km^2^ identified for aquaculture development, or `r prettyNum(Productionrate,big.mark=",")` mt/ km^2^. This production limit was identified as precautionary and based on historical wild fisheries capture for the region, due to lack of better methods or information on the ecological capacity of the region. To determine how this specified limit on production per unit area compared to production levels in other regions, we conducted a global assessment of production per unit of EEZ area in depths of 0 to 90 m for all EEZs. We obtained total marine aquaculture production by country, including finfish, invertebrate, and algae aquaculture production, for 2014 from FAO and calculated the total area in a depth range of 0-90 m for aquaculture by EEZ using global 1 km^2^ resolution bathymetry data from Becker *et al* [-@becker_global_2009a]. Total marine aquaculture production included finfish, invertebrates, and algae, thus we did not apply a minimum depth limit, because some these species are farmed in shallower water than is required for finfish cage culture. Although this does not allow for a direct comparison to production as modeled in our study, it provides another regional production level benchmark for comparison.
+Guidelines for aquaculture development in U.S. waters of the Gulf of Mexico listed in a recent Fishery Management Plan stated that all aquaculture farms should be a minimum of 3 km apart and set a production limit of r prettyNum(Totalproduction, big.mark=",") mt for a total area of prettyNum(Totalarea,big.mark=",") km^2^ identified for aquaculture development, or r prettyNum(Productionrate,big.mark=",") mt/ km^2^. This production limit was identified as precautionary and based on historical wild fisheries capture for the region, due to lack of better methods or information on the ecological capacity of the region. To determine how this specified limit on production per unit area compared to production levels in other regions, we conducted a global assessment of production per unit of EEZ area in depths of 0 to 90 m for all EEZs. We obtained total marine aquaculture production by country, including finfish, invertebrate, and algae aquaculture production, for 2014 from FAO and calculated the total area in a depth range of 0-90 m for aquaculture by EEZ using global 1 km^2^ resolution bathymetry data from Becker *et al* [-@becker_global_2009a]. Total marine aquaculture production included finfish, invertebrates, and algae, thus we did not apply a minimum depth limit, because some these species are farmed in shallower water than is required for finfish cage culture. Although this does not allow for a direct comparison to production as modeled in our study, it provides another regional production level benchmark for comparison.
