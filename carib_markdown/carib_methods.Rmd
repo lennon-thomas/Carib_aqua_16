@@ -46,8 +46,8 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
- # user <- 'lennon'
+# user <- 'tyler'
+  user <- 'lennon'
 
 if(user == 'lennon') {
 # boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16')
@@ -87,13 +87,10 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Sint-Maarten Exclusive Economic Zone",
                    "Trinidad and Tobago Exclusive Economic Zone",
                    "Turks and Caicos Exclusive Economic Zone",
-                   "Virgin Islander Exclusive Economic Zone",
-                   "Joint regime area Colombia / Jamaica",
-                   "Joint regime area Honduras / Cayman Islands",
-                   "Joint regime area Colombia / Dominican Republic")
+                   "Virgin Islander Exclusive Economic Zone")
 
 load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
-#load('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/results/suitability_results.Rdata')
+
 ```
 
 
@@ -197,7 +194,8 @@ pander::pandoc.table(table1 %>%
                       Criteria    = Suitability.Criteria), 
              digits = 2,
              split.tables = Inf,
-             split.cells = c(15,5,60,20,10),
+             split.cells = c(15,5,120,15,10),
+             justify = c("center","center","center","center","center"),
              caption = "Table 1: Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
 ```
 
@@ -215,7 +213,7 @@ To estimate production, we assumed a fixed farm design, per 1 km^2^ sites, acros
 This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ [@Sims]. The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit area of farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies
 the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
 
-To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round (ref).Cobia take twelve months on average to grow from fingerling (~XX kg) to a harvestable size of 5 - 6 kg [@Holland] . For our cobia farms, we assume that between 1 and 5 cages at each farm are stocked with cobia fingerlings each month. The number of fingerlings stocked in each cage remained constant, and was calculated assuming constant natural mortality (*M^1^*)of XX (ref) and a conservative harvest density of 15 *$\frac{kg}{m^3}$* ), (or 16,000 individual fish per cage). This means that it takes between 1 and 1.5 years for the cobia farms to reach their  operational capacity (full production potential), which is a reasonable assumption because most commercial farms scale production gradually [REF].  
+To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round.Cobia take twelve months on average to grow from fingerling (~3 kg) to a harvestable size of 5 - 6 kg [@Holland] . For our cobia farms, we assume that 5 cages are stocked with cobia fingerlings during the first month, and that one cage is stocked with fingerlings each of hte remaining months.  The number of fingerlings stocked in each cage remained constant, and was calculated assuming a conservative harvest density of 15 *$\frac{kg}{m^3}$* ), (or 16,000 individual fish per cage).
 
 ```{r table2, results='asis'}
 
@@ -231,7 +229,9 @@ pander::pandoc.table(table2,
 
 Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and is a factor that cannot be easily controlled in offshore mariculture grow-out settings [@Tidwell2012]. To reflect spatial differences in productivity across farms attributed to temperature variations, we used a thermal performance curve (TPC) to model temperature dependent individual growth of cobia (Dane ref). We used 10 years of satellite-based sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. Monthly biomass ($B_m$)for each cage was then calculated as:
 
-where t_*min* is XX, t_*max* is XX, and max growth occurs at t_*opt*, and SST is the average monthly SST over the last 10 years for locations, $D$, is the initial stocking density  of each cage, and $S$, the total survival rate is assumed to be 95% [@Benetti2008c].  (Table XX)
+*insert TPC equation*
+
+where $t_min$  is 22 $^\circ$C, t_*max* is 32 $^\circ$C, and max growth occurs at t_*opt* (29 $^\circ$C), and SST is the average monthly SST over the last 10 years for locations, $D$, is the initial stocking density  of each cage, and $S$, the total survival rate is assumed to be 85% [@Benetti2008c]. 
 
 Annual production ($B_t$) at each farm is then calculated as: 
 
@@ -263,11 +263,11 @@ Where $H_i$ is the hours required at site $i$ as a function of wave exposure; $w
 
 #### Revenues
 
-Total revenue ($TR_{i,t}$) for each farm is calculated as:
+Total revenue ($TR$) during each year $t$ for each farm $i$ is calculated as:
 
 $TR_{i,t} = (B_{i,t} * p_t) - B_{i,t} * k_{EEZ}$ 
 
-Where $B_{i,t}$ is the total biomass of cobia at farm $i$ in year $t$, $k$ is the export tax as a function of EEZ, and $p$ is the global price of cobia in year $t$ (see Production Scenarios section for explanation of global price values used in our analyses). Cobia farms in the Caribbean are assumed to be price takers and thus production in year $t$ does not affect price in year $t+1$.
+Where $B$ is the total biomass of cobia at farm $i$ in year $t$, $k$ is the export tax as a function of EEZ, and $p$ is the global price of cobia in year $t$ (see Production Scenarios section for explanation of global price values used in our analyses). Cobia farms in the Caribbean are assumed to be price takers and thus production in year $t$ does not affect price in year $t+1$.
 
 Total annual farm profit ($\pi$) for farm $i$ at year $t$ is then total farm revenue $TR_{i,t}$ less total farm costs $TC_{i,t}$.
 
@@ -323,7 +323,7 @@ For each scenario, we examine and compare the following:
 
 ### Ecological Carrying Capacity
 
-Determining the aquaculture production level that a given region (in this case, an EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem (Aquamodel, FARM), currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale.
+Determining the aquaculture production level that a given region (in this case, an EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem (CA SeaGrant study), currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale.
 
 We examine the production estimates for each scenario and determine how they compare to two proxies we define as ecological capacity limits: 
 
@@ -348,13 +348,13 @@ Specifically, we compared the output at both the individual farm, EEZ, and regio
 
 Based on the factors and criteria described in Table 1, we found a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, round = 0) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
 
-```{r fig.3,}
+```{r fig.3}
 g_antilles_fig<-  tm_shape(GA_suit) +
                     tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas"), title = "Greater Antilles") +
                   tm_shape(GA,is.master = TRUE) +
                     tm_fill(col="lightblue",alpha = 0.4,title = "Greater Antilles") +
                     tm_borders(lwd = 1.2) +
-                    tm_legend(main.title.size = 2, main.title="Greater Antilles", position = c("right","top"))
+                    tm_legend(main.title.size = 1, main.title="Greater Antilles", position = c("right","top"))
                    
                  
                   
@@ -364,7 +364,7 @@ luc_arc_suitable.fig<- tm_shape(LUC_suit) +
                        tm_shape(LUC,is.master = TRUE) +
                           tm_fill(col="lightblue",alpha = 0.4,title ="TESt") +
                           tm_borders(lwd = 1.2) +
-                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"),main.title = "Lucayan Archipelago")
+                          tm_legend(main.title.size = 1, text.size = 1, main.title.position = c("center"),main.title = "Lucayan Archipelago")
 
 
 
@@ -373,7 +373,7 @@ lee_ant_suitable.fig<- tm_shape(LEE_suit) +
                        tm_shape(LEE,is.master = TRUE) +
                           tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
                           tm_borders(lwd = 1.2) +
-                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"), main.title = "Leeward Antilles")
+                          tm_legend(main.title.size = 1, text.size = 1, main.title.position = c("center"), main.title = "Leeward Antilles")
 
 
 less_ant_suitable.fig<- tm_shape(LS_suit) +
@@ -381,7 +381,7 @@ less_ant_suitable.fig<- tm_shape(LS_suit) +
                        tm_shape(LS,is.master = TRUE) +
                           tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
                           tm_borders(lwd = 1.2) +
-                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"), main.title = "Lesser Antilles")
+                          tm_legend(main.title.size = 1, text.size = 1, main.title.position = c("center"), main.title = "Lesser Antilles")
 
 
 all_plots<- tmap_arrange(g_antilles_fig, luc_arc_suitable.fig,lee_ant_suitable.fig,less_ant_suitable.fig)
@@ -397,7 +397,7 @@ Depth was the largest constraining factor, with less than 2% of the total study 
 pander::pandoc.table(country_suitable,
                      big.mark = ',',
                      round = 2,
-                     caption = "Table XX: Estimated suitable area (km^2^ by EEZ")
+                     caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
 ```
 
 The identified suitable areas were not distributed evenly across EEZs (Table 5). The `r country_suitable[which.max(country_suitable[,3]),1]` contained the largest amount of suitable area and `r country_suitable[1,1]` (`r country_suitable[1,4]` %) and `r country_suitable[2,1]` (`r country_suitable[2,4]` %) included the highest percentages of suitable area (>10%), while no suitable areas were identified in the EEZ's of Guadeloupe, Saint Martin or Martinique. 
@@ -406,8 +406,6 @@ The identified suitable areas were not distributed evenly across EEZs (Table 5).
 
 
 # References 
-
-NASA Goddard Space Flight Center, Ocean Ecology Laboratory, Ocean Biology Processing Group; (2014): MODIS-Terra Daily 4 km Sea Surface Temperature Data; http://doi.org/{DOI} Accessed on January 3, 2016.
 
 
 # Appendix

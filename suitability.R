@@ -45,8 +45,6 @@ carib_depth[carib_depth<25]<-0
 
 carib_depth[carib_depth>100]<-0
 
-carib_depth<-mask(carib_depth,land,inverse=FALSE,maskvalues=NA)
-
 png(file=paste(boxdir,"Suitability/plots/suitable_depth.png",sep=""))
 
 plottitle<-("Depth from 25-100 m")
@@ -57,7 +55,7 @@ dev.off()
 
 carib_depth[carib_depth!=0]<-1
 
-writeRaster(filename=paste(boxdir,"Suitability/final/suitable_depth.tif",sep=""),overwrite=TRUE)
+writeRaster(carib_depth,filename=paste(boxdir,"Suitability/final/suitable_depth.tif",sep=""),overwrite=TRUE)
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Assigns cells with MPAs present a zero
@@ -335,3 +333,5 @@ save_tmap(all_plots,filename = paste(boxdir,"Suitability/results/suitability_fig
 
 
 save.image(file = paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
+
+
