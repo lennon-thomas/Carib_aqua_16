@@ -172,7 +172,7 @@ s<-stackApply(s,indices=c(1,1,1,1,1,1,1),fun=prod,na.rm=TRUE)
 
 all_suitable<-mask(s,raster_eez,maskvalues=NA,inverse=FALSE,filename=paste(boxdir,"Suitability/results/final_suitable_areas.tif",sep=""),overwrite=TRUE)
 
-saveRDS(all,paste(boxdir,"Suitability/final/suitable_areas.rds",sep=""))
+saveRDS(all_suitable,paste(boxdir,"Suitability/final/suitable_areas.rds",sep=""))
 
 all_suitable[all_suitable == 0]<-NA
 
