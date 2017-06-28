@@ -13,8 +13,8 @@ library(rgdal)
 library(tmap)
 library(dplyr)
 
-boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
-
+#boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Assign a zero to international waters and 1 to waters inside EEZ
@@ -170,12 +170,20 @@ s = stack(carib_depth,MPA,current,ships,raster_eez,oil,coral)
 
 s<-stackApply(s,indices=c(1,1,1,1,1,1,1),fun=prod,na.rm=TRUE)
 
-all_suitable<-mask(s,raster_eez,maskvalues=NA,inverse=FALSE,filename=paste(boxdir,"Suitability/results/final_suitable_areas.tif",sep=""),overwrite=TRUE)
+all_suitable<-mask(s,raster_eez,maskvalues=NA,inverse=FALSE,filename=paste(boxdir,"Suitability/results/suitable_areas.tif",sep=""),overwrite=TRUE)
 
+<<<<<<< HEAD
 saveRDS(all_suitable,paste(boxdir,"Suitability/final/suitable_areas.rds",sep=""))
+=======
+>>>>>>> 630d8b5da525f6ebe46ebbf03d053041f6bb56a6
 
 all_suitable[all_suitable == 0]<-NA
 
+saveRDS(all_suitable,paste(boxdir,"Suitability/results/suitable_areas.rds",sep=""))
+
+test<-gzfile(paste(boxdir,"Suitability/results/suitable_areas.rds",sep=""))
+check<-readRDS(test)
+plot(check)
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Determine total area (km2) of area that was identified as suitable

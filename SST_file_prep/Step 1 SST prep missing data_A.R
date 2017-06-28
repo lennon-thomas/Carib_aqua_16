@@ -1,42 +1,55 @@
 
+#updated 6/8/17
+
 ### Load packages --------------------------------------------------
+
+rm(list = ls())
 library(rgdal)
 library(raster)
 library(rgeos)
+library(ncdf4)
 
-### **TEMPORARY** Set directory to location of sst raster files. Should probably put all these files on Google Drive to standardize the code 
-#setwd('/Users/Tyler/Desktop/GitHub/Caribbean-Aquaculture/carib-aqua-sst')
 
-#Lennon's wd
-setwd("Y:/Documents/Work for waitt/WI 2016/Caribbean-Aquaculture")
-
-### Interpolate raster -----------------------------------------
-
-# Get all file names in the sst directory
-sstfiles<-list.files('sst_data/',full.names = T)
+#boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/sst')
 
 
 
+### Load data --------------------------------------------------
 
-# Store all sst in lists
+sstfiles<-list.files(paste(boxdir,'/cropped',sep = ""),full.names = T)
+
 sstlist<-lapply(sstfiles,raster)
-plot(sstlist[83])
 
-# Stack rasters
+
+### Data scaling info (from raw metadata)--------------
+for(i in seq_along(sstlist)){sstlist[[i]][sstlist[[i]]==-32767]<-NA}
+
+
+for(i in seq_along(sstlist)){sstlist[[i]]<-sstlist[[i]]*0.005}
+
+sstlist<-sstlist*0.005
+
+
+
+
+
+### Stack rasters and write netCDF file--------------------------
+
 sst<-stack(sstlist)
+
 names(sst)<-sstfiles
 
+writeRaster(sst,paste(boxdir,"2005_2014 monthly SST.NetCDF",sep=""),format="CDF",overwrite=TRUE,varname="SST",varunit="degrees C",zname="Time",zunit="month",NAflag=-9999)
 
-# Write netCDF files
-writeRaster(sst,"2005_2014 monthly SST.NetCDF",format="CDF",overwrite=TRUE,varname="SST",varunit="degrees C",zname="Time",zunit="month",NAflag=-9999)
 
-# Replace values greater than 45 (no data) with NA
-sst[sst[]>45]<-NA
 
 # Resave all raster layers using the same file name 
 
 s <- unstack(sst)
+
 outputnames <- sstfiles
+
 for(i in seq_along(s)){writeRaster(s[[i]], file=outputnames[i],overwrite=TRUE)}
 
 ## Next step is to create the int files using python
