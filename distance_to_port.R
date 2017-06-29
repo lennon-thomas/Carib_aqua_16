@@ -1,5 +1,7 @@
 #Calculating distance from each cell in study area to nearest port
 # 6/17/17
+# Port data from: https://msi.nga.mil/NGAPortal/MSI.portal?_nfpb=true&_pageLabel=msi_portal_page_62&pubCode=0015
+
 
 rm(list = ls())
 library(rgdal)
@@ -8,58 +10,95 @@ library(sp)
 library(rgeos)
 library(spdep)
 library(igraph)
+library(dplyr)
+library(colorRamps)
+
 boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 
+
+##Calculate distance to port
+
+study_area1<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
+
 study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
+
+study_area[is.na(study_area)]<-200
+
+land<-raster(paste(boxdir,"Suitability/tmp/land_mask.tif",sep=""))
+
+study_area<-mask(study_area,land)
 
 ext<-extent(study_area)
 
 ports<-readOGR(dsn=paste(boxdir,"economic/data/port_index",sep=""),layer="WPI")
-                  
-carib_ports<-crop(ports,ext,progress = "text") 
-carib_ports@coords
 
-lon<-carib_ports@coords[,1]
-lat<-carib_ports@coords[,2]
-port<-as.data.frame(carib_ports@data$INDEX_NO)
+carib_ports<-crop(ports,ext,progress = "text")
 
-sp=SpatialPoints(cbind(lon,lat))
-coords= cbind(lon,lat)
-spdf= SpatialPointsDataFrame(coords,port)
-spdf= SpatialPointsDataFrame(sp,port)
-coordinates(port)=cbind(lon,lat)
+overlap<-extract(study_area,carib_ports,cellnumbers=TRUE,buffer=5000)
 
-spdf[!is.na(spdf)]<-500
+overlap2<-lapply(overlap,as.data.frame)
 
+overlap3<-bind_rows(overlap2)
 
+cells<-overlap3[,1]
 
-carib_ports_raster<-rasterFromXYZ(spdf,crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 ")
-carib_ports_raster_resamp<-resample(carib_ports_raster,study_area)
-#carib_ports_raster_resamp[is.na(carib_ports_raster_resamp)]<-10000
-#carib_ports_raster_resamp[carib_ports_raster_resamp<10000]<-500
-ports<-mask(study_area,carib_ports_raster_resamp,maskvalue=500,updatevalue=500)
-plot(ports)
+study_area[cells]<-300
 
-port_list<-Which(ports==500,cell=TRUE,na.rm=TRUE)
+study_area[is.na(study_area)]<-0
 
-dgrid<-gridDistance(ports,origin = 500, omit=NA)
+study_area[study_area==200]<-NA
 
-dgrid[dgrid==0]<--500
+port_distance<-gridDistance(study_area,origin = 300, omit=c(NA,0))
+
+port_list<-Which(port_distance==0,cell=TRUE,na.rm=TRUE)
 
 
-port_point<-rasterToPoints(carib_ports_raster_resamp,fun=function(x){x==500},spatial=TRUE)
-plot(port_point,col='red',size=5)
+writeRaster(port_distance,paste(boxdir,"economic/data/port_distance.tif",sep=""))
 
 
-overlap<-extract(study_area,port_point,cellnumbers=TRUE,buffer=10000)
-length(overlap)
-study_area[overlap$cell]<-500
+study_area[cells]<-1000
 
-plot(dgrid)
-r <- raster(ncol=10,nrow=10)
-r[] <- 1
-r[48] <- 2
-r[66:68] <- 3
-d <- gridDistance(r,origin=2,omit=3) 
-plot(d)
+study_area[study_area<1000]<-NA
+
+land[land>0]<-1
+
+study_area<-mask(study_area,study_area1)
+
+
+
+png(filename=paste(boxdir,"economic/data/port_distance.png",sep=""))
+
+plot(port_distance, main="Distance to port (m)",col=rev(terrain.colors(55)))
+
+plot(study_area,add=TRUE,col="black",legend=FALSE)
+
+dev.off()
+
+## Calculate distance from Shore
+
+study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
+
+study_area[is.na(study_area)]<-200
+
+land<-raster(paste(boxdir,"Suitability/tmp/land_mask.tif",sep=""))
+
+land[is.na(land)]<-0.01
+
+land[land>0.01]<-NA
+
+shore_distance<-distance(land,filename=paste(boxdir,"economic/data/port_distance.tif",sep=""))
+
+
+study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
+
+final_shore<-mask(shore_distance,study_area)
+
+writeRaster(final_shore,filename=paste(boxdir,"economic/data/shore_distance",sep=""))
+
+png(filename=paste(boxdir,"economic/data/shore_distance.png",sep=""))
+
+plot(final_shore,main="Distance to shore (m)",col=rev(terrain.colors(55)))
+
+dev.off()
+
 
