@@ -21,16 +21,22 @@ m2<-cellStats(test[[1]],"max") #compare with m1 (should be x100 greater)
 
 
 
+cells <- Which(prod[[1]] > 0, cells = TRUE) 
+
+ex<-1315011
+
+one<-prod[[1]][ex]
+two<-prod[[2]][ex]
+twelve<-prod[[3]][ex]
+
+total_vol/test
+
+initial_stock
 
 
+int_weight<-256000*3
 
-
-
-
-
-
-
-
+test<-int_weight+prod[[1]][ex]+prod[[2]][ex]+prod[[3]][ex]+prod[[4]][ex]+ prod[[5]][ex]+prod[[6]][ex]+prod[[7]][ex]+prod[[8]][ex]+prod[[9]][ex]+prod[[10]][ex]+prod[[11]][ex]+prod[[12]][ex]
 
 
 ## Wave exposure layer (not really sure if/how to incorporate this layer yet for increased mainentance costs on exposed areas)
@@ -49,6 +55,8 @@ test2 <- prod_values * permit_values
 
 
 
-
+today <- Sys.Date()
+format(today, format="X%Y.%m")
+"June 20 2007"
 
 
