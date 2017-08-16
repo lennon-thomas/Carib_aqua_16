@@ -29,10 +29,10 @@ layernames <- as.Date(as.character(seq(st, en, by = "1 month"))) %>%
    as.Date( str_sub(1,7))
 
 names(prod)<-layernames
-crs(prod) <- crs(shore_distance)
-extent(prod) <- extent(shore_distance)
-prod[prod==0]<-NA
 
+crs(prod) <- crs(shore_distance)
+
+extent(prod) <- extent(shore_distance)
 
 names(growth)<-layernames
 
@@ -64,15 +64,13 @@ econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance"
 
 names(econ_stack)<-econ_names
 
-
 # Write files -------------------------------------------------------------
 
 #final files
 
-
 writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "raster",overwrite =TRUE)
 
-#writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "raster",overwrite =TRUE)
+writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "raster",overwrite =TRUE)
 
 writeRaster(econ_stack,paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""), format = "raster",overwrite =TRUE)
 

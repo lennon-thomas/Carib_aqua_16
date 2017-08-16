@@ -22,7 +22,6 @@ library(tidyr)
 
 load_functions(func_dir = 'functions')
 
-farm_volume=16*6400
 # Run settings -------------------------------------------------------------
 
 boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
@@ -38,7 +37,7 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data = TRUE # Prep economic data files (TRUE) or just read in existing files (FALSE)
+prep_data = FALSE # Prep economic data files (TRUE) or just read in existing files (FALSE)
 
 # Load Data ---------------------------------------------------------------
 
@@ -78,21 +77,36 @@ stock_weight<-.003  #kg of inividuals when cage is stocked
 harv_den<-15 #kg/m^3 harvest density
 total_vol<-16*6400 #total cage volume
 harvest_weight<-6
-cobia_price<- #can we get this from supply/demand curve?
+cobia_price<- 3000# estimate from cobia_price.pdf...can we get this from supply/demand curve? 
 
 # Calculate annual production ---------------------------------------------
 
-layernames<-as.Date(as.character(names(prod)) # get raster layer names as date
-                    
-index<-format(as.Date(layernames,format = "X%Y.%m"),format = "%Y") # extract the year from each layer
+#index<-format(as.Date(layernames,format = "X%Y.%m"),format = "%Y") # extract the year from each layer
 
-annual_prod<-annual_prod(prod,indices) # Get sum of annual production from TPC model
+yeardex<-rep(1:10,each=12)
 
-init_stock<-calc_initial_stock(harvest_density,annual_prod,stock_weight,total_vol) # Determine no of fingerlings to reach a harvest density of 15 kg/m^3
-                    
-total_ann_prod<- calc_total_prod(init_stock,prod,stock_weight)
+annual_prod<-ann_prod(prod,yeardex) # Get sum of annual production from TPC model
+annual_prod<-brick(paste(run_dir,"annual_prod.tif",sep=""))
+annual_prod[annual_prod==0]<-NA
 
+init_stock<-calc_initial_stock(harv_den,annual_prod,stock_weight,total_vol) # Determine no of fingerlings to reach a harvest density of 15 kg/m^3
 
+int=(init_stock*stock_weight)     
+
+totalp<-annual_prod
+
+totalp[totalp>0]<-NA
+
+for (i in 1:nlayers(int)){
+
+temp<- sum(annual_prod[[i]],int[[i]])
+
+totalp[[i]]<-temp
+
+print(i)
+}
+h_density<-totalp/total_vol
+  
 # Calculate costs ---------------------------------------------------------
 
 # Start-up costs
