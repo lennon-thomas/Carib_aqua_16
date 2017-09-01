@@ -29,12 +29,13 @@ layernames <- as.Date(as.character(seq(st, en, by = "1 month"))) %>%
    as.Date( str_sub(1,7))
 
 names(prod)<-layernames
+names(growth)<-layernames
 
 crs(prod) <- crs(shore_distance)
-
-extent(prod) <- extent(shore_distance)
-
-names(growth)<-layernames
+crs(growth) <- crs(shore_distance)
+extent(growth) <- extent(shore_distance)
+extent(growth) <- extent(shore_distance)
+names(growthh)<-layernames
 
 econ_params$Territory1 <- gsub('Curacao','Curaçao', econ_params$Territory1)
 
@@ -76,7 +77,7 @@ writeRaster(econ_stack,paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""
 
 # Read files back in (to save space) and save workspace image---------------------------------------
 
-fixed_cost<-read.csv(paste(boxdir,"economic/data/final/fixed_costs.csv",sep = ""))
+#fixed_cost<-read.csv(paste(boxdir,"economic/data/final/fixed_costs.csv",sep = ""))
 
 file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".grd")
 
@@ -88,9 +89,9 @@ prod <- model_files[[2]]
 
 econ_stack<-model_files[[3]]
 
-save(list = c('growth', 'prod', 'econ_stack', 'fixed_cost'), file = paste(run_dir, "economic_data.Rdata",sep = ""))
+save(list = c('growth', 'prod', 'econ_stack'), file = paste(run_dir, "economic_data.Rdata",sep = ""))
 
-return(list('growth' = growth, 'prod' = prod, 'econ_stack' = econ_stack, 'fixed_cost' = fixed_cost))
+return(list('growth' = growth, 'prod' = prod, 'econ_stack' = econ_stack))
 }
 
 

@@ -68,13 +68,13 @@ study_area<-mask(study_area,study_area1)
 
 png(filename=paste(boxdir,"economic/data/port_distance.png",sep=""))
 
-plot(port_distance, main="Distance to port (m)",col=rev(terrain.colors(55)))
+plot(port_distance, main="Distance to port (m)",col=rev(terrain.colors(500)))
 
 plot(study_area,add=TRUE,col="black",legend=FALSE)
 
 dev.off()
 
-## Calculate distance from Shore
+## Calculate distance from shore
 
 study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
 
@@ -86,7 +86,7 @@ land[is.na(land)]<-0.01
 
 land[land>0.01]<-NA
 
-shore_distance<-distance(land,filename=paste(boxdir,"economic/data/port_distance.tif",sep=""))
+shore_distance<-distance(land,progress='text')
 
 
 study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
@@ -94,6 +94,8 @@ study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
 final_shore<-mask(shore_distance,study_area)
 
 writeRaster(final_shore,filename=paste(boxdir,"economic/data/shore_distance",sep=""))
+
+final_shore<-raster(paste(boxdir,"economic/data/shore_distance",sep=""))
 
 png(filename=paste(boxdir,"economic/data/shore_distance.png",sep=""))
 

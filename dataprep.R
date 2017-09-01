@@ -47,17 +47,21 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Sint-Maarten Exclusive Economic Zone",
                    "Trinidad and Tobago Exclusive Economic Zone",
                    "Turks and Caicos Exclusive Economic Zone",
-                   "Virgin Islander Exclusive Economic Zone",
-                   "Joint regime area Colombia / Jamaica",
-                   "Joint regime area Honduras / Cayman Islands",
-                   "Joint regime area Colombia / Dominican Republic")
+                   "Virgin Islander Exclusive Economic Zone")
 
 carib_eez<- EEZ[EEZ$GeoName %in% carib_countries,]
 
 writeOGR(carib_eez, dsn=paste(boxdir,"Suitability/tmp",sep=""),driver="ESRI Shapefile", layer="carib_eez_shape",overwrite=TRUE)
 
-carib_eez<-readOGR(dsn=paste(boxdir,"Suitability/tmp",sep=""), layer="carib_eez_shape")
+carib_eez<-crop(EEZ,carib_depth, progress='text')
 
+#carib_eez<-readOGR(dsn=paste(boxdir,"Suitability/tmp",sep=""), layer="carib_eez_shape")
+
+carib_eez_raster<-rasterize(carib_eez,carib_depth,filename=paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""),overwrite = TRUE)
+
+carib_eez_raster<-mask(carib_eez_raster,carib_depth,filename=paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""),overwrite = TRUE)
+
+carib_eez_raster<-rasterize(carib_eez,carib_depth,field=carib_eez$PolygonID)
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Depth data from: http://topex.ucsd.edu/WWW_html/srtm30_plus.html
