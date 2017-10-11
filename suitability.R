@@ -13,7 +13,7 @@ library(rgdal)
 library(tmap)
 library(dplyr)
 
-#boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 #-----------------------------------------------------------------
 #----------------------------------------------------------------

@@ -7,7 +7,8 @@
 carib_markdown/**.docx
 *.nc
 *.lzw
-
+*.docx
+*.png
 *.dbf
 *.db
 *.mxd

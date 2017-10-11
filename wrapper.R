@@ -37,8 +37,8 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data = FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock =TRUE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+prep_data = TRUE# Prep economic data files (TRUE) or just read in existing files (FALSE)
+fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 
 # Load Data ---------------------------------------------------------------
 
@@ -93,7 +93,7 @@ month_mort<-1 - (1 - (1-survival)) ^ (1 / 12)
 
 yeardex<-rep(1:10,each=12)
 
-annual_prod<-ann_prod(prod,yeardex) # Get sum of annual production from TPC model. NOTE: function doesn't seem to be working when process data is false.. may need to get values in that case
+annual_prod_test<-ann_prod(growth = growth) #,yeardex) # Get sum of annual production from TPC model. NOTE: function doesn't seem to be working when process data is false.. may need to get values in that case
 
 #annual_prod<-brick(paste(run_dir,"annual_prod.tif",sep=""))
 
@@ -167,9 +167,13 @@ t<-length(c)
 
 # Process results ---------------------------------------------------------
 # costs
+
 perc_capital<-cap_costs/total_cost_yr_one*100
+
 perc_feed<-feed_cost[[1]]/total_cost_yr_one*100
+
 perc_fingerlings<-cost_fingerlings[[1]]/total_cost_yr_one*100
+
 perc_labor<-(labor[[1]]+travel[[1]])/total_cost_yr_one*100
 
 perc_capital[1315011]
@@ -181,7 +185,6 @@ carib_eez<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep = ""))
 
 eez_capital<-zonal(perc_capital,carib_eez,fun = 'mean', na.rm = TRUE)
 
-
 eez_feed<-as.data.frame(zonal(perc_feed,carib_eez,fun = 'mean', na.rm = TRUE))
 
 eez_fingerlings<-as.data.frame(zonal(perc_fingerlings,carib_eez,fun = 'mean', na.rm = TRUE))
@@ -191,6 +194,7 @@ eez_labor<-as.data.frame(zonal(perc_labor,carib_eez,fun = 'mean', na.rm = TRUE))
 cost_results<-as.data.frame(cbind(eez_capital,eez_feed[,2],eez_fingerlings[,2],eez_labor[,2]))
 
 colnames(cost_results)<-c("eez","eez_capital","eez_feed","eez_fingerlings","eez_labor")
+
 cost_results<-  gather(cost_results,'cost','value',dplyr::contains('_')) 
 
 ggplot(cost_results,aes(x=eez,y=value,fill=cost)) +

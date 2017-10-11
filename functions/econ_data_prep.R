@@ -35,7 +35,7 @@ crs(prod) <- crs(shore_distance)
 crs(growth) <- crs(shore_distance)
 extent(growth) <- extent(shore_distance)
 extent(growth) <- extent(shore_distance)
-names(growthh)<-layernames
+names(growth)<-layernames
 
 econ_params$Territory1 <- gsub('Curacao','Curaçao', econ_params$Territory1)
 

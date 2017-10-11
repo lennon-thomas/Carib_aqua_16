@@ -17,6 +17,8 @@ st_density<-2.4
 #average intial weight in grams
 int_weight<-3
 
+#inital_stocking density(weight)
+<-2.4*3
 #Stocking number in one cage at one cage (individuals)
 fish_cage<-cage_vol*st_density
 
@@ -31,7 +33,7 @@ st_density_wt<-int_weight*st_density
 
 # average density at harvest  (g/m^3^)
 
-hv_density_wt<-5000
+hv_density_wt<-6000
 
 #Total of fish per farm at stocking density
 total_fish<-total_vol*st_density
@@ -39,7 +41,7 @@ total_fish<-total_vol*st_density
 #Bahamas cage volume
 bene_vol<-2700
 bene_final_density<-5000 #g/m3
-harv_weight<-6066
+harv_weight<-6000
 
 total_harvest_wt<-bene_vol*bene_final_density
 no_indiv_final<-total_harvest_wt/harv_weight
@@ -61,7 +63,7 @@ for (i in 1:no_months){
 }
   
 #bring in raster of study area
-carib<-raster(paste(boxdir,"Suitability/tmp/suitable_eez.tif",sep=""))
+carib<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
 plot(carib)
 
 #Dane's simple equation just to check numbers.
@@ -69,3 +71,18 @@ int_max_stock_density<-total_vol*st_density
 
 carib[carib==1]<-int_max_stock_density
 writeRaster(carib,paste(boxdir,"int_individuals_per_farm.tif"))
+
+
+#update June 22 2017
+
+cage=16
+vol<-6400
+density<-15
+harv_weigh<-6
+
+int_density<-(cage*vol*density)/harv_weigh
+
+carib<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
+carib[carib>0]<-int_density
+
+writeRaster(carib,paste(boxdir,"initial_stock.tif"))

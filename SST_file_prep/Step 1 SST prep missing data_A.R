@@ -1,5 +1,5 @@
 
-#updated 6/8/17
+#updated 6/22/17
 
 ### Load packages --------------------------------------------------
 
@@ -10,14 +10,14 @@ library(rgeos)
 library(ncdf4)
 
 
-#boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
-boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/sst')
+boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+#boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/sst')
 
 
 
 ### Load data --------------------------------------------------
 
-sstfiles<-list.files(paste(boxdir,'/cropped',sep = ""),full.names = T)
+sstfiles<-list.files(paste(boxdir,'sst /cropped',sep = ""),full.names = T)
 
 sstlist<-lapply(sstfiles,raster)
 
@@ -28,9 +28,9 @@ for(i in seq_along(sstlist)){sstlist[[i]][sstlist[[i]]==-32767]<-NA}
 
 for(i in seq_along(sstlist)){sstlist[[i]]<-sstlist[[i]]*0.005}
 
-sstlist<-sstlist*0.005
+outputnames <- sstfiles
 
-
+for(i in seq_along(sstlist)){crop(sstlist[[i]],land,file=outputnames[i],sep="",overwrite=TRUE)}
 
 
 
