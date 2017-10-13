@@ -37,7 +37,7 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data = TRUE# Prep economic data files (TRUE) or just read in existing files (FALSE)
+prep_data = FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 
 # Load Data ---------------------------------------------------------------
@@ -54,6 +54,12 @@ if (prep_data == TRUE){
    rm(econ)
   
 } else {
+
+#growth<-brick(paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""))
+
+#prod<-brick(paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""))
+
+#econ_stack<-raster(paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""))
 
 load(paste(run_dir, 'economic_data.Rdata',sep=""))
 
