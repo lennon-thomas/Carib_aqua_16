@@ -123,3 +123,29 @@ eleven<-ten-(ten*month_mort)
 twelve<-eleven-(eleven*month_mort)
 thirth<-twelve-(twelve*month_mort)
 #annual_prod<-stackApply(production,i,fun=sum, na.rm = TRUE,filename=paste(run_dir,"annual_prod.tif",sep=""),overwrite=TRUE) # calculate the sum of production for each year
+
+#annual_prod<-brick(paste(run_dir,"annual_prod.tif",sep=""))
+
+#annual_prod[annual_prod==0]<-NA
+
+# determine inital # of fingerlings stocked at each farm each year 
+
+# if (fix_int_stock == TRUE) {
+#   
+#   initial_stock<-raster(paste(boxdir,"TPC/ initial_stock.tif",sep = ""))   #fixed number for each year
+# 
+#   
+# } else {
+# 
+#   initial_stock<-calc_initial_stock(harv_den,annual_prod,stock_weight,total_vol) # Determine no of fingerlings to stock at each farm each year to reach a harvest density of 15 kg/m^3
+# }
+
+# Multiply number of individuals by indiviudal fingerling weight
+
+#inital_weight<- initial_stock * stock_weight
+
+#Calculate total annual production
+
+#total_ann_production<-inital_weight + annual_prod
+
+#h_density<-total_ann_production/total_vol #This should be in the 5-15 range

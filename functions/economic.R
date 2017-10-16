@@ -13,12 +13,12 @@ capital_costs <- function (base_cost,vessel,depth_charge,distance_charge,lease,i
 ### Cost of feed
 #annual feed costs
 
-feed_cost_est<-function(prod,inital_weight,feed_price,yeardex,fcr){
+feed_cost_est<-function(int_weight, harvest_weight, stocking_n, harvest_cycles,harvest_cycle_length){
   
+  
+all_growth<-stack(avg)
 
-i_feed<-(inital_weight*fcr)*feed_price
-
-mon_feed<-calc(prod,function(x)(x*fcr)*feed_price,filename=paste0(run_dir,"monthly_feed_cost.tif"),overwrite=TRUE)
+indiv_feed<-avg_month_growth
 
 annual_feed<-stackApply(mon_feed,yeardex,sum,filename=paste0(run_dir,"annual_feed_cost.tif"),overwrite=TRUE)
 

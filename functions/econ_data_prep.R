@@ -71,7 +71,7 @@ names(econ_stack)<-econ_names
 
 writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "CDF",varname = "prod",overwrite =TRUE)
 
-writeRaster(growth,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "CDF",varname= "growth",overwrite =TRUE)
+writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "CDF",varname= "growth",overwrite =TRUE)
 
 writeRaster(econ_stack,paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""), format = "CDF",varname="econ", overwrite =TRUE)
 
