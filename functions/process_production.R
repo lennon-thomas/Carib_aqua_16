@@ -47,7 +47,7 @@ avg_growth<- function(growth){
  #all_growth<-replicate(monthly_growth,12)
  
  #all_avg_growth<-stack(all_growth)
-
+ 
  return(monthly_growth)
 }
 

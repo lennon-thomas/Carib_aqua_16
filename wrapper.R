@@ -18,6 +18,8 @@ library(fasterize)
 library(sf)
 library(demons)
 library(tidyr)
+library(parallel)
+
 
 
 load_functions(func_dir = 'functions')
@@ -103,13 +105,16 @@ harvest_cycle_length<-annual_prod[[3]]
 
 avg_month_growth<-avg_growth(growth = growth)
 
+# Save avg monthly growth and initial stocking rasters
+writeRaster(avg_month_growth, paste0(boxdir,'data/avg_month_growth_stack.nc',sep = ""), format = "CDF", overwrite =TRUE)
+writeRaster(stocking_n, paste0(boxdir,'data/initial_stocking_stack.nc',sep = ""), format = "CDF", overwrite =TRUE)
+
+
+# Run Projection ----------------------------------------------------------
+
+sim_results <- sim_aqua(avg_month_growth = avg_month_growth, stocking_n = stocking_n, int_weight = int_weight, sim_length = sim_length, month_mort = month_mort, fcr = fcr)
+
 # Calculate costs ---------------------------------------------------------
-
-#annual feed costs
-
-#right now this will just overestimate feed costs by assumming the number of individuals stays constant over 120 months (same as stocking_n) we need to incorporate survival
-feed_cost<-feed_cost_est(month_growth,stocking_n, harvest_cycles,harvest_cycle_length)
-
 
 # Start-up costs
 cap_costs<-capital_costs(cage_cost,support_vessel,econ_stack[["depth_charge"]],econ_stack[['distance_charge']],site_lease,labor_installation)
@@ -124,7 +129,6 @@ total_cost_yr_one <- (cap_costs + operate_costs[[1]])
 writeRaster(total_cost,paste0(run_dir,"total_cost.tif"),overwrite=TRUE)
 
 # Calculate annual profit -------------------------------------------------
-
 
 revenue_results <- revenue(total_ann_production[[1]], cobia_price)
 writeRaster(revenue_results,paste0(run_dir,'revenue_raster.tif'))
