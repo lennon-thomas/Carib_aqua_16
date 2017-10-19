@@ -138,10 +138,6 @@ The development of marine aquaculture in the Caribbean has been identified as an
     * Likely species/technology in the Caribbean (concluding that cobia is one of the more promising species because it is fast growing, has had demonstrated success in offshore farms, is a high value species, etc. and thus is the focus of our analysis) 
     
 4.	Overview of cobia biology and cobia farming (this section should make it clear why SST was not a necessary layer in our suitability assessment , but was important to consider in our growth model).
-
-  * @Bezerra2016 looked at economic viablity of both nearshore and offshore cobia mariculture in Brazil. There offshore industrial farm had a total volume of 38,568 m^3. initial investment was 1.5 million $USD and avereage payback 3.88 years. had 17 employees.
-
-5. Review of other studies that have done similar analyses (suitability or economic viability and what they lacked (leading in to what are study contributes))
   
 5. Introducing our study  
 
@@ -218,10 +214,7 @@ All spatial data layers listed in Table 1 are converted to raster format with a 
 
 To estimate production, we assume a fixed farm design, per 1 km^2^ sites, across our study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson_2004; @Xu2015].We develop a hypothetical farm design for a 1 km^2^ cell that has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell grid mooring systems that occupy a total space of approximately ~ 0.48 km^2^ and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010].
 
-This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ [@Sims]. The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit area of farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies
-the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
-
-To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round.Cobia take twelve months on average to grow from fingerling (~3 kg) to a harvestable size of 5 - 6 kg [@Holland].  For our cobia farms, we assume that 5 cages are stocked with cobia fingerlings during the first month, and that one cage is stocked with fingerlings each of the remaining months. The number of fingerlings stocked in each cage remain constant, and is calculated assuming a conservative harvest density of 15  *$\frac{kg}{m^3}$*, or 16,000 individual fish per cage.
+This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ [@Sims]. The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit area of farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
 
 ```{r table2, results='asis'}
 
@@ -259,11 +252,25 @@ kable(temp_params,
       caption = 'Temperature-growth parameters and linear function constants for cobia')
 ```
 
-Individual cobia growth at month $t$ for site $i$ ($G_{t,i}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth per month ($\bar{G}_{t,i} $) at site $i$ is then calculated for each calendar month $t$:
+Individual cobia growth at month $t$ for site $i$ ($G_{t,i}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth ($\bar{G}_{t,i} $) at site $i$ is then calculated for each calendar month $t$:
 
 $$\bar{G}_{t,i} = \frac{\sum_{y=1}^{10} G_{y,t,i}}{10} $$
 
+## Bioeconomic Model
+We model future offshore aquaculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth with a detailed economic model parameterized with values from the literature, technical reports, and personal communication with producers of commercial aquaculture technology (e.g. Innovasea).
+
+### Growth Model
+Individual cobia growth at month $t$ for site $i$ ($G_{t,i}$) is modeled using the previously calculated 10 year ($y$) average individual growth ($\bar{G}_{t,i} $) at site $i$ for each calendar month $t$. Total farm biomass ($B_{t,i}$) is a function is the initial stocking density of each cage, and $S$, the total survival rate is assumed to be 85% [@Benetti2008c]. 
+
+Annual production ($B_t$) at each farm is then calculated as: 
+
+$B_t = c * \displaystyle\sum_{m=1}^{12} B_m$
+
+Where $c$ is the number of cages per farm and $B_m$ is the monthly total biomass per cage.
+
 #### Optimal Stocking Density
+To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round. Cobia take twelve months on average to grow from fingerling (~3 kg) to a harvestable size of 5 - 6 kg [@Holland]. For our cobia farms, we assume that 5 cages are stocked with cobia fingerlings during the first month, and that one cage is stocked with fingerlings each of the remaining months. The number of fingerlings stocked in each cage remain constant, and is calculated assuming a conservative harvest density of 15  *$\frac{kg}{m^3}$*, or 16,000 individual fish per cage.
+
 The number of completed harvest cycles ($h$), wherein a cobia is raised from an initial stocking weight of 0.15 g to a final harvest weight of 5 kg, is calculated for each site by dividing the cumulative individual growth by 5 kg. 
 
 $$h_i = \frac{\sum_{t=1}^{120} G_{t,i}}{5~kg} $$  
@@ -271,15 +278,6 @@ $$h_i = \frac{\sum_{t=1}^{120} G_{t,i}}{5~kg} $$
 The average number of months per harvest cycle ($\bar{h_i}$) is then calculated as $\bar{h_i} = \frac{120}{h_i}$. Given $\bar{h_i}$, a target harvest density of $XX \frac{kg}{m^3}$, and an annual survival rate of 85%, the optimal number of fingerlings to stock can be estimated for each site:
 
 ** Insert equation optimal initial stocking density **
-
-## Bioeconomic Model
-SST is the average monthly SST over the last 10 years for locations, $D$, is the initial stocking density  of each cage, and $S$, the total survival rate is assumed to be 85% [@Benetti2008c]. 
-
-Annual production ($B_t$) at each farm is then calculated as: 
-
-$B_t = c * \displaystyle\sum_{m=1}^{12} B_m$
-
-Where $c$ is the number of cages per farm and $B_m$ is the monthly total biomass per cage.
  
 ### Economic Model
 
