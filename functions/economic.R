@@ -19,17 +19,11 @@ monthly_cost_est<-function (sim_results,econ_stack,feed_cost,stocking_n,site_lea
    suitable_economic<-cbind(s_cells,suitable_economic)
 # Calculate capital costs
 
- base_cost<-sum(cage_cost*no_cages)
+ base_cost<-sum(cage_cost)
  
  suitable_economic<-suitable_economic %>%
   mutate(c_costs = (base_cost + (base_cost * depth_charge) + (base_cost * distance_charge) + labor_installation + (labor_installation*depth_charge) + (labor_installation*distance_charge) + support_vessel + site_lease))
- 
-  
- 
 
-  
-    
-   
 # Calculate monthly labor costs (same for all months)
   suitable_economic<-suitable_economic %>%
     mutate(site_labor = min_wage * site_hours * site_workers * site_days,
