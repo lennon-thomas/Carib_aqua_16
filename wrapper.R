@@ -71,9 +71,9 @@ cage_cost <- 5708800 # cage and installation
 support_vessel <- 50000 #32'ft from Kam et al. 2003
 site_lease<-3265 # from Bezerra et al. 2015
 labor_installation<-52563 # from Bezerra et al. 2015
-site_hours <- 8 # hours per worker per day
-site_workers <- 4 # number of workers per farm per day
-site_days <- 260 #number of days workers are on a farm per year(5 days a week)
+site_hours <- 8 # hours per worker per day for a month
+site_workers <- 16 # number of workers per farm per day
+site_days <- 30 #number of days workers are on a farm per year(5 days a week)
 avg_boat_spd <- 48280.3 # average boat speed (meters per hour)~30 miles per hour
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 #no_fingerlings <- 256000 # fingerlings per farm
@@ -85,7 +85,7 @@ total_vol<-16*6400 #total cage volume
 harvest_weight<-5 # from various souces (5-6 kg)
 cobia_price<- 8.62 # Bezerra et al. 2016
 #F.C.R.  = Feed given / Animal weight gain.
-fcr<-2 #Bezerra et al. 2016 (feed conversion ratio) this is too high comparing to other studies. economic fcr may be higher. see seafoodwatch
+fcr<-1.75 #Benetti et al. 2010 for the whole Carib region #2 Bezerra et al. 2016 (feed conversion ratio) this is too high comparing to other studies. economic fcr may be higher. see seafoodwatch
 feed_price<-1.64 #in units of $/kg  Bezerra et al. 2016
 survival<-0.75 #Benetti et al. 2007 over 12 monthes and Huang et al. 2011
 month_mort<-1 - (1 - (1-survival)) ^ (1 / 12)
@@ -113,6 +113,8 @@ writeRaster(stocking_n, paste0(boxdir,'data/initial_stocking_stack.nc',sep = "")
 # Run Projection ----------------------------------------------------------
 
 sim_results <- sim_aqua(avg_month_growth = avg_month_growth, stocking_n = stocking_n, int_weight = int_weight, sim_length = sim_length, month_mort = month_mort, fcr = fcr)
+
+#sim_results<-read.csv(paste0(run_dir,"sim_function_results.csv"))
 
 # Calculate costs ---------------------------------------------------------
 
