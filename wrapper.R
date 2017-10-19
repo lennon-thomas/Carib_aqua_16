@@ -18,6 +18,8 @@ library(fasterize)
 library(sf)
 library(demons)
 library(tidyr)
+library(parallel)
+
 
 
 load_functions(func_dir = 'functions')
@@ -37,8 +39,8 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data = TRUE# Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+prep_data = FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
+#fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 
 # Load Data ---------------------------------------------------------------
 
@@ -55,6 +57,7 @@ if (prep_data == TRUE){
   
 } else {
 
+
 load(paste(run_dir, 'economic_data.Rdata',sep=""))
 
 }
@@ -68,12 +71,12 @@ cage_cost <- 5708800 # cage and installation
 support_vessel <- 50000 #32'ft from Kam et al. 2003
 site_lease<-3265 # from Bezerra et al. 2015
 labor_installation<-52563 # from Bezerra et al. 2015
-site_hours <- 8 # hours per worker per day
-site_workers <- 4 # number of workers per farm per day
-site_days <- 260 #number of days workers are on a farm per year(5 days a week)
+site_hours <- 8 # hours per worker per day for a month
+site_workers <- 16 # number of workers per farm per day
+site_days <- 30 #number of days workers are on a farm per year(5 days a week)
 avg_boat_spd <- 48280.3 # average boat speed (meters per hour)~30 miles per hour
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
-no_fingerlings <- 256000 # fingerlings per farm
+#no_fingerlings <- 256000 # fingerlings per farm
 price_fingerlings <- 17.3 # cost per kg of fingerling (average from Huang et al. 2011)
 #feed_cost <- 1.8 # cost per kg of feed (Sclodnick 2013)
 stock_weight<-0.15  #kg of inividuals when cage is stocked
@@ -82,52 +85,38 @@ total_vol<-16*6400 #total cage volume
 harvest_weight<-5 # from various souces (5-6 kg)
 cobia_price<- 8.62 # Bezerra et al. 2016
 #F.C.R.  = Feed given / Animal weight gain.
-fcr<-2 #Bezerra et al. 2016 (feed conversion ratio)
+fcr<-1.75 #Benetti et al. 2010 for the whole Carib region #2 Bezerra et al. 2016 (feed conversion ratio) this is too high comparing to other studies. economic fcr may be higher. see seafoodwatch
 feed_price<-1.64 #in units of $/kg  Bezerra et al. 2016
 survival<-0.75 #Benetti et al. 2007 over 12 monthes and Huang et al. 2011
 month_mort<-1 - (1 - (1-survival)) ^ (1 / 12)
+int_weight<-0.015 # kg (15 grams)
 #no_trips<-2 #number of trips to farm per day
-# Calculate annual production ---------------------------------------------
+sim_length <- 120 # length of simulation (months)
 
-#index<-format(as.Date(layernames,format = "X%Y.%m"),format = "%Y") # extract the year from each layer
+# Calculate average growth, cycle length, and no. of fingerlings --------
 
-yeardex<-rep(1:10,each=12)
+annual_prod<-ann_prod(growth = growth) 
 
-annual_prod_test<-ann_prod(growth = growth) #,yeardex) # Get sum of annual production from TPC model. NOTE: function doesn't seem to be working when process data is false.. may need to get values in that case
+stocking_n<-annual_prod[[1]]
 
-#annual_prod<-brick(paste(run_dir,"annual_prod.tif",sep=""))
+harvest_cycles<-annual_prod[[2]]
 
-annual_prod[annual_prod==0]<-NA
+harvest_cycle_length<-annual_prod[[3]]
 
-# determine inital # of fingerlings stocked at each farm each year 
+avg_month_growth<-avg_growth(growth = growth)
 
-if (fix_int_stock == TRUE) {
-  
-  initial_stock<-raster(paste(boxdir,"TPC/ initial_stock.tif",sep = ""))   #fixed number for each year
-
-  
-} else {
-
-  initial_stock<-calc_initial_stock(harv_den,annual_prod,stock_weight,total_vol) # Determine no of fingerlings to stock at each farm each year to reach a harvest density of 15 kg/m^3
-}
-
-# Multiply number of individuals by indiviudal fingerling weight
-
-inital_weight<- initial_stock * stock_weight
-
-#Calculate total annual production
-
-total_ann_production<-inital_weight + annual_prod
+# Save avg monthly growth and initial stocking rasters
+writeRaster(avg_month_growth, paste0(boxdir,'data/avg_month_growth_stack.nc',sep = ""), format = "CDF", overwrite =TRUE)
+writeRaster(stocking_n, paste0(boxdir,'data/initial_stocking_stack.nc',sep = ""), format = "CDF", overwrite =TRUE)
 
 
-h_density<-total_ann_production/total_vol #This should be in the 5-15 range
-  
+# Run Projection ----------------------------------------------------------
+
+sim_results <- sim_aqua(avg_month_growth = avg_month_growth, stocking_n = stocking_n, int_weight = int_weight, sim_length = sim_length, month_mort = month_mort, fcr = fcr)
+
+#sim_results<-read.csv(paste0(run_dir,"sim_function_results.csv"))
+
 # Calculate costs ---------------------------------------------------------
-
-#annual feed costs
-
-feed_cost<-feed_cost_est(prod,inital_weight,feed_price,yeardex,fcr)
-
 
 # Start-up costs
 cap_costs<-capital_costs(cage_cost,support_vessel,econ_stack[["depth_charge"]],econ_stack[['distance_charge']],site_lease,labor_installation)
@@ -142,7 +131,6 @@ total_cost_yr_one <- (cap_costs + operate_costs[[1]])
 writeRaster(total_cost,paste0(run_dir,"total_cost.tif"),overwrite=TRUE)
 
 # Calculate annual profit -------------------------------------------------
-
 
 revenue_results <- revenue(total_ann_production[[1]], cobia_price)
 writeRaster(revenue_results,paste0(run_dir,'revenue_raster.tif'))

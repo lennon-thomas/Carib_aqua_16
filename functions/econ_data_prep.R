@@ -33,7 +33,7 @@ names(growth)<-layernames
 
 crs(prod) <- crs(shore_distance)
 crs(growth) <- crs(shore_distance)
-extent(growth) <- extent(shore_distance)
+extent(prod) <- extent(shore_distance)
 extent(growth) <- extent(shore_distance)
 names(growth)<-layernames
 
@@ -69,19 +69,19 @@ names(econ_stack)<-econ_names
 
 #final files
 
-writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "raster",overwrite =TRUE)
+writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "CDF",varname = "prod",overwrite =TRUE)
 
-writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "raster",overwrite =TRUE)
+writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "CDF",varname= "growth",overwrite =TRUE)
 
-writeRaster(econ_stack,paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""), format = "raster",overwrite =TRUE)
+writeRaster(econ_stack,paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""), format = "CDF",varname="econ", overwrite =TRUE)
 
 # Read files back in (to save space) and save workspace image---------------------------------------
 
 #fixed_cost<-read.csv(paste(boxdir,"economic/data/final/fixed_costs.csv",sep = ""))
 
-file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".grd")
+file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".nc")
 
-model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),stack)
+model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),brick)
 
 growth <- model_files[[1]]
 

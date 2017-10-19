@@ -138,6 +138,10 @@ The development of marine aquaculture in the Caribbean has been identified as an
     * Likely species/technology in the Caribbean (concluding that cobia is one of the more promising species because it is fast growing, has had demonstrated success in offshore farms, is a high value species, etc. and thus is the focus of our analysis) 
     
 4.	Overview of cobia biology and cobia farming (this section should make it clear why SST was not a necessary layer in our suitability assessment , but was important to consider in our growth model).
+
+  * @Bezerra2016 looked at economic viablity of both nearshore and offshore cobia mariculture in Brazil. There offshore industrial farm had a total volume of 38,568 m^3. initial investment was 1.5 million $USD and avereage payback 3.88 years. had 17 employees.
+
+5. Review of other studies that have done similar analyses (suitability or economic viability and what they lacked (leading in to what are study contributes))
   
 5. Introducing our study  
 
