@@ -81,7 +81,9 @@ price_fingerlings <- 17.3 # cost per kg of fingerling (average from Huang et al.
 #feed_cost <- 1.8 # cost per kg of feed (Sclodnick 2013)
 stock_weight<-0.15  #kg of inividuals when cage is stocked
 harv_den<-15 #kg/m^3 harvest density
-total_vol<-16*6400 #total cage volume
+no_cages<-16
+cage_volume<-6400 #m^3
+total_vol<-no_cage*cage_volume #total cage volume
 harvest_weight<-5 # from various souces (5-6 kg)
 cobia_price<- 8.62 # Bezerra et al. 2016
 #F.C.R.  = Feed given / Animal weight gain.

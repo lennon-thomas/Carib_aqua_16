@@ -149,3 +149,26 @@ thirth<-twelve-(twelve*month_mort)
 #total_ann_production<-inital_weight + annual_prod
 
 #h_density<-total_ann_production/total_vol #This should be in the 5-15 range
+### Operating cost function
+operating_costs <- function(econ, prod, site_workers, site_hours, avg_boat_spd,
+                            fuel_eff, site_days ,no_fingerlings, price_fingerlings, feed_cost, FCR) {
+  
+  # Labor costs (cost of labor on farm plus hours traveling to/from farm)
+  labor <- (econ_stack[['min_wage']] * site_hours * site_workers * site_days) + (econ_stack[['shore_distance']] / avg_boat_spd * site_workers * econ_stack[['min_wage']])
+  
+  # Travel costs to f
+  travel <- econ_stack[['fuel_price']] * (econ_stack[['shore_distance']] / fuel_eff) * site_days * 2
+  
+  # Feed cost 
+  #  cost_feed<-((prod*FCR)*feed_price)
+  
+  # Fingerling cost
+  cost_fingerlings<-(no_fingerlings*stock_weight)*price_fingerlings
+  
+  # Total Operating Costs
+  operate <- labor + travel + feed_cost+ cost_fingerlings
+  
+  # return raster of operating costs per cell
+  return(operate)
+  
+}
