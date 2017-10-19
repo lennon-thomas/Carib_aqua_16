@@ -23,9 +23,8 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r load_run}
 rm(list=ls())
 library (hrbrthemes)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
+library(tidyverse)
+library(knitr)
 #library(Cairo)
 library(tmap)
 library(rgdal)
@@ -227,20 +226,54 @@ pander::pandoc.table(table2,
              caption = 'Table 2: Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
              split.cells = c(80,20))
 ```
+ 
+## Growth Potential
+Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and is a factor that cannot be easily controlled in offshore mariculture grow-out settings [@Tidwell2012]. To reflect spatial differences in productivity across farms attributed to temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site (Klinger, Levin, & Watson 2017).  
 
-## Bioeconomic Model 
+### Thermal Performance Curve
+The TPC is a temperature-dependent piecewise linear function defined as follows:
 
-### Temperature Performance Curve 
+$$ 
+G(T) = \Big\{\begin{array}
+{rr}
+a_1T - b_1 ~~~ if ~~ T<T_o \\
+a_2T + b_2 ~~~ if ~~ T\ge T_o
+\end{array}  
+$$
 
-Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and is a factor that cannot be easily controlled in offshore mariculture grow-out settings [@Tidwell2012]. To reflect spatial differences in productivity across farms attributed to temperature variations, we use a thermal performance curve (TPC) to model temperature dependent individual growth of cobia (Klinger ). We use 10 years of satellite-based sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. Monthly biomass ($B_m$)for each cage is then calculated as:
+where $T$ is sea surface temperature in $^\circ$C, $T_o$ is the optimal temperature for cobia growth in $^\circ$C, and $a_1$ and $a_2$ are slope parameters (kg per month per $^\circ$C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. The following values and references for temperature-growth components of cobia were adopted from Klinger, Levin, and Watson (2017), who also used a TPC to model cobia growth.
 
-*insert TPC equation*
+```{r}
+temp_params <- data_frame(Parameter = c('Tmin',
+                                        'Topt',
+                                        'Tmax',
+                                        'Monthly growth rate (grams per month)',
+                                        'a1','a2','b1','b2'),
+                          Value = c(22,29,32,0.5,0.0714,-0.1667,-1.5714,5.3333))
 
-where $t_min$  is 22 $^\circ$C, t_*max* is 32 $^\circ$C, and max growth occurs at t_*opt* (29 $^\circ$C), and SST is the average monthly SST over the last 10 years for locations, $D$, is the initial stocking density  of each cage, and $S$, the total survival rate is assumed to be 85% [@Benetti2008c]. 
+kable(temp_params,
+      caption = 'Temperature-growth parameters and linear function constants for cobia')
+```
+
+Individual cobia growth at month $t$ for site $i$ ($G_{t,i}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth per month ($\bar{G}_{t,i} $) at site $i$ is then calculated for each calendar month $t$:
+
+$$\bar{G}_{t,i} = \frac{\sum_{y=1}^{10} G_{y,t,i}}{10} $$
+
+#### Optimal Stocking Density
+The number of completed harvest cycles ($h$), wherein a cobia is raised from an initial stocking weight of 0.15 g to a final harvest weight of 5 kg, is calculated for each site by dividing the cumulative individual growth by 5 kg. 
+
+$$h_i = \frac{\sum_{t=1}^{120} G_{t,i}}{5~kg} $$  
+
+The average number of months per harvest cycle ($\bar{h_i}$) is then calculated as $\bar{h_i} = \frac{120}{h_i}$. Given $\bar{h_i}$, a target harvest density of $XX \frac{kg}{m^3}$, and an annual survival rate of 85%, the optimal number of fingerlings to stock can be estimated for each site:
+
+** Insert equation optimal initial stocking density **
+
+## Bioeconomic Model
+SST is the average monthly SST over the last 10 years for locations, $D$, is the initial stocking density  of each cage, and $S$, the total survival rate is assumed to be 85% [@Benetti2008c]. 
 
 Annual production ($B_t$) at each farm is then calculated as: 
 
-$B_t = c * \displaystyle\sum_{m=1}^{12} * B_m$
+$B_t = c * \displaystyle\sum_{m=1}^{12} B_m$
 
 Where $c$ is the number of cages per farm and $B_m$ is the monthly total biomass per cage.
  
@@ -265,7 +298,7 @@ Annual operating costs in year $t$ at site $i$ are modeled as follows:
 
 $OC_{i,t} = (H_i(wave) * w * d_{EEZ}) + (\frac{dist_i}{b} * w * d_{EEZ} * r) + (dist_i * b * g_{EEZ} * e * t) + (f_t + h_t)$
 
-Where $H_i$ is the hours required at site $i$ as a function of wave exposure; $w$ is the number of workers required to service a farm; $d$ is the EEZ-specific hourly wage; $dist_i$ is distance from shore (km); $b$ is average boat speed to farm sites; $r$ is the number of trips required per month for running the farm; $g$ is the cost of fuel as a function of EEZ; $e$ is the average fuel efficiency of the vessel; $f$ is the fixed cost of fingerlings for a individual farm in year $t$; and $h$ is the fixed cost of feed in year $t$ for a individual farm.
+Where $H_i$ is the hours required at site $i$ as a function of wave exposure; $w$ is the number of workers required to service a farm; $d$ is the EEZ-specific hourly wage; $dist_i$ is distance from shore (km); $b$ is average boat speed to farm sites; $r$ is the number of trips required per month for running the farm; $g$ is the cost of fuel as a function of EEZ; $e$ is the average fuel efficiency of the vessel; $f$ is the fixed cost of fingerlings for a individual farm in year $t$; and $h$ is the cost of feed in year $t$ for a individual farm.
 
 #### Revenues
 
