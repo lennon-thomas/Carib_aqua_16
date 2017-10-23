@@ -19,14 +19,14 @@ library(sf)
 library(demons)
 library(tidyr)
 library(parallel)
-
-
-
-load_functions(func_dir = 'functions')
+library(R.utils)
 
 # Run settings -------------------------------------------------------------
 
 boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+# boxdir <- '../../Box Sync/Carib_aqua_16/'
+
+sourceDirectory(path = 'functions')
 
 run_name = "test"
 
@@ -73,7 +73,7 @@ site_lease<-3265 # from Bezerra et al. 2015
 labor_installation<-52563 # from Bezerra et al. 2015
 site_hours <- 8 # hours per worker per day for a month
 site_workers <- 16 # number of workers per farm per day
-site_days <- 30 #number of days workers are on a farm per year(5 days a week)
+site_days <- 30 # number of days workers are on a farm per year(5 days a week)
 avg_boat_spd <- 48280.3 # average boat speed (meters per hour)~30 miles per hour
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 #no_fingerlings <- 256000 # fingerlings per farm

@@ -35,7 +35,20 @@ library(maptools)
 library(maps)
 library(rworldmap)
 library(pander)
+library(RefManageR)
 data(World)
+
+## Read in Bibliography info from Zotero.org
+biblio <- ReadZotero(group = '1859663', .params = list(collection = '3547HZA9'))
+
+# Find article keys to reference when in citations
+refs <- biblio %>% {
+  .$title
+} %>%
+  bind_rows() %>%
+  gather(key = 'key', value = 'title', 1:ncol(.))
+
+# NOTE: insert citations with Cite(biblio['key']). 'key' can be identified in the refs dataframe 
 
 ## Set document themese
 font_family = 'Calibri'
@@ -99,21 +112,12 @@ The development of marine aquaculture in the Caribbean has been identified as an
 
 # Introduction 
 
-1. Summary and importance of global aquaculture production  
+1. Summary and importance of global aquaculture production
 
     * Projected increase in seafood demand and aquaculture as the most likely means to fill this demand (i.e., limited ability of wild fisheries to increase production) 
-    
-    * Brief summary of ecological, social and economic benefits of aquaculture
-   
-    * Despite strong arguments for aquaculture growth to meet increasing seafood demand at a global scale, how aquaculture development and growth can and should be realized at a regional scale requires an understanding of the sustainable and economically viable production potential of a region 
-    
-    
-    *Description of factors that must be considered when determining aquaculture production potential of a given region ( see [@McKindsey2006]; Dunn et al. 2013). 
-      + physical
-      + ecological
-      + social
-      + economic
-  
+
+The global fish supply is expected to exceed 186 million tons by 2030, a 10% increase over current levels (`r Cite(biblio['kobayashi_fish_2015'])`, `r Cite(biblio['fao_contributing_2016'])`), and the vast majority of new production must come from aquaculture given only modest potential increases from capture fisheries (`r Cite(biblio['costello_global_2016'])`). Marine aquaculture presently provides just over a third of total aquaculture production and only 18.25% of all seafood for human consumption. However, the global potential of marine aquaculture, particularly when located offshore, is large and far exceeds the space required to meet seafood demand for the foreseeable future (`r Cite(biblio['kapetsky_global_2013'])`, `r Cite(biblio['gentry_mapping_2017'])`). Offshore aquaculture, the definition of which lacks clear consensus, can be generally defined as any aquaculture activity occurring $\ge$ three nautical miles offshore and/or in depths $\ge$ 30 m (`r Cite(biblio['froehlich_offshore_2017'])`). No global estimate of the extent of offshore aquaculture production (which is almost entirely fish and shellfish) exists, as nearly all marine aquaculture currently occurs inshore (`r Cite(biblio['kapetsky_global_2013'])`). Furthermore, by moving to deeper waters further from the coast, offshore aquaculture is increasingly viewed as a viable strategy to minimize aquaculture's adverse environmental and socioeconomic consequences (`r Cite(biblio['holmer_environmental_2009'])`). However, despite strong arguments for offshore aquaculture growth to help meet increasing seafood demand at a global scale, how this development and growth can and should be realized requires an understanding of the sustainable and economically viable production potential at the regional level.
+
 2.	The Caribbean as a region where aquaculture development could be particularly beneficial and current challenges to development   
     
     * Caribbean seafood consumption production, and trade (include information on seafood exports and imports)
@@ -129,15 +133,15 @@ The development of marine aquaculture in the Caribbean has been identified as an
     
     * Barriers to the development of aquaculture in the Caribbean are lack of infrastructure, and political and economic stability, risk factors that deter private sector investors [@Rojas2007]. In general, both political and economic conditions of a country determine how much risk is associated with investing in that country, and thus how much foreign direct investment is likely to occur (Schneider and Frey 1985). Political and economic instability has been identified as a major limiting factor to aquaculture development in the Caribbean (Rojas and Wadsworth 2007), with potential investors concerned that policies affecting aquaculture business will shift before they are able to make a profit.
   
-3. Offshore aquaculture is an emerging approach to mariculture where farms are some distance offshore  
+3.	Overview of cobia biology and cobia farming (this section should make it clear why SST was not a necessary layer in our suitability assessment , but was important to consider in our growth model).
+    
+    * Likely species/technology in the Caribbean (concluding that cobia is one of the more promising species because it is fast growing, has had demonstrated success in offshore farms, is a high value species, etc. and thus is the focus of our analysis)
 
-    * Overview of offshore aquaculture worldwide (very brief)  
-    
-    * Brief discussion of advantages of offshore aquaculture (specifically in the Caribbean)  
-    
-    * Likely species/technology in the Caribbean (concluding that cobia is one of the more promising species because it is fast growing, has had demonstrated success in offshore farms, is a high value species, etc. and thus is the focus of our analysis) 
-    
-4.	Overview of cobia biology and cobia farming (this section should make it clear why SST was not a necessary layer in our suitability assessment , but was important to consider in our growth model).
+    *Description of factors that must be considered when determining aquaculture production potential of a given region ( see [@McKindsey2006]; Dunn et al. 2013). 
+      + physical
+      + ecological
+      + social
+      + economic
   
 5. Introducing our study  
 
@@ -210,20 +214,6 @@ To identify areas currently designated or utilized for purposes that would precl
 
 All spatial data layers listed in Table 1 are converted to raster format with a 1 km^2^ spatial resolution. Data files that had a resolution > 1 km^2^ are interpolated to the 1 km^2^ grid using 'nearest neighbor technique' in R's [raster](https://cran.r-project.org/web/packages/raster/index.html) package. All 1 km^2^ cells from each layer that fell outside of the suitable threshold are given a score of zero and cells falling within the threshold are given a score of 1. We then overlay all data layers and multiply the values of all layers in each cell. This result is a final single data layer, where cells suitable for offshore aquaculture development based on all criteria listed in Table 1 have a score of 1, and unsuitable cells a value of 0.
 
-## Farm Design 
-
-To estimate production, we assume a fixed farm design, per 1 km^2^ sites, across our study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson_2004; @Xu2015].We develop a hypothetical farm design for a 1 km^2^ cell that has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell grid mooring systems that occupy a total space of approximately ~ 0.48 km^2^ and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010].
-
-This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ [@Sims]. The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit area of farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
-
-```{r table2, results='asis'}
-
-pander::pandoc.table(table2,
-             digits = 2,
-             caption = 'Table 2: Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
-             split.cells = c(80,20))
-```
- 
 ## Growth Potential
 Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and is a factor that cannot be easily controlled in offshore mariculture grow-out settings [@Tidwell2012]. To reflect spatial differences in productivity across farms attributed to temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site (Klinger, Levin, & Watson 2017).  
 
@@ -252,55 +242,81 @@ kable(temp_params,
       caption = 'Temperature-growth parameters and linear function constants for cobia')
 ```
 
-Individual cobia growth at month $t$ for site $i$ ($G_{t,i}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth ($\bar{G}_{t,i} $) at site $i$ is then calculated for each calendar month $t$:
+Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ is then calculated for each calendar month $t$:
 
-$$\bar{G}_{t,i} = \frac{\sum_{y=1}^{10} G_{y,t,i}}{10} $$
+$$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} $$
 
 ## Bioeconomic Model
-We model future offshore aquaculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth with a detailed economic model parameterized with values from the literature, technical reports, and personal communication with producers of commercial aquaculture technology (e.g. Innovasea).
+We model future offshore aquaculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth with a detailed farm design and economic model parameterized with values from the literature and technical reports.
+
+### Farm Design 
+To estimate production, we assume a fixed farm design, per 1 km^2^ site, across our study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson_2004; @Xu2015].We develop a hypothetical farm design for a 1 km^2^ cell that has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell grid mooring systems that occupy a total space of approximately ~ 0.48 km^2^ and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010]. This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ [@Sims]. 
+
+The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
+
+```{r table2, results='asis'}
+
+pander::pandoc.table(table2,
+             digits = 2,
+             caption = 'Table 2: Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
+             split.cells = c(80,20))
+```
+ 
 
 ### Growth Model
-Individual cobia growth at month $t$ for site $i$ ($G_{t,i}$) is modeled using the previously calculated 10 year ($y$) average individual growth ($\bar{G}_{t,i} $) at site $i$ for each calendar month $t$. Total farm biomass ($B_{t,i}$) is a function is the initial stocking density of each cage, and $S$, the total survival rate is assumed to be 85% [@Benetti2008c]. 
+Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is modeled using the previously calculated 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ for calendar month $t$. Fingerlings are stocked at an initial weight of 0.15 grams and fish weight ($w$) in month $t$ at site $i$ is calculated as the cumulative growth since the stocking month ($t_s$):
 
-Annual production ($B_t$) at each farm is then calculated as: 
+$$ w_{t,i} = \sum_{t_s}^{t} \bar{G}_{i,t} $$
 
-$B_t = c * \displaystyle\sum_{m=1}^{12} B_m$
+We apply an instantaneous mortality rate of 0.024, which we adopt from previous studies that have estimated a total 12 month survival rate of 75% for cobia raised in offshore cages in the Caribbean ([@Benetti2008c]; Huang 2011). A cage at site $i$ is harvested when individual fish have grown to a harvestable size of 5 - 6 kg. 
 
-Where $c$ is the number of cages per farm and $B_m$ is the monthly total biomass per cage.
+#### Stocking Density
+To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round. We therefore assume that five cages at each site are stocked with cobia fingerlings during the first month, and that one (or more) cage is stocked with fingerlings each month thereafter. XX suggest $15 \frac{kg}{m^3}$ as a target harvest density for sustainable offshore mariculture. Because growth rates vary across farm sites and all sites are assumed to experience an instantaneous mortality rate of 0.024, we investigate the following two scenarios of the initial number of stocked fingerlings ($n_0$):
 
-#### Optimal Stocking Density
-To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round. Cobia take twelve months on average to grow from fingerling (~3 kg) to a harvestable size of 5 - 6 kg [@Holland]. For our cobia farms, we assume that 5 cages are stocked with cobia fingerlings during the first month, and that one cage is stocked with fingerlings each of the remaining months. The number of fingerlings stocked in each cage remain constant, and is calculated assuming a conservative harvest density of 15  *$\frac{kg}{m^3}$*, or 16,000 individual fish per cage.
+##### Fixed Stocking Density
+The number of fingerlings stocked in each cage is fixed at the level that achieves the target harvest density of in 12 months. Given a cage volume of 6,400 m^3^, a total survival rate of 75%, and a target harvest density of $15 \frac{kg}{m^3}$, $n_0$ is set to 25,600.
 
-The number of completed harvest cycles ($h$), wherein a cobia is raised from an initial stocking weight of 0.15 g to a final harvest weight of 5 kg, is calculated for each site by dividing the cumulative individual growth by 5 kg. 
+##### Optimal Stocking Density
+The number of fingerlings stocked in each cage is optimized at the level that achieves the target harvest density ($15 \frac{kg}{m^3}$) at the time fish reach the final harvest weight of 5 kg, or 19,200 fish per cage. 
 
-$$h_i = \frac{\sum_{t=1}^{120} G_{t,i}}{5~kg} $$  
+The optimal stocking number ($n^*$) for each site is estimated using the historical SST timeseries. The number of hypothetical completed grow out cycles ($g$), wherein a cobia is raised from an initial stocking weight of 0.15 g to a final harvest weight of 5 kg, is calculated for each site $i$ by first dividing the cumulative individual growth over the 120 month timeseries by the target harvest weight. 
 
-The average number of months per harvest cycle ($\bar{h_i}$) is then calculated as $\bar{h_i} = \frac{120}{h_i}$. Given $\bar{h_i}$, a target harvest density of $XX \frac{kg}{m^3}$, and an annual survival rate of 85%, the optimal number of fingerlings to stock can be estimated for each site:
+$$g_i = \frac{\sum_{t=1}^{120} G_{i,t}}{5~kg} $$  
 
-** Insert equation optimal initial stocking density **
+The average number of months per grow out cycle ($\bar{t}_i$) is then calculated as $\bar{t}_i = \frac{120}{g_i}$. Given $\bar{t}_i$ and the target harvest of 19,200 5 kg fish, the optimal number of fingerlings ($n^*_i$) to stock can be estimated for each site $i$ as follows:
+
+$$ n^*_i = \frac{19,200}{1-(1-e)^{0.024~\bar{t}_{i}}} $$
+For a farm site with a 12 month average harvest cycle ($\bar{t}_i=12$), $n^*$ is 25,600 and equivalent to the number of fingerlings stocked at all sites in the fixed stocking scenario.
+
+#### Total Biomass
+Total site biomass in each month ($B_{t,i}$) is a function of the number of stocked cages $C$, initial stocking number $n_0$, and the instantenous mortality rate [@Benetti2008c]. 
+
+$$ B_{t,i} =  \displaystyle\sum_{c = 1}^{C} w_{c,t,i} n_{s,i} - n_{s,i} (1-e)^{0.024~t} $$
+
+Where $C$ is the number of stocked cages at site $i$, $w_{c,i,t}$ is the weight of individual fish in cage $c$ in month $t$, and $n_{0,i}$ is the initial number of fish stocked per cage at site $i$.
  
 ### Economic Model
 
 #### Costs
-The total cost $TC$ of production consists of start up costs ($SC$) and operating costs ($OC$) for each farm $i$ at $t=1$ year as:
+The total cost $TC$ of production for each farm $i$ consists of start up costs ($SC$) plus the sum of operating costs ($OC$) 
 
-$TC_{i,t=1} = SC_i + OC_{i,t=1}$
+$$ TC_i = SC_i + \displaystyle\sum_{t=1}^T OC_{i,t} $$
 
-and $TC$ for all subsequent years ($t > 1$):
+Costs of aquaculture infrastructure and installation increase with depth and distance from shore[@Beverage2004]. Start-up costs are therefore modeled to include initial capital expenditures ($E$) as a function of average site depth in meters $m$, installation costs ($I$) as a function of distance from port ($d$) and EEZ ($z$), and EEZ-specific permit and/or lease cost $P$:
 
-$TC_{i,t >1} = OC_{i,t>1}$
+$$ SC_i =  E_i(m_i) + I_i(d_i,z) + P_{z} $$
 
-Costs of infrastructure increase with depth [@Beverage2004] =Start-up costs ($SC$) include initial capital expenditures as a function of average site depth $E_i(depth_i)$, installation costs as a function of distance from port and EEZ ($I_i(dist_i,EEZ)$), and EEZ-specific permit and/or lease cost $P_{EEZ}$:
+$$ E_i = \displaystyle\sum $$
 
-$SC_{i,t=1} =  E_i(depth_i) + I_i(dist_i,EEZ) + P_{EEZ}$
+$$ I_i = $$
 
-A 10% increase in installation cost were assinged to sites that were in depths >50 m [@Lester2017] or > 25 nm from shore (@Kapetsky2013).
+A 10% increase in installation cost are assinged to sites with depths greater than 50 m [@Lester2017] or locations further than 25 nm from shore (@Kapetsky2013).
 
-Annual operating costs in year $t$ at site $i$ are modeled as follows: 
+Operating costs are organized in two main categories; costs associated with farm labor and maintenance, and costs associated with purchasing and feeding stocked fish. Labor and maintenance costs ($L$) at site $i$ in month $t$ are modeled as follows: 
 
-$OC_{i,t} = (H_i(wave) * w * d_{EEZ}) + (\frac{dist_i}{b} * w * d_{EEZ} * r) + (dist_i * b * g_{EEZ} * e * t) + (f_t + h_t)$
+$$ L_{i,t} = hls_z + \frac{d_i}{b}srg_z + d_i b g_zet $$
 
-Where $H_i$ is the hours required at site $i$ as a function of wave exposure; $w$ is the number of workers required to service a farm; $d$ is the EEZ-specific hourly wage; $dist_i$ is distance from shore (km); $b$ is average boat speed to farm sites; $r$ is the number of trips required per month for running the farm; $g$ is the cost of fuel as a function of EEZ; $e$ is the average fuel efficiency of the vessel; $f$ is the fixed cost of fingerlings for a individual farm in year $t$; and $h$ is the cost of feed in year $t$ for a individual farm.
+Where $h$ is the hours per laborer required at site $i$, $l$ is the labor (number of workers) required to service a farm; $s$ is the EEZ-specific hourly salary; $d_i$ is distance from shore (km); $b$ is average boat speed to farm sites; $r$ is the number of trips required per month for running the farm; $g$ is the cost of fuel as a function of EEZ; $e$ is the average fuel efficiency of the vessel; $f$ is the total cost of fingerlings and $h$ is the cost of feed in month $t$ for a individual farm.
 
 #### Revenues
 
@@ -338,9 +354,9 @@ $NPV_{EEZ} = \displaystyle\sum_{i}^{n} NPV_i$
 
 National supply curves are aggregated into a single Caribbean-wide supply curve to estimate total potential cobia production and NPV for the Caribbean over a 10-year period. 
 
-$B_{Caribbean} = \displaystyle\sum_{EEZ}^{n} B_{EEZ}$
+$$ B_{Caribbean} = \displaystyle\sum_{EEZ}^{n} B_{EEZ} $$
 
-$NPV_{Caribbean} = \displaystyle\sum_{EEZ}^{n} NPV_{EEZ}$
+$$ NPV_{Caribbean} = \displaystyle\sum_{EEZ}^{n} NPV_{EEZ} $$
 
 Lastly, feasible farms within each EEZ are ranked according to yield and profit (highest to lowest) and ranges for farm-scale yield and revenue were compared within and across EEZs.
 
