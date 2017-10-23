@@ -26,7 +26,7 @@ load_functions(func_dir = 'functions')
 
 # Run settings -------------------------------------------------------------
 
-boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+boxdir<-('/Users/Lennon/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
 
 run_name = "test"
 
@@ -39,7 +39,7 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data = FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
+prep_data = TRUE# Prep economic data files (TRUE) or just read in existing files (FALSE)
 #fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 
 # Load Data ---------------------------------------------------------------
@@ -67,34 +67,31 @@ load(paste(run_dir, 'economic_data.Rdata',sep=""))
 
 # Constant parameters
 
-cage_cost <- 5708800 # cage and installation
-support_vessel <- 50000 #32'ft from Kam et al. 2003
-site_lease<-3265 # from Bezerra et al. 2015
-labor_installation<-52563 # from Bezerra et al. 2015
-site_hours <- 8 # hours per worker per day for a month
-site_workers <- 16 # number of workers per farm per day
-site_days <- 30 #number of days workers are on a farm per year(5 days a week)
-avg_boat_spd <- 48280.3 # average boat speed (meters per hour)~30 miles per hour
+cage_cost <- 269701 # US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
+support_vessel <- 158331 #US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
+site_lease<-3265 # US$ from Bezerra et al. 2016 This is for 16 ha farm in Brazil (ours is larger so may want to increase)
+labor_installation<-52563 # US$ from Bezerra et al. 2016
+site_hours <- 240 # monthly hours per worker per month (8*30)
+site_workers <- 17 # Bezerra et al. 2016 
+avg_boat_spd <- 48.28 #km/hour assumes about 30 miles per hour. Check distance raster to make sure units are correct
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 #no_fingerlings <- 256000 # fingerlings per farm
-price_fingerlings <- 17.3 # cost per kg of fingerling (average from Huang et al. 2011)
-#feed_cost <- 1.8 # cost per kg of feed (Sclodnick 2013)
-stock_weight<-0.15  #kg of inividuals when cage is stocked
-harv_den<-15 #kg/m^3 harvest density
-no_cages<-16
+price_fingerlings <- 2.58 #$US/fingerling Bezerra et al. 2016
+harv_den<-15 #kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
+no_cage<-16 # cages
 cage_volume<-6400 #m^3
-total_vol<-no_cage*cage_volume #total cage volume
-harvest_weight<-5 # from various souces (5-6 kg)
-cobia_price<- 8.62 # Bezerra et al. 2016
+total_vol<-no_cage*cage_volume # m^3 total cage volume
+harvest_weight<-5 # kg from various souces (5-6 kg)
+cobia_price<- 8.62 $US/kg# Bezerra et al. 2016
 #F.C.R.  = Feed given / Animal weight gain.
-fcr<-1.75 #Benetti et al. 2010 for the whole Carib region #2 Bezerra et al. 2016 (feed conversion ratio) this is too high comparing to other studies. economic fcr may be higher. see seafoodwatch
+fcr<-1.75 #Benetti et al. 2010 for the whole Carib region 
 feed_price<-1.64 #in units of $/kg  Bezerra et al. 2016
 survival<-0.75 #Benetti et al. 2007 over 12 monthes and Huang et al. 2011
-month_mort<-1 - (1 - (1-survival)) ^ (1 / 12)
-int_weight<-0.015 # kg (15 grams)
-#no_trips<-2 #number of trips to farm per day
+month_mort<-1 - (1 - (1-survival) ^ (1 / 12)
+int_weight<-0.015 # kg (15 grams) Bezerra et al. 2016
+no_trips<-2 #number of trips to farm per day
 sim_length <- 120 # length of simulation (months)
-
+                 
 # Calculate average growth, cycle length, and no. of fingerlings --------
 
 annual_prod<-ann_prod(growth = growth) 
