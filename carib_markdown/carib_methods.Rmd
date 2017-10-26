@@ -58,8 +58,8 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
-  # user <- 'lennon'
+# user <- 'tyler'
+  user <- 'lennon'
 
 if(user == 'lennon') {
 # boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16')
@@ -137,7 +137,7 @@ The global fish supply is expected to exceed 186 million tons by 2030, a 10% inc
     
     * Likely species/technology in the Caribbean (concluding that cobia is one of the more promising species because it is fast growing, has had demonstrated success in offshore farms, is a high value species, etc. and thus is the focus of our analysis)
 
-    *Description of factors that must be considered when determining aquaculture production potential of a given region ( see [@McKindsey2006]; Dunn et al. 2013). 
+    *Description of factors that must be considered when determining aquaculture production potential of a given region ( see [@McKindsey2006]; Dunn et al. 2013). (REMOVE FROM INTRO)
       + physical
       + ecological
       + social
@@ -264,7 +264,7 @@ pander::pandoc.table(table2,
  
 
 ### Growth Model
-Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is modeled using the previously calculated 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ for calendar month $t$. Fingerlings are stocked at an initial weight of 0.15 grams and fish weight ($w$) in month $t$ at site $i$ is calculated as the cumulative growth since the stocking month ($t_s$):
+Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is modeled using the previously calculated 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ for calendar month $t$. Fingerlings are stocked at an initial weight of 15 grams and fish weight ($w$) in month $t$ at site $i$ is calculated as the cumulative growth since the stocking month ($t_s$):
 
 $$ w_{t,i} = \sum_{t_s}^{t} \bar{G}_{i,t} $$
 
@@ -291,7 +291,7 @@ For a farm site with a 12 month average harvest cycle ($\bar{t}_i=12$), $n^*$ is
 #### Total Biomass
 Total site biomass in each month ($B_{t,i}$) is a function of the number of stocked cages $C$, initial stocking number $n_0$, and the instantenous mortality rate [@Benetti2008c]. 
 
-$$ B_{t,i} =  \displaystyle\sum_{c = 1}^{C} w_{c,t,i} n_{s,i} - n_{s,i} (1-e)^{0.024~t} $$
+$$ B_{t,i} =  \displaystyle\sum_{c = 1}^{C} w_{c,t,i} n_{s,i} - n_{s,i} (1-e)^{-0.024~t} $$
 
 Where $C$ is the number of stocked cages at site $i$, $w_{c,i,t}$ is the weight of individual fish in cage $c$ in month $t$, and $n_{0,i}$ is the initial number of fish stocked per cage at site $i$.
  
