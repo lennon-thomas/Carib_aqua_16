@@ -58,8 +58,8 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-# user <- 'tyler'
-  user <- 'lennon'
+user <- 'tyler'
+  # user <- 'lennon'
 
 if(user == 'lennon') {
 # boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16')
@@ -101,7 +101,7 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Turks and Caicos Exclusive Economic Zone",
                    "Virgin Islander Exclusive Economic Zone")
 
-load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
+load(paste(boxdir,'Suitability/final/suitability_results.Rdata',sep=""))
 
 ```
 
@@ -266,7 +266,7 @@ pander::pandoc.table(table2,
 ### Growth Model
 Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is modeled using the previously calculated 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ for calendar month $t$. Fingerlings are stocked at an initial weight of 15 grams and fish weight ($w$) in month $t$ at site $i$ is calculated as the cumulative growth since the stocking month ($t_s$):
 
-$$ w_{t,i} = \sum_{t_s}^{t} \bar{G}_{i,t} $$
+$$ w_{i,t} = \sum_{t_s}^{t} \bar{G}_{i,t} $$
 
 We apply an instantaneous mortality rate of 0.024, which we adopt from previous studies that have estimated a total 12 month survival rate of 75% for cobia raised in offshore cages in the Caribbean ([@Benetti2008c]; Huang 2011). A cage at site $i$ is harvested when individual fish have grown to a harvestable size of 5 - 6 kg. 
 
@@ -291,7 +291,7 @@ For a farm site with a 12 month average harvest cycle ($\bar{t}_i=12$), $n^*$ is
 #### Total Biomass
 Total site biomass in each month ($B_{t,i}$) is a function of the number of stocked cages $C$, initial stocking number $n_0$, and the instantenous mortality rate [@Benetti2008c]. 
 
-$$ B_{t,i} =  \displaystyle\sum_{c = 1}^{C} w_{c,t,i} n_{s,i} - n_{s,i} (1-e)^{-0.024~t} $$
+$$ B_{i,t} =  \displaystyle\sum_{c = 1}^{C} w_{c,t,i} n_{0,i} - n_{0,i} (1-e)^{-0.024~t} $$
 
 Where $C$ is the number of stocked cages at site $i$, $w_{c,i,t}$ is the weight of individual fish in cage $c$ in month $t$, and $n_{0,i}$ is the initial number of fish stocked per cage at site $i$.
  
@@ -302,37 +302,54 @@ The total cost $TC$ of production for each farm $i$ consists of start up costs (
 
 $$ TC_i = SC_i + \displaystyle\sum_{t=1}^T OC_{i,t} $$
 
-Costs of aquaculture infrastructure and installation increase with depth and distance from shore[@Beverage2004]. Start-up costs are therefore modeled to include initial capital expenditures ($E$) as a function of average site depth in meters $m$, installation costs ($I$) as a function of distance from port ($d$) and EEZ ($z$), and EEZ-specific permit and/or lease cost $P$:
+Costs of aquaculture infrastructure and installation increase with depth and distance from shore[@Beverage2004]. Start-up costs are therefore modeled to include initial capital expenditures ($E$) and installation costs ($I$), both as a function of average site depth in meters $m$, and EEZ-specific permit and/or lease cost $P$:
 
-$$ SC_i =  E_i(m_i) + I_i(d_i,z) + P_{z} $$
+$$ SC_i =  E_i(m_i) + I_i(m_i) + P_{z} $$
+Initial capital expenditures ($E$) include the cost of 16 SeaStation fish cages ($269,701 each) plus the cost of one 16-m-long support vessel and two 7-m-long motorboats. Installation costs include the labor costs for installation of the culture system. A 10% increase in cage and installation costs are assinged to sites with depths greater than 50 m [@Lester2017].
 
-$$ E_i = \displaystyle\sum $$
+$$ E_i = \begin{cases} 
+   4,315,216 + (4,315,216 * 0.1) + 158,331 & \text{if } m_i > 50\\
+   4,315,216 + 158,331 & \text{if } m_i \leq 50
+   \end{cases} 
+ $$
+$$ I_i = \begin{cases} 
+   52,563 + (52,563 * 0.1) & \text{if } m_i > 50\\
+   52,563 & \text{if } m_i \le 50
+   \end{cases} 
+ $$
 
-$$ I_i = $$
+Operating costs are organized in two main categories; farm labor and maintenance costs as a function of site depth and EEZ-specific hourly salary and fuel costs ($L_{i,t}(s_z,d_i,g_z)$), and costs associated with purchasing and feeding stocked fish $F_{i,t}$. 
 
-A 10% increase in installation cost are assinged to sites with depths greater than 50 m [@Lester2017] or locations further than 25 nm from shore (@Kapetsky2013).
+$$ OC_{i,t} = L_{i,t}(s_z,d_i,g_z) + F_{i,t}(n_{0,i,t}) $$
 
-Operating costs are organized in two main categories; costs associated with farm labor and maintenance, and costs associated with purchasing and feeding stocked fish. Labor and maintenance costs ($L$) at site $i$ in month $t$ are modeled as follows: 
+Labor and maintenance costs ($L$) at site $i$ in month $t$ are modeled as follows: 
 
-$$ L_{i,t} = hls_z + \frac{d_i}{b}srg_z + d_i b g_zet $$
+$$ L_{i,t} = 2,720s_z + \frac{d_i}{3,219}60g_z  $$
 
-Where $h$ is the hours per laborer required at site $i$, $l$ is the labor (number of workers) required to service a farm; $s$ is the EEZ-specific hourly salary; $d_i$ is distance from shore (km); $b$ is average boat speed to farm sites; $r$ is the number of trips required per month for running the farm; $g$ is the cost of fuel as a function of EEZ; $e$ is the average fuel efficiency of the vessel; $f$ is the total cost of fingerlings and $h$ is the cost of feed in month $t$ for a individual farm.
+Where 2,720 is the total monthly labor hours required at site $i$ (17 full time workers); $s_z$ is the EEZ-specific hourly salary; $d_i$ is distance from shore (in meters); 3,219 is average fuel efficiency (meters per gallon); 60 is the number of one-way trips required per month for running the farm; and $g_z$ is the per-gallon cost of fuel as a function of EEZ. 
+
+Fingerling and feed costs ($F$) at site $i$ in month $t$ include the cost of an individual fingerling (\$2.58) times the number of fingerlings stocked in month $t$ ($n_{0,i,t}$). Feed costs are calculated based on a constant feeding strategy of 2% of total biomass and a feed price of \$1.68 per kg. Because our model operates at monthly, not daily, timesteps, we calculate total feed based on the average total biomass during month $t$  $\frac{B_{i,t} + B_{i,t-1}}{2}$.
+
+$$ F_{i,t} = 2.58n_{0,i,t} + 1.64 * 0.02(\frac{B_{i,t} + B_{i,t-1}}{2})   $$
 
 #### Revenues
+Farms earn revenue by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w$) reaches 5 kg. In these harvest months, farm revenue is simply a function of harvest weight (kg) and cobia price ($p$), $R_{i,t} = B_{i,t}p_t$, otherwise $R_{i,t} = 0$:
 
-Total revenue ($TR$) during each year $t$ for each farm $i$ is calculated as:
+$$ R_{i,t} = \begin{cases} 
+   B_{i,t}p_t & \text{if } w_{i,t} \ge 5 kg\\
+   0 & \text{if } w_{i,t} < 5
+   \end{cases} 
+ $$
 
-$TR_{i,t} = (B_{i,t} * p_t) - B_{i,t} * k_{EEZ}$ 
+Where $B$ is the total biomass of cobia at farm $i$ in month $t$ and $p_t$ is the global price of cobia in month $t$. Cobia farms in the Caribbean are initially assumed to be price takers and thus production in month $t$ does not affect price in month $t+1$. We also explore a scenario with a downward demand curve where Caribbean cobia production does affect price (see *Production Scenarios* section).
 
-Where $B$ is the total biomass of cobia at farm $i$ in year $t$, $k$ is the export tax as a function of EEZ, and $p$ is the global price of cobia in year $t$.  Cobia farms in the Caribbean are assumed to be price takers and thus production in year $t$ does not affect price in year $t+1$. We also explore a scenario with a downward demand curve where Caribbean cobia production does affect price (see *Production Scenarios* section).
+Total farm profit ($\pi$) for farm $i$ is then simply the sum of revenues less total farm costs.
 
-Total annual farm profit ($\pi$) for farm $i$ at year $t$ is then total farm revenue $TR_{i,t}$ less total farm costs $TC_{i,t}$.
+$$ \pi_{i} = \sum R_{i} - TC_i $$
 
-$\pi_{i,t} = TR_{i,t} - TC_{i,t}$
+We then calculate the 10-year net present value (NPV) of farm $i$ using EEZ-specific discount rates ($\delta_{z}$) (Table 5): 
 
-We then calculate the 10-year net present value (NPV) of farm $i$ using EEZ-specific discount rates ($\delta_{EEZ}$) (Table 5): 
-
-$NPV_i = \displaystyle\sum_{t=0}^{t=10} \frac{\pi^i_t}{(1+\delta_{EEZ})^t}$
+$$ NPV_i = \displaystyle\sum_{t=0}^{T} \frac{\pi^i_t}{(1+\delta_{z})^t} $$
 
 #### Discount Rate
 
@@ -346,11 +363,11 @@ For each variable, a country’s rating is determined by transforming the data f
 
 ### Supply Curves
 
-Using the cost function described in equation X, we construct national and Caribbean-wide supply curves for cobia by aggregating farm-level supply curves. For a given price, only farms that generate positive profits are considered feasible for development. We then calculate the total summed biomass (MT), $B_{EEZ}$, and NPV ($NPV_{EEZ}$) over a 10-year period produced by all profitable farms in an EEZ across a range of prices (X-XXX).  
+Using the cost function described in equation X, we construct national and Caribbean-wide supply curves for cobia by aggregating farm-level supply curves. For a given price, only farms that generate positive profits are considered feasible for development. We then calculate the total summed biomass (MT), $B_z$, and NPV ($NPV_z$) over a 10-year period produced by all profitable farms in an EEZ across a range of prices (X-XXX).  
 
-$B_{EEZ} = \displaystyle\sum_{i}^{n} B_i$
+$$ B_z = \displaystyle\sum_{i}^{n} B_i $$
 
-$NPV_{EEZ} = \displaystyle\sum_{i}^{n} NPV_i$
+$$ NPV_z = \displaystyle\sum_{i}^{n} NPV_i $$
 
 National supply curves are aggregated into a single Caribbean-wide supply curve to estimate total potential cobia production and NPV for the Caribbean over a 10-year period. 
 
