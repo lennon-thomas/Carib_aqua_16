@@ -3,11 +3,11 @@
 
 # Calculate monthly and total costs of feed for each farm assuming a constant fcr and different stocking_n
 
-monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days){
+monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days,discount_rate){
   
   
 #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
-  names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge")
+  names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
   
 #Turn economic parameters into data frame
   all_economic<-as.data.frame(econ_stack)
@@ -33,57 +33,67 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
   
  #  monthly_costs<-left_join(monthly_costs,labor,by='cell')
   
-# Calculate monthly fuel costs (same for all months)
+# Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
    
    suitable_economic<-suitable_economic %>%
-     mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2) # add per boat
+     mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 *4) 
            # cell = as.numeric(row.names(suitable_economic)))
    
   
 
        #convert into monthly costs                     
  monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='s_cells'))  %>%
-                              select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost)                            
+                              select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                            
                             
- 
- 
  #set capital costs to 0 for all month except month one
  
  monthly_costs$c_costs<-ifelse(monthly_costs$month==1,monthly_costs$c_costs,0)                                
 
- # Calculate all cost components
-  monthly_costs<-monthly_costs %>%
-    mutate(feed_cost = feed * feed_price,
-           fingerling_cost = ifelse(weight==0.015,alive*price_fingerlings,
-                             0)) 
-       
-  #sum everything to get total monthly costs, revenues and profits
- monthly_costs<-monthly_costs %>%
-   mutate(total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost)
-
-monthly_costs<-monthly_costs %>%
-   mutate (total_monthly_cost = total_operating_cost + c_costs,
-           monthly_revenue = harvest * cobia_price)
+ # Calculate all cost components and sum everything to get total monthly costs, revenues and profits
+ monthly_costs$harvest[is.na(monthly_costs$harvest)]<-0
  
-  monthly_costs$monthly_revenue[is.na(monthly_costs$monthly_revenue)]<-0
-  monthly_costs$total_monthly_cost[is.na(monthly_costs$total_monthly_costs)]<-0
-  # had to break this into two (from above) to get rid of NA for cumsum
-# monthly_costs<-monthly_costs %>%
-#               group_by(cell)%>%
-#               mutate(cum_cost= cumsum(total_monthly_cost),
-#               cum_rev= cumsum(monthly_revenue),
-#                unadj_profit = (cum_rev - cum_cost)) %>%
-#   ungroup()
-           
-      
-         
+ monthly_cashflow<-monthly_costs %>%
+   mutate(feed_cost = feed * feed_price,
+          fingerling_cost = ifelse(weight==0.015,alive*price_fingerlings,
+                                   0),
+          total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost,
+          total_monthly_costs = total_operating_cost + c_costs,
+          monthly_revenue = harvest * cobia_price,
+          cash_flow = monthly_revenue - total_operating_cost,
+           year=ifelse(month <= 12,1,                       #probably don't need this.
+                       ifelse(month > 12 & month <= 24, 2,
+                              ifelse( month >24 & month <= 36, 3,
+                              ifelse( month > 26 & month <= 48, 4,
+                              ifelse( month > 48 & month <= 60, 5,
+                              ifelse( month > 60 & month <= 72, 6,
+                              ifelse( month > 72 & month <= 84, 7,
+                              ifelse( month > 84 & month <= 96, 8,
+                              ifelse( month > 96 & month <= 108, 9,
+                              10))))))))),
+          present_value = cash_flow/(1+(discount_rate/12))^(month))  #check with tyler to make sure this is correct
+  
+    
 
+write.csv(monthly_cashflow,paste0(run_dir,"monthly_cashflow.csv"))
 
+# Calculate annual NPV- no bc harvest cycle isn't annual
+# 
+# monthly_PV<-monthly_costs %>%
+#   group_by(cell) %>%
+#   summarise(total_operating_cost = sum(total_operating_cost),
+#          total_revenue = sum(monthly_revenue),
+#          total_cap_cost = sum(c_costs)) %>%
+#   mutate (annual_cash_flow = total_revenue - total_operating_cost,
+#          cml_cash_flow = cumsum(annual_cash_flow),
+#          present_value = cml_cash_flow/(1+discount_rate)^year) %>%
+#          ungroup()
+# 
+# write.csv(annual_PV,paste0(run_dir,"annual_PV.csv")) 
 
-write.csv(monthly_costs,paste0(run_dir,"monthly_costs.csv"))
-
-return(monthly_costs)
+return(monthly_cashflow)
 }
+
+
 
 total_cost_raster<-function(monthly_costs,stocking_n)  {
   

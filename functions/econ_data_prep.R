@@ -59,7 +59,8 @@ depth_charge<-calc(depth, function(x) ifelse(x > 50, 0.10, 0))
 
 distance_charge<-calc(shore_distance, function(x) ifelse(x > 46300, 0.10,0))
 
-eez<-fasterize(econ_shape,depth,field ="Territory1")
+econ_shape$MRGID<-{as.numeric(levels(econ_shape$MRGID))[econ_shape$MRGID]}
+eez<-fasterize(econ_shape,depth,field ='MRGID')
 
 econ_stack<-stack(fuel_price,min_wage,permit_fee,risk_score,shore_distance,depth_charge, distance_charge,eez)
 

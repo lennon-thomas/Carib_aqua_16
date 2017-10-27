@@ -42,7 +42,7 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data = FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
+prep_data = TRUE# Prep economic data files (TRUE) or just read in existing files (FALSE)
 #fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 # Parameters --------------------------------------------------------------
 
@@ -51,7 +51,7 @@ cage_cost <- 269701 # US$ cage and installation Lipton and Kim. For 3000 m^3 cag
 support_vessel <- 158331 #US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
 site_lease<-3265 # US$ from Bezerra et al. 2016 This is for 16 ha farm in Brazil (ours is larger so may want to increase)
 labor_installation<-52563 # US$ from Bezerra et al. 2016
-site_hours <- 180 # monthly hours per worker per month (8*4 weeks * 5 days)
+site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
 site_workers <- 17 # Bezerra et al. 2016 
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 #no_fingerlings <- 256000 # fingerlings per farm
@@ -72,7 +72,7 @@ no_trips<-2 #number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
 avg_boat_spd <- 48.28    
 site_days <- 30
-
+discount_rate<-0.05
 # Load Data ---------------------------------------------------------------
 
 if (prep_data == TRUE){
@@ -123,109 +123,119 @@ sim_results <- sim_aqua(avg_month_growth = avg_month_growth, stocking_n = stocki
 
 #sim_results<-read.csv(paste0(run_dir,"sim_function_results.csv"))
 
-# Calculate monthly costs and revenue costs ---------------------------------------------------------
+# Calculate monthly costs and revenue costs by cell ---------------------------------------------------------
 
-monthly_costs_revenue<-monthly_cost_est(sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days)
+monthly_cashflow<-monthly_cost_est(sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days,discount_rate)
 
-monthly_costs_revenue[is.na(monthly_costs_revenue)]<-0
+monthly_cashflow[is.na(monthly_cashflow)]<-0
 
-totals<-monthly_costs_revenue %>%
-  group_by(cell)%>%
-  summarize(cum_cost=sum(total_monthly_cost),
-                         cum_rev = sum(monthly_revenue),
-                                       total_feed=sum(feed_cost),
-                        tot_op_cost=sum(total_operating_cost),
-            perc_feed=total_feed/tot_op_cost) %>%
-  mutate(profit=cum_rev-cum_cost) %>%
-  ungroup()
-
-#calculate annual costs and revenue (this is not cummulative)
-annual_costs_revenue<-monthly_costs_revenue %>%
-  group_by(cell) %>%
-  summarize(annual_cost = sum(total_monthly_cost),
-            annual_revenue= sum(monthly_revenue),
-            total_feed_cost=sum(feed_cost)) %>%
-  mutate(profit=annual_revenue-annual_cost) %>%
-  ungroup()
-
-
-
-writeRaster(total_cost,paste0(run_dir,"total_cost.tif"),overwrite=TRUE)
-
-# Calculate annual profit -------------------------------------------------
-
-revenue_results <- revenue(total_ann_production[[1]], cobia_price)
-writeRaster(revenue_results,paste0(run_dir,'revenue_raster.tif'))
-revenue_results<-brick(paste0(run_dir,'revenue_raster.tif'))
-profit<-revenue_results - total_cost_yr_one
-writeRaster(profit,paste0(run_dir,"profit.tif"))
-#profit <- calc(revenue_results, fun=function(x) x - total_cost,filename = paste0(run_dir,'profit_raster.tif'),overwrite=TRUE)
-
-writeRaster(profit,paste(run_dir,"profit_test.tif",sep = ""))
-
-profit<-raster(paste(run_dir,"profit_test.tif",sep = ""))
-
-cells <- Which(prod[[1]] > 0, cells = TRUE) 
-test<-length(cells)
-c<-Which(profit[[1]] >0,cells = TRUE)
-t<-length(c)
 # Calculate 10 year NPV ---------------------------------------------------
 
 
+cell_npv<- monthly_cashflow %>%
+  group_by(cell,eez) %>%
+  summarise (total_pv = sum(present_value),
+             total_c_costs = sum(c_costs)) %>%
+  mutate(npv = total_pv - total_c_costs)
 
 
+# Summarize results ---------------------------------------------------------
 
-# Process results ---------------------------------------------------------
-# costs
+cell_totals<-monthly_costs_revenue %>%
+  group_by(cell,eez)%>%
+  summarize(cum_cost=sum(total_monthly_cost),
+            cum_rev = sum(monthly_revenue),
+            total_feed=sum(feed_cost),
+            total_biomass=(sum(alive,na.rm=TRUE))*(sum(weight,na.rm=TRUE))) %>%
+  mutate(profit=cum_rev-cum_cost) %>%
+  ungroup() 
 
-perc_capital<-cap_costs/total_cost_yr_one*100
-
-perc_feed<-feed_cost[[1]]/total_cost_yr_one*100
-
-perc_fingerlings<-cost_fingerlings[[1]]/total_cost_yr_one*100
-
-perc_labor<-(labor[[1]]+travel[[1]])/total_cost_yr_one*100
-
-perc_capital[1315011]
-perc_feed[1315011]
-perc_fingerlings[1315011]
-perc_labor[1315011]
-
-carib_eez<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep = ""))
-
-eez_capital<-zonal(perc_capital,carib_eez,fun = 'mean', na.rm = TRUE)
-
-eez_feed<-as.data.frame(zonal(perc_feed,carib_eez,fun = 'mean', na.rm = TRUE))
-
-eez_fingerlings<-as.data.frame(zonal(perc_fingerlings,carib_eez,fun = 'mean', na.rm = TRUE))
-
-eez_labor<-as.data.frame(zonal(perc_labor,carib_eez,fun = 'mean', na.rm = TRUE))
-
-cost_results<-as.data.frame(cbind(eez_capital,eez_feed[,2],eez_fingerlings[,2],eez_labor[,2]))
-
-colnames(cost_results)<-c("eez","eez_capital","eez_feed","eez_fingerlings","eez_labor")
-
-cost_results<-  gather(cost_results,'cost','value',dplyr::contains('_')) 
-
-ggplot(cost_results,aes(x=eez,y=value,fill=cost)) +
-  geom_bar(stat="identity")+
-  xlab("EEZ") +
-  ylab("% of total cost")
-
-#revenue
-
-eez_revenue<-zonal(revenue_results,carib_eez,fun="sum",na.rm = TRUE)
-
-
-
-#plot
+#Read in Caribbean EEZ
 carib_eez<-readOGR(dsn=paste(boxdir, "Suitability/tmp",sep = ""),layer = "carib_eez_shape",)
 
-tm_shape(carib_eez)+
-  tm_fill(col="lightblue",alpha = 0.4) +
-  tm_borders(lwd = 1.2) +
-tm_shape(profit)+
-  tm_raster( legend.show = TRUE,title="Annual Profit($USD)",style="cont",palette=c("red","blue")) +
-  tm_legend(position = c("right","top"),scale=1) 
+carib_eez<-st_as_sf(carib_eez)
+
+countries<-carib_eez[,c(2,6)]
+
+names(countries)<-c("eez","country")
+
+cell_totals_eez<-merge(cell_totals,countries,by="eez")
+
+write.csv(cell_totals,paste0(rundir,"cell_result_summary.csv"))
+
+all_eez_summary<-cell_totals_eez %>%
+  group_by(eez,country) %>%
+  summarize(total_cost = sum(cum_cost),
+            total_revenue = sum(cum_rev),
+            total_profit = sum(profit),
+            total_biomass=sum(total_biomass)) %>%
+  ungroup()
 
 
+eez_npv<-cell_npv %>%
+  group_by(eez) %>%
+  summarize(total_npv=sum(npv))
+
+#
+
+
+
+
+
+
+
+# costs
+
+
+
+#Plot
+#create Figures folder in run directory
+
+fig_folder<-paste0(boxdir,'results/',run_name, "/Figures/")
+
+if (dir.exists(fig_folder) == F) {
+  dir.create(fig_folder, recursive = T)
+} else {
+  
+  print('Folder already exists')
+}
+
+#Read in Caribbean EEZ
+carib_eez<-readOGR(dsn=paste(boxdir, "Suitability/tmp",sep = ""),layer = "carib_eez_shape",)
+test<-merge(carib_eez,eez_npv,by.x="MRGID",by.y="eez")
+
+#create raster layer of npv after 10 years
+
+npv_raster<-stocking_n
+
+npv_raster[cell_npv$cell]<-as.numeric(cell_npv$npv)
+
+plot_map_zoom(carib_eez,npv_raster,"10 yr NPV ($US)")
+
+reg_map_plot(carib_eez,npv_raster,"10 yr NPV ($US)")
+#Plot variable cost layers
+
+names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
+tites<-  c("Fuel price $US/gallon","Miniumum wage ($US)", "Permit fee $US","Risk score","Distance from shore (m)","Depth charge (%)","Distance charge(%)","EEZ")
+
+var_costs<-tm_shape(carib_eez,is.master=TRUE)+
+   tm_fill(col="lightblue",alpha = 0.4) +
+   tm_borders(lwd = 1.2) +
+  tm_shape(econ_stack)+
+   tm_raster(c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez"),title=tites,style="cont") +
+   tm_legend(position = c("right","top"),scale=1) 
+
+save_tmap(var_costs, paste0(fig_folder,"Variable costs.png"), width=1920, height=1080)
+
+
+
+
+#Plot profits
+profits<-tm_shape(test)+
+           tm_fill("total_npv",palette=c("red","blue")) +
+           tm_borders(lwd = 1.2) +
+         tm_shape(profit_raster)+
+           tm_raster( legend.show = TRUE,title="10 year Profit($USD)",palette=c("red","blue")) +
+           tm_legend(position = c("right","top"),scale=1) 
+
+save_tmap(var_costs, paste0(fig_folder,"Profits.png"), width=1920, height=1080)
