@@ -11,10 +11,14 @@ rm(list = ls())
 library(raster)
 library(rgdal)
 library(tmap)
-library(dplyr)
+library(tidyverse)
 
-boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
-boxdir<-('/Users/Lennon/Documents/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+## Set User (lennon/tyler) for rendering
+user <- 'tyler'
+
+if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
+if(user == 'tyler')  { boxdir <- '../../Box Sync/Carib_aqua_16/'}
+
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Assign a zero to international waters and 1 to waters inside EEZ

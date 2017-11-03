@@ -202,7 +202,7 @@ pander::pandoc.table(tbl1,
              split.tables = Inf,
              # split.cells = c(15,5,120,15,10),
              # justify = c("center","center","center","center","center"),
-             caption = "Table 1: Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
+             caption = "Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
 ```
 
 
