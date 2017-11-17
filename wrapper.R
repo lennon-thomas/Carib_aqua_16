@@ -34,49 +34,57 @@ source(file = 'functions/economic.R')
 source(file = 'functions/process_production.R')
 source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
+source(file = 'functions/supply_curves.R')
 
 run_name = "test"
 
+# Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
+figure_folder <- paste0(run_dir,'Figures/')
+result_folder <- paste0(run_dir,'Results/')
 
 if (dir.exists(run_dir) == F) {
+  # Create directories if not already existing
   dir.create(run_dir, recursive = T)
+  dir.create(fig_folder, recursive = T)
+  dir.create(result_folder, recursive = T)
+  
 } else {
   
   print('Folder already exists')
 }
 
-prep_data = FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock =FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+prep_data <- FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
+fix_int_stock <- FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
 cage_cost <- 269701 # US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
 support_vessel <- 158331 #US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
-site_lease<-3265 # US$ from Bezerra et al. 2016 This is for 16 ha farm in Brazil (ours is larger so may want to increase)
-labor_installation<-52563 # US$ from Bezerra et al. 2016
+site_lease <- 3265 # US$ from Bezerra et al. 2016 This is for 16 ha farm in Brazil (ours is larger so may want to increase)
+labor_installation <- 52563 # US$ from Bezerra et al. 2016
 site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
 site_workers <- 17 # Bezerra et al. 2016 
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 #no_fingerlings <- 256000 # fingerlings per farm
 price_fingerlings <- 2.58 #$US/fingerling Bezerra et al. 2016
-harv_den<-15 #kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
-no_cage<-16 # cages
-cage_volume<-6400 #m^3
-total_vol<-no_cage*cage_volume # m^3 total cage volume
-harvest_weight<-5 # kg from various souces (5-6 kg)
-cobia_price<- 8.62 #$US/kg# Bezerra et al. 2016
-fcr<-1.75 #Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
-feed_price<-1.64 #in units of $/kg  Bezerra et al. 2016
-survival<-0.75 #Benetti et al. 2007 over 12 monthes and Huang et al. 2011
-month_mort<- 1-survival ^ (1 / 12)
-int_weight<-0.015 # kg (15 grams) Bezerra et al. 2016
-no_trips<-2 #number of trips to farm per day
+harv_den <- 15 #kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
+no_cage <- 16 # cages
+cage_volume <- 6400 #m^3
+total_vol <- no_cage*cage_volume # m^3 total cage volume
+harvest_weight <- 5 # kg from various souces (5-6 kg)
+cobia_price <- 8.62 #$US/kg# Bezerra et al. 2016
+fcr <- 1.75 #Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
+feed_price <- 1.64 #in units of $/kg  Bezerra et al. 2016
+survival <- 0.75 #Benetti et al. 2007 over 12 monthes and Huang et al. 2011
+month_mort <- 1-survival ^ (1 / 12)
+int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
+no_trips <- 2 #number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
 avg_boat_spd <- 48.28    
 site_days <- 30
-discount_rate<-0.05
+discount_rate <- 0.05
 
 # Load Data ---------------------------------------------------------------
 
@@ -145,6 +153,25 @@ if (prep_data == TRUE){
 
 # Summarize results ---------------------------------------------------------
 
+# Read in Caribbean EEZ shapefile
+carib_eez <- readOGR(dsn = paste(boxdir, "Suitability/tmp",sep = ""), layer = "carib_eez_shape")
+carib_eez <- st_as_sf(carib_eez)
+countries <- carib_eez[,c(2,6)]
+names(countries) <- c("eez","country")
+
+# Run supply curve analysis
+supply_curves_results <- supply_curves(cashflow = monthly_cashflow, cobia_price = cobia_price, prices = c(5:15),
+                                       discount_rates = c(0,0.05), eezs = countries, 
+                                       figure_folder = figure_folder, result_folder = result_folder)
+
+# Extract supply curve results
+npv_df <- supply_curves_results[['npv']]
+eez_supply <- supply_curves_results[['eez_supply']]
+carib_supply <- supply_curves_results[['carib_supply']]
+
+# !! Should rething remainder of code given supply chain analysis !!
+
+# Calculate farm totals
 cell_totals <- monthly_cashflow %>%
   group_by(cell,eez) %>%
   summarize(total_pv      = sum(present_value),
@@ -156,12 +183,6 @@ cell_totals <- monthly_cashflow %>%
   mutate(profit = cum_rev - cum_cost, # undiscounted profit
          npv = total_pv - total_c_costs) %>% # NPV
   ungroup() 
-
-# Read in Caribbean EEZ shapefile
-carib_eez <- readOGR(dsn = paste(boxdir, "Suitability/tmp",sep = ""), layer = "carib_eez_shape")
-carib_eez <- st_as_sf(carib_eez)
-countries <- carib_eez[,c(2,6)]
-names(countries) <- c("eez","country")
 
 # Merge cell totals with EEZ shapefile
 cell_totals_eez <- merge(cell_totals, countries, by ="eez")

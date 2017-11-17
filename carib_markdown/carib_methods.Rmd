@@ -339,7 +339,7 @@ $$ R_{i,t} = \begin{cases}
    \end{cases} 
  $$
 
-Where $B$ is the total biomass of cobia at farm $i$ in month $t$ and $p_t$ is the global price of cobia in month $t$. Cobia farms in the Caribbean are initially assumed to be price takers and thus production in month $t$ does not affect price in month $t+1$. We also explore a scenario with a downward demand curve where Caribbean cobia production does affect price (see *Production Scenarios* section).
+Where $B$ is the total biomass of cobia at farm $i$ in month $t$ and $p_t$ is the global price of cobia in month $t$. Cobia farms in the Caribbean are initially assumed to be price takers and thus production in month $t$ does not affect price in month $t+1$.
 
 Total farm profit ($\pi$) for farm $i$ is then simply the sum of revenues less total farm costs.
 
@@ -361,17 +361,17 @@ For each variable, a country’s rating is determined by transforming the data f
 
 ### Supply Curves
 
-Using the cost function described in equation X, we construct national and Caribbean-wide supply curves for cobia by aggregating farm-level supply curves. For a given price, only farms that generate positive profits are considered feasible for development. We then calculate the total summed biomass (MT), $B_z$, and NPV ($NPV_z$) over a 10-year period produced by all profitable farms in an EEZ across a range of prices (X-XXX).  
+Using the cost function described in equation X, we construct national and Caribbean-wide supply curves for cobia by aggregating farm-level supply curves. For a given price, only farms with a positive 10-year NPV are considered feasible for development. We then calculate, for each EEZ ($z$) the harvested biomass (in metric tons), $H_z$, and NPV ($NPV_z$) over a 10-year period produced by all profitable farms in an EEZ across a range of prices (X-XXX).  
 
-$$ B_z = \displaystyle\sum_{i}^{n} B_i $$
+$$ H_z = \displaystyle\sum_{i}^{I} H_i $$
 
-$$ NPV_z = \displaystyle\sum_{i}^{n} NPV_i $$
+$$ NPV_z = \displaystyle\sum_{i}^{I} NPV_i $$
 
-National supply curves are aggregated into a single Caribbean-wide supply curve to estimate total potential cobia production and NPV for the Caribbean over a 10-year period. 
+National supply curves are aggregated into a single Caribbean-wide supply curve to estimate total potential cobia production ($H_Z$) and NPV ($NPV_Z$) for the Caribbean over a 10-year period. 
 
-$$ B_{Caribbean} = \displaystyle\sum_{EEZ}^{n} B_{EEZ} $$
+$$ H_{Z} = \displaystyle\sum_{z}^{Z} H_{z} $$
 
-$$ NPV_{Caribbean} = \displaystyle\sum_{EEZ}^{n} NPV_{EEZ} $$
+$$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 
 Lastly, feasible farms within each EEZ are ranked according to yield and profit (highest to lowest) and ranges for farm-scale yield and revenue were compared within and across EEZs.
 
@@ -379,13 +379,11 @@ Lastly, feasible farms within each EEZ are ranked according to yield and profit 
 
 We apply our bioeconomic model to three production scenarios that consider different price structures:
 
-* Fixed-price scenarios:
-    * (1) Maximum production scenario: The global price required to make all suitable cells profitable is estimated and all suitable cells are developed
-    * (2) Current market scenario: Total production assuming current market price (insert value and reference) of cobia
+1. Maximum production scenario: The global price required to make all suitable cells profitable is estimated and all suitable cells are developed
 
-* (3) Demand curve scenario: We assume a global demand curve for cobia and estimate total production assuming the price of cobia in year t + 1 adjusts to Caribbean supply in year t. We assume suitable cells that remain profitable in year t + 1 given the new price continue production while unprofitable cells do not
+2. Current market scenario: Total production assuming current market price (insert value and reference) of cobia
 
-For each scenario, we examine and compare the following:
+For both scenarios we examine and compare the following:
 
 *	Total production (in terms of profit and weight) for the entire study (Caribbean) region (do economic constraints restrict things to below ecological limits (see below).... if its below then economic constraints will keep it below ecological capacity)
 *	Total production (in terms of profit and weight) for each EEZ
