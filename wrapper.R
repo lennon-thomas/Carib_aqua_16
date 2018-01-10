@@ -20,11 +20,12 @@ library(sf)
 library(tidyverse)
 library(parallel)
 library(R.utils)
+library(readr)
 
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -36,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = "test"
+run_name = 'fixed_0.02'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -46,7 +47,7 @@ result_folder <- paste0(run_dir,'Results/')
 if (dir.exists(run_dir) == F) {
   # Create directories if not already existing
   dir.create(run_dir, recursive = T)
-  dir.create(fig_folder, recursive = T)
+  dir.create(figure_folder, recursive = T)
   dir.create(result_folder, recursive = T)
   
 } else {
@@ -54,8 +55,10 @@ if (dir.exists(run_dir) == F) {
   print('Folder already exists')
 }
 
-prep_data <- FALSE# Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock <- FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+
+econ_prep_data = TRUE #Prep economic data files (TRUE) or just read in existing files (FALSE)
+fix_int_stock = TRUE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+run_sim = TRUE #run population simulation to calculate feed costs
 
 # Parameters --------------------------------------------------------------
 
@@ -67,7 +70,7 @@ labor_installation <- 52563 # US$ from Bezerra et al. 2016
 site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
 site_workers <- 17 # Bezerra et al. 2016 
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
-#no_fingerlings <- 256000 # fingerlings per farm
+no_fingerlings <- 256000 #fixed fingerlings per farm
 price_fingerlings <- 2.58 #$US/fingerling Bezerra et al. 2016
 harv_den <- 15 #kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
 no_cage <- 16 # cages
@@ -85,43 +88,11 @@ sim_length <- 120 # length of simulation (months)
 avg_boat_spd <- 48.28    
 site_days <- 30
 discount_rate <- 0.05
+feed_rate <- 0.02 # feed rate is 2% body wweight Benetti et al. 2010
 
 # Load Data ---------------------------------------------------------------
 
-if (prep_data == TRUE){
- 
-  # Run econ data prep function
-   econ <- econ_data_prep()
-   # extract rasters
-   prod <- econ[['prod']]
-   growth <- econ[['growth']]
-   econ_stack <- econ[['econ_stack']]
-   # remove list
-   rm(econ)
-  
-# Calculate average growth, cycle length, and no. of fingerlings --------
-   
-   annual_prod<-ann_prod(growth = growth)  
-   
-   stocking_n<-annual_prod[[1]]
-   
-   harvest_cycles<-annual_prod[[2]]
-   
-   harvest_cycle_length<-annual_prod[[3]]
-   
-   avg_month_growth<-avg_growth(growth = growth)
-   
-   # Run Projection ----------------------------------------------------------
-   
-   sim_results <- sim_aqua(avg_month_growth = avg_month_growth, stocking_n = stocking_n, int_weight = int_weight, sim_length = sim_length, month_mort = month_mort, fcr = fcr)
-   
-   # Calculate monthly costs and revenue costs by cell ---------------------------------------------------------
-   
-   monthly_cashflow <- monthly_cost_est(sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days,discount_rate)
-   
-   monthly_cashflow[is.na(monthly_cashflow)] <- 0
-
-   # Save results ------------------------------------------------------------
+z?.,mnbvcdxsza bczzq```32` # Save results ------------------------------------------------------------
    
    # Save avg monthly growth and initial stocking rasters
    writeRaster(avg_month_growth, paste0(boxdir,'data/avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE)
@@ -134,8 +105,6 @@ if (prep_data == TRUE){
    write_csv(monthly_cashflow, path = paste0(run_dir,"monthly_cashflow.csv"))
 
    } else {
-  
-  load(paste(run_dir, 'economic_data.Rdata',sep=""))
   
   stocking_n<-raster(paste0(boxdir,'data/initial_stocking_stack.nc'))
   harvest_cycles<-stack(paste0(boxdir,'data/harvest_cycles.nc')) 
@@ -151,6 +120,9 @@ if (prep_data == TRUE){
   
 }
 
+#econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
+
+#names(econ_stack)<-econ_names
 # Summarize results ---------------------------------------------------------
 
 # Read in Caribbean EEZ shapefile
@@ -161,7 +133,7 @@ names(countries) <- c("eez","country")
 
 # Run supply curve analysis
 supply_curves_results <- supply_curves(cashflow = monthly_cashflow, cobia_price = cobia_price, prices = c(5:15),
-                                       discount_rates = c(0,0.05), eezs = countries, 
+                                       discount_rates = c(0,0.05,0.1,0.15,0.2), eezs = countries, 
                                        figure_folder = figure_folder, result_folder = result_folder)
 
 # Extract supply curve results
@@ -217,11 +189,13 @@ if (dir.exists(fig_folder) == F) {
 
 # Read in Caribbean EEZ
 carib_eez <- readOGR(dsn=paste(boxdir, "Suitability/tmp",sep = ""),layer = "carib_eez_shape")
-test<-merge(carib_eez,eez_npv,by.x="MRGID",by.y="eez")
+eez_npv<-merge(carib_eez,eez_npv,by.x="MRGID",by.y="eez") %>%
+  as.data.frame() %>%
+  dplyr::select(Territory1,Area_km2,total_npv)
 
 # Create raster layer of npv after 10 years
 npv_raster <- stocking_n
-npv_raster[cell_npv$cell] <- as.numeric(cell_npv$npv)
+npv_raster[cell_totals$cell] <- as.numeric(cell_totals$npv)
 
 # Make Caribbean wide and regional maps of NPV
 plot_map_zoom(carib_eez,npv_raster)
@@ -242,12 +216,42 @@ var_costs <- tm_shape(carib_eez,is.master=TRUE)+
 save_tmap(var_costs, paste0(fig_folder,"Variable costs.png"), width=1920, height=1080)
 
 # Plot profits
-profits <- tm_shape(test)+
-           tm_fill("total_npv",palette=c("red","blue")) +
-           tm_borders(lwd = 1.2) +
-           tm_shape(profit_raster)+
-           tm_raster( legend.show = TRUE,title="10 year Profit($USD)",palette=c("red","blue")) +
-           tm_legend(position = c("right","top"),scale=1) 
+# profits <- tm_shape(carib_eez,is.master = TRUE)+
+#            tm_borders(lwd = 1.2) +
+#            tm_shape(npv_raster)+
+#            tm_raster(legend.show = TRUE,title="10 year Profit($USD)",palette=c("red","blue")) +
+#            tm_legend(position = c("right","top"),scale=1) 
+# 
+# # Save profits map
+# save_tmap(profits, paste0(fig_folder,"NPV.png"), width=1920, height=1080)
+on = c("right","top"))
+                   
+                 
+                  
 
-# Save profits map
-save_tmap(profits, paste0(fig_folder,"Profits.png"), width=1920, height=1080)
+luc_arc_suitable.fig<- tm_shape(LUC_suit) +
+                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
+                       tm_shape(LUC,is.master = TRUE) +
+                          tm_fill(col="lightblue",alpha = 0.4,title ="TESt") +
+                          tm_borders(lwd = 1.2) +
+                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"),main.title = "Lucayan Archipelago")
+
+
+
+lee_ant_suitable.fig<- tm_shape(LEE_suit) +
+                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
+                       tm_shape(LEE,is.master = TRUE) +
+                          tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
+                          tm_borders(lwd = 1.2) +
+                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"), main.title = "Leeward Antilles")
+
+
+less_ant_suitable.fig<- tm_shape(LS_suit) +
+                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
+                       tm_shape(LS,is.master = TRUE) +
+                          tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
+                          tm_borders(lwd = 1.2) +
+                          tm_legend(main.title.size = 2, text.size = 1, position = c("right","top"), main.title = "Lesser Antilles")
+
+
+#all_plots<- tmap_arrange(g_antilles_fig, luc_arc_suitable.fig,lee_ant_suitable.fig,less_ant_suitable.fig

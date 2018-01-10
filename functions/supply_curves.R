@@ -24,7 +24,7 @@ supply_curves <- function(cashflow,
     unnest() %>%
     mutate(discounts   = list(discount_rates),
            disc_profit = pmap(list(month, profit, discounts), 
-                              function(month, profit, discounts) profit / (1 + discounts) ^ month)) %>% 
+                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ (month * 1/12))) %>%
     unnest()
   
   # Calculate discounted costs for a range of discount rates
@@ -32,7 +32,7 @@ supply_curves <- function(cashflow,
     select(cell, eez, month, total_monthly_costs) %>%
     mutate(discounts  = list(discount_rates),
            disc_costs = pmap(list(month, total_monthly_costs, discounts), 
-                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ month)) %>%
+                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ (month * 1/12))) %>%
     unnest() %>%
     group_by(cell, discounts) %>%
     mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
