@@ -150,7 +150,7 @@ sim_cell <- function(x) {
 final_results <- mclapply(cell_index, function(x) sim_cell(x),mc.cores=4) %>%
   bind_rows()
 
-write.csv(final_results,paste0(run_dir,"sim_function_results.csv"))
+#write.csv(final_results,paste0(run_dir,"sim_function_results.csv"))
 
   return(final_results)
 }

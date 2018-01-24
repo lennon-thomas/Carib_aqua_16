@@ -92,7 +92,7 @@ prod <- model_files[[2]]
 
 econ_stack<-model_files[[3]]
 
-save(list = c('growth', 'prod', 'econ_stack'), file = paste(run_dir, "data/economic_data.Rdata",sep = ""))
+save(list = c('growth', 'prod', 'econ_stack'), file = paste(run_dir, "Data/economic_data.Rdata",sep = ""))
 
 return(list('growth' = growth, 'prod' = prod, 'econ_stack' = econ_stack))
 }
