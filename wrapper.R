@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'fixed_Jan_23'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+run_name = 'est_Jan_30'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -57,8 +57,8 @@ if (dir.exists(run_dir) == F) {
 }
 
 
-econ_prep_data = TRUE #Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock = TRUE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
+fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 run_sim = TRUE #run population simulation to calculate feed costs
 
 # Parameters --------------------------------------------------------------
@@ -108,11 +108,15 @@ if (econ_prep_data == TRUE){
   
 } else {
   
-  load(paste(run_dir,'Data/economic_data.Rdata',sep=""))
-
-  prod <- prod
-  growth <- growth
-  econ_stack <- econ_stack
+  file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".nc")
+  
+  model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),brick)
+  
+  growth <- model_files[[1]]
+  
+  prod <- model_files[[2]]
+  
+  econ_stack<-model_files[[3]]
 
 }
   
@@ -152,7 +156,7 @@ if (econ_prep_data == TRUE){
   # Save results ------------------------------------------------------------
    
    # Save avg monthly growth and initial stocking rasters
-   writeRaster(avg_month_growth, paste0(run_dir,'data/avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(avg_month_growth, paste0(run_dir,'data/avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE) ##getting weird error when trying to save this file
    writeRaster(stocking_n, paste0(run_dir,'data/initial_stocking_stack.nc'), format = "CDF", overwrite =TRUE)
    writeRaster(harvest_cycles, paste0(run_dir,'data/harvest_cycles.nc'), format = "CDF", overwrite =TRUE)
    writeRaster(harvest_cycle_length, paste0(run_dir,'data/harvest_cycle_length.nc'), format = "CDF", overwrite =TRUE)
@@ -164,23 +168,19 @@ if (econ_prep_data == TRUE){
   
   
   # Read simulation results
+    #  sim_results <- read_csv(paste0(run_dir,"sim_function_results.csv"))
+    # monthly_cashflow <- read_csv(paste0(run_dir,"monthly_cashflow.csv"))
 
-#  sim_results <- read_csv(paste0(run_dir,"sim_function_results.csv"))
-# monthly_cashflow <- read_csv(paste0(run_dir,"monthly_cashflow.csv"))
-  
   # Set file names to match Box directory path
-  econ_stack@file@name <- paste0(boxdir,'economic/data/final/econ_stack.nc')
-  
-
-
-#econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
+    econ_stack@file@name <- paste0(boxdir,'economic/data/final/econ_stack.nc')
+    #econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
 
   # Read in Caribbean EEZ shapefile
-  carib_eez <- readOGR(dsn = paste(boxdir, "Suitability/tmp",sep = ""), layer = "carib_eez_shape")
-#  carib_eez <- st_as_sf(carib_eez)
-  countries <- as.data.frame(carib_eez[,c(2,6)])
-  names(countries) <- (c("eez","country"))
-  
+    carib_eez <- readOGR(dsn = paste(boxdir, "Suitability/tmp",sep = ""), layer = "carib_eez_shape")
+    # carib_eez <- st_as_sf(carib_eez)
+    countries <- as.data.frame(carib_eez[,c(2,6)])
+    names(countries) <- (c("eez","country"))
+    
 # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, cobia_price = cobia_price, prices = c(5:15),
                                          discount_rates = c(0,0.05,0.1,0.15,0.2), eezs = countries, 
@@ -393,11 +393,11 @@ var_costs <- tm_shape(carib_eez,is.master=TRUE)+
 # save_tmap(var_costs, paste0(fig_folder,"Variable costs.png"), width=1920, height=1080)
 # 
 # # Plot profits
-# # profits <- tm_shape(carib_eez,is.master = TRUE)+
-#            tm_borders(lwd = 1.2) +
-#            tm_shape(npv_raster)+
-#            tm_raster(legend.show = TRUE,title="10 year Profit($USD)",palette=c("red","blue")) +
-#            tm_legend(position = c("right","top"),scale=1) 
+ profits <- tm_shape(carib_eez,is.master = TRUE)+
+            tm_borders(lwd = 1.2) +
+            tm_shape(test)+
+            tm_raster(legend.show = TRUE,title="10 year Profit($USD)") +
+            tm_legend(position = c("right","top"),scale=1) 
 # 
 # # Save profits map
 # save_tmap(profits, paste0(fig_folder,"NPV.png"), width=1920, height=1080)

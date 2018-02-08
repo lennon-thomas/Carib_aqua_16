@@ -6,7 +6,7 @@
 monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days,discount_rate){
   
   #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
-  names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
+  names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez","cell_no")
   
   #Turn economic parameters into data frame
   all_economic<-as.data.frame(econ_stack)
@@ -14,9 +14,10 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
   #subset only values for suitable cells
   s_cells<-unique(sim_results$cell)
   
-  suitable_economic<-all_economic[s_cells,] # make sure it is actually taking the right cells here
+ # make sure it is actually taking the right cells here
   
-  suitable_economic<-cbind(s_cells,suitable_economic)
+  suitable_economic<- all_economic %>%
+    filter(cell_no %in% s_cells)
   
   # Calculate capital costs
   
@@ -41,7 +42,7 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
   
   
   #convert into monthly costs                     
-  monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='s_cells'))  %>%
+  monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
     select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                            
   
   #set capital costs to 0 for all month except month one
@@ -58,7 +59,7 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
            total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost,
            total_monthly_costs = total_operating_cost + c_costs,
            monthly_revenue = harvest * cobia_price,
-           cash_flow = monthly_revenue - total_operating_cost,
+           cash_flow = monthly_revenue - total_operating_cost, # I think this should be 'total_monthly costs' instead
            year=ifelse(month <= 12,1,                       #probably don't need this.
                        ifelse(month > 12 & month <= 24, 2,
                               ifelse( month >24 & month <= 36, 3,

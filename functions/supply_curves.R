@@ -48,7 +48,7 @@ supply_curves <- function(cashflow,
     mutate(disc_profit = ifelse(is.na(disc_profit), 0, disc_profit))
   
   # Convert eez data to tibble for left join
-  colnames(eezs) <- c('eez','country','coords')
+  colnames(eezs) <- c('eez','country') #,'coords')
   eezs <- as_data_frame(eezs)
   eezs <- eezs %>%
     select(eez, country) %>%
