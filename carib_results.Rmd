@@ -1,0 +1,119 @@
+---
+title: "carib_results"
+author: "Lennon Thomas"
+date: "2/8/2018"
+output: html_document
+---
+
+
+
+```{r echo = FALSE}
+# Load packages and functions-----------------------------------------------------------
+rm(list = ls())
+
+library(raster)
+library(rgdal)
+library(tmap)
+library(ncdf4)
+library(stringr)
+library(broom)
+library(fasterize)
+library(sf)
+library(tidyverse)
+library(parallel)
+library(R.utils)
+library(readr)
+library(pander)
+
+# Run settings -------------------------------------------------------------
+
+## Set User (lennon/tyler)
+user <- 'lennon'
+
+if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
+if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
+
+run_name = 'fixed_Jan_22'  
+# Load EEZ shapefile for plotting
+
+EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
+
+# Load suitablity results
+s_areas<-gzfile(paste0(boxdir,"/results/Suitability/suitable_areas.rds"))
+
+suit_areas<-readRDS(s_areas)
+
+suit_df<-read_csv(paste0(boxdir,"/results/Suitability/suitable_area_df.csv"),
+                  col_types = "iiddiic") %>%
+  select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
+
+# Load sim data
+
+data_folder <- paste0(boxdir,'results/',run_name,"/Data/")
+
+data.names <- list.files(path = data_folder, pattern = ".nc")
+
+data_files <- lapply(paste0(data_folder,"/",data.names),brick)
+
+avg_growth<-data_files[[1]]
+
+harv_cycle_length<-data_files[[2]]
+
+no_cycles<-data_files[[3]]
+
+stocking_n<-data_files[[4]]
+
+rm(data_files)
+
+# Load run results 
+  #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+
+result_folder <- paste0(boxdir,'results/',run_name,"/Results")
+
+file.names <- list.files(path = result_folder, pattern = ".csv")
+
+result_files <- lapply(paste0(result_folder,"/",file.names),read_csv)
+
+carib_supply<-result_files[[1]]
+
+eez_supply_df<-result_files[[2]]
+
+npv_df<-result_files[[4]]
+
+supply_summary<-result_files[[6]]
+
+rm(result_files)
+```
+
+
+## Suitability Analysis
+
+We estimated `r sum(suit_df$suit_area_km,na.rm = TRUE)` km^2^, or `r round((sum(suit_df$suit_area_km,na.rm = TRUE))/(sum(suit_df$study_area_km,na.rm = TRUE)) *100,2)`% of the total study area (Fig.1).
+
+```{r Fig. 1 echo = FALSE}
+
+suit<-as.data.frame(rasterToPoints(suit_areas)) %>%
+  set_names(c("Longitude","Latitude","suitable"))
+ 
+ggplot()+ 
+  geom_polygon(data=EEZ, aes(long, lat, group = group, fill = hole), colour = "black", size = 0.1) + 
+  scale_fill_manual(values = (c("lightblue", "white")),guide = FALSE) + 
+  theme(legend.position="none") +
+  theme_minimal() +
+   geom_raster(data=suit,aes(x=Longitude,y=Latitude,fill=suitable),fill="darkred") +
+    xlab("Longitude") +
+  ylab("Latitude") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
+  
+##add ability to interactivy zoom into regions/
+```
+
+
+```{table 1, include=FALSE}
+
+
+pander::pandoc.table(table1,
+             digits = 2,
+             caption = 'Table 1: Suitable area for offshore mariculture (km^2^ by EEZ)',
+             split.cells = c(80,20))
+```

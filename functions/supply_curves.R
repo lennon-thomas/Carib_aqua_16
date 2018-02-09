@@ -37,8 +37,8 @@ supply_curves <- function(cashflow,
     group_by(cell, discounts) %>%
     mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
   
-  # Find cells with zero costs ( !! find out why this is happeneing !! )
-  no_costs <- filter(supply_costs, total_disc_costs == 0)
+  # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
+  no_costs <- filter(supply_costs, total_disc_costs == 0) 
   
   # Join discounted costs with discounted profits before summing NPV
   cashflow_disc <- supply %>%

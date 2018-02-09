@@ -59,7 +59,7 @@ if (dir.exists(run_dir) == F) {
 
 econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-run_sim = TRUE #run population simulation to calculate feed costs
+run_sim = FALSE #run population simulation to calculate feed costs
 
 # Parameters --------------------------------------------------------------
 

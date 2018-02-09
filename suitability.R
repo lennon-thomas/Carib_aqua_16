@@ -14,10 +14,14 @@ library(tmap)
 library(tidyverse)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../Box Sync/Carib_aqua_16/'}
+
+# Set results directory
+
+results_dir<-paste0(boxdir,"results/suitability/")
 
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
@@ -178,25 +182,64 @@ all_suitable<-mask(s,raster_eez,maskvalues=NA,inverse=FALSE,filename=paste(boxdi
 
 all_suitable[all_suitable == 0]<-NA
 
-saveRDS(all_suitable,paste(boxdir,"Suitability/results/suitable_areas.rds",sep=""))
+all_suitable[all_suitable > 1]<-1
 
-# test<-gzfile(paste(boxdir,"Suitability/results/suitable_areas.rds",sep=""))
-# check<-readRDS(test)
-# plot(check)
+saveRDS(all_suitable,paste(results_dir,"suitable_areas.rds",sep=""))
+
+# Plot suitable raster layer
+EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
+
+EEZ$MRGID<-{as.numeric(levels(EEZ$MRGID))[EEZ$MRGID]}
+
+eez_raster<-rasterize(EEZ,all_suitable,field="MRGID")
+
+all<-tm_shape(all_suitable) +
+        tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas"), title = "all_suitable") +
+        tm_shape(EEZ,is.master = TRUE) +
+        tm_fill(col="lightblue",alpha = 0.3,title = "Greater Antilles") +
+        tm_borders(lwd = 1.2) +
+        tm_legend(main.title.size = 2, main.title="all_suitable", position = c("right","top"))
+
+save_tmap(all,filename = paste0(results_dir,"all_suitable.png"))
+# create raster with suitable cells as cell numbers
+
+suit_no<-rasterFromCells(all_suitable, 1:length(all_suitable), values=TRUE)
+
+
+
+
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Determine total area (km2) of area that was identified as suitable
 
+# Create data frame of total suitable areasby cell
+ 
 study_area<-as.data.frame(area(raster_eez,na.rm = TRUE))
-
-study_area<-sum(study_area,na.rm = TRUE)
 
 suitable_areas<-as.data.frame(area(all_suitable,na.rm = TRUE))
 
-total_suitable_area<-sum(suitable_areas,na.rm = TRUE)
+cell_no<-as.data.frame(suit_no)
 
-percent_suitable<-total_suitable_area/study_area*100
+suit_index<-as.data.frame(all_suitable)
 
+eez<-as.data.frame(eez_raster)
+
+suit_df<-cbind(cell_no,study_area,suitable_areas,suit_index,eez)
+
+names(suit_df)<-c("cell_no","study_area_km","suit_area_km","suit_index","eez")
+
+country_id<-as.data.frame(EEZ,stringsAsFactors=FALSE) %>%
+  select(MRGID,Territory1) %>%
+  setNames(c("eez","country"))
+
+
+suit_df<-left_join(suit_df,country_id,by="eez") 
+
+suit_df<-suit_df[!is.na(suit_df$country),]
+
+write.csv(suit_df,paste0(results_dir,"suitable_area_df.csv"))
+
+##Script should end here and the rest will be proceesed in results
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 ## Calculate suitable area by country
