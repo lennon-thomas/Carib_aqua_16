@@ -5,6 +5,11 @@ date: "2/8/2018"
 output: html_document
 ---
 
+```{r setup, warning=FALSE , echo=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.width = 6.5)
+```
+
 
 
 ```{r echo = FALSE}
@@ -24,6 +29,8 @@ library(parallel)
 library(R.utils)
 library(readr)
 library(pander)
+#library(plotly)
+library(plyr)
 
 # Run settings -------------------------------------------------------------
 
@@ -33,7 +40,7 @@ user <- 'lennon'
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
 
-run_name = 'fixed_Jan_22'  
+run_name = 'est_feb_8'  
 # Load EEZ shapefile for plotting
 
 EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
@@ -89,14 +96,47 @@ rm(result_files)
 ## Suitability Analysis
 
 We estimated `r sum(suit_df$suit_area_km,na.rm = TRUE)` km^2^, or `r round((sum(suit_df$suit_area_km,na.rm = TRUE))/(sum(suit_df$study_area_km,na.rm = TRUE)) *100,2)`% of the total study area (Fig.1).
+```{r}
+EEZ$MRGID<-{as.numeric(levels(EEZ$MRGID))[EEZ$MRGID]}
 
-```{r Fig. 1 echo = FALSE}
+country_code<-as.data.frame(EEZ@data[c("MRGID","Territory1"),])
+
+country<-raster(paste0(boxdir,"Suitability/tmp/carib_eez_raster.tif"))
+  #rasterize(EEZ,suit_areas,field = 'MRGID')
 
 suit<-as.data.frame(rasterToPoints(suit_areas)) %>%
   set_names(c("Longitude","Latitude","suitable"))
+
+country_area<-area(suit_areas,na.rm=TRUE)
+
+country_suitable<-zonal(country_area,country,fun='sum')
+
+country_suitable<-as.data.frame(country_suitable)
+
+country_s_area<-cbind(country_suitable,EEZ$MRGID,as.character(EEZ$Territory1)) %>%
+ select(c(2,3,4)) %>%
+ purrr::set_names(c("Area","MRGID","EEZ")) %>%
+ arrange(desc(Area)) %>%
+ select("EEZ","Area","MRGID")
+```
+
+`r as.character(country_s_area$EEZ[1])` had the largest suitable area and `r as.character(country_s_area[country_s_area$Area==0,1])` did not have any areas identified as suitable for offshore mariculture.
+
+
+```{r Fig. 1 echo = FALSE}
+
+EEZ@data$suitable<-country_suitable$sum
+EEZ@data$mytext<-paste0("EEZ =",EEZ@data$Territory1, "/n", "Suitable area (km^2) = ", EEZ@data$suitable)
+
+EEZ@data$id<-rownames(EEZ@data)
+EEZ.points<-fortify(EEZ, region="id")
+EEZ.df<-join(EEZ.points,EEZ@data,by="id")
+EEZ.df$suitable<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$suitable)
  
-ggplot()+ 
-  geom_polygon(data=EEZ, aes(long, lat, group = group, fill = hole), colour = "black", size = 0.1) + 
+EEZ.df<-EEZ.df[EEZ.df$hole==FALSE,]
+
+p<-ggplot(EEZ,aes(text = mytext))+ 
+  geom_polygon( aes(long, lat, group = group, fill = hole), colour = "black", size = 0.1) + 
   scale_fill_manual(values = (c("lightblue", "white")),guide = FALSE) + 
   theme(legend.position="none") +
   theme_minimal() +
@@ -104,16 +144,71 @@ ggplot()+
     xlab("Longitude") +
   ylab("Latitude") +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
+
+ggplotly(p)
   
 ##add ability to interactivy zoom into regions/
 ```
 
 
-```{table 1, include=FALSE}
+## Production
+
+```{r}
+npv_df$cell<-as.factor(npv_df$cell)
+npv_df$eez<-as.factor(npv_df$eez)
+
+eez_summary<- npv_df %>%
+  filter(discounts==0,prices==9) %>%
+  group_by(eez) %>%
+ dplyr:: summarise(total_harvest = sum(harvest),
+                   npv = sum(npv)) %>%
+  ungroup()
+
+EEZ<-merge(EEZ,eez_summary,by.x = 'MRGID',by.y = 'eez')
 
 
-pander::pandoc.table(table1,
-             digits = 2,
-             caption = 'Table 1: Suitable area for offshore mariculture (km^2^ by EEZ)',
-             split.cells = c(80,20))
+EEZ@data$id = rownames(EEZ@data)
+  EEZ.points = fortify(EEZ, region="id")
+  EEZ.df = join(EEZ.points, EEZ@data, by="id")
+EEZ.df$total_harvest<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$total_harvest)
+EEZ.df$npv<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$npv)
+
+ggplot(EEZ.df)+ 
+    geom_polygon(aes(x=long,y=lat,group=group,fill=total_harvest),col="black",lwd=0.5) +
+  #geom_polygon(data = EEZ.df, aes(long, lat, group = group),fill =NA, colour = "black", size = 0.1) + 
+  #scale_fill_manual(values=c("lightblue", "white"), guide=FALSE)+
+  theme(legend.position="none",legend.title=element_text("Total 10 yr production (kg)")) +
+ theme_minimal() +
+    xlab("Longitude") +
+  ylab("Latitude") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  scale_fill_continuous(na.value="white")
+
+ggplot(EEZ.df)+ 
+    geom_polygon(aes(x=long,y=lat,group=group,fill=npv),col="black",lwd=0.5) +
+  #geom_polygon(data = EEZ.df, aes(long, lat, group = group),fill =NA, colour = "black", size = 0.1) + 
+  #scale_fill_manual(values=c("lightblue", "white"), guide=FALSE)+
+  theme(legend.position="none",legend.title=element_text("Total 10 yr production (kg)")) +
+ theme_minimal() +
+    xlab("Longitude") +
+  ylab("Latitude") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  scale_fill_continuous(guide="colorbar",na.value="white",low="darkred",high="darkblue")
+
 ```
+
+```{r}
+
+bp_data<-npv_df %>%
+  filter(prices==9)
+bp_data$discounts<-as.factor(bp_data$discounts)
+
+ggplot(bp_data,aes(x=discounts,y=npv))+
+  geom_boxplot() +
+  theme_minimal()+
+  facet_grid(~eez) +
+  xlab("Discount Rate") +
+  ylab("10 yr NPV")
+
+```
+
