@@ -38,33 +38,47 @@ extent(growth) <- extent(shore_distance)
 names(growth)<-layernames
 
 econ_params$Territory1 <- gsub('Curacao','Curaçao', econ_params$Territory1)
+econ_params$Territory1 <- gsub('Cura<ed>_ao','Curaçao', econ_params$Territory1)
 
-econ_params$Territory1 <- gsub('Saint-Barth\x8elemy', 'Saint-Barthélemy', econ_params$Territory1)
+econ_params$Territory1 <- gsub('Saint-Barth_lemy', 'Saint-Barthélemy', econ_params$Territory1)
 
 # Create stacked spatial economic data layers ---------------------------------------------
 
 econ_shape<-merge(eez_shape,econ_params,by="Territory1",all=TRUE)
 
-econ_shape<-st_as_sf(econ_shape) #Convert to sf object for fasterize
+#econ_shape<-st_as_sf(econ_shape) #Convert to sf object for fasterize (actually, don't use fasterize it messes resolution up)
 
-fuel_price<-fasterize(econ_shape,depth, field = 'fuel_price')
+fuel_price<-rasterize(econ_shape,depth, field = 'fuel_price')
 
-min_wage<-fasterize(econ_shape,depth,field = "min_wage")
+min_wage<-rasterize(econ_shape,depth,field = "min_wage")
 
-permit_fee<-fasterize(econ_shape,depth, field="permit_fee")
+permit_fee<-rasterize(econ_shape,depth, field="permit_fee")
 
-risk_score<-fasterize(econ_shape,depth, field="risk")
+risk_score<-rasterize(econ_shape,depth, field="risk")
 
 depth_charge<-calc(depth, function(x) ifelse(x > 50, 0.10, 0))
 
 distance_charge<-calc(shore_distance, function(x) ifelse(x > 46300, 0.10,0))
 
-econ_shape$MRGID<-{as.numeric(levels(econ_shape$MRGID))[econ_shape$MRGID]}
-eez<-fasterize(econ_shape,depth,field ='MRGID')
+# Create raster layer of cell numbers
 
-econ_stack<-stack(fuel_price,min_wage,permit_fee,risk_score,shore_distance,depth_charge, distance_charge,eez)
+cell_nos<-rasterFromCells(fuel_price, 1:length(fuel_price), values=TRUE)
 
-econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
+cell_nos<-mask(cell_nos,fuel_price)
+
+# Create raster of eez id numbers
+
+#econ_shape$MRGID<-{as.numeric(levels(econ_shape$MRGID))[econ_shape$MRGID]}
+
+eez_shape$MRGID<-{as.numeric(levels(eez_shape$MRGID))[eez_shape$MRGID]}
+
+#eez<-fasterize(econ_shape,depth,field ='MRGID')
+
+eez<-rasterize(eez_shape,depth,field = 'MRGID')
+
+econ_stack<-stack(fuel_price,min_wage,permit_fee,risk_score,shore_distance,depth_charge, distance_charge,eez,cell_nos)
+
+econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez","cell_no")
 
 names(econ_stack)<-econ_names
 
@@ -72,7 +86,7 @@ names(econ_stack)<-econ_names
 
 #final files
 
-writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "CDF",varname = "prod",overwrite =TRUE)
+writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "CDF",varname = "prod", overwrite =TRUE)
 
 writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "CDF",varname= "growth",overwrite =TRUE)
 
@@ -92,7 +106,7 @@ prod <- model_files[[2]]
 
 econ_stack<-model_files[[3]]
 
-save(list = c('growth', 'prod', 'econ_stack'), file = paste(run_dir, "economic_data.Rdata",sep = ""))
+save(list = c('growth', 'prod', 'econ_stack'), file = paste(run_dir, "Data/economic_data.Rdata",sep = ""))
 
 return(list('growth' = growth, 'prod' = prod, 'econ_stack' = econ_stack))
 }

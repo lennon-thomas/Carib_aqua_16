@@ -24,7 +24,7 @@ supply_curves <- function(cashflow,
     unnest() %>%
     mutate(discounts   = list(discount_rates),
            disc_profit = pmap(list(month, profit, discounts), 
-                              function(month, profit, discounts) profit / (1 + discounts) ^ month)) %>% 
+                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ (month * 1/12))) %>%
     unnest()
   
   # Calculate discounted costs for a range of discount rates
@@ -32,13 +32,13 @@ supply_curves <- function(cashflow,
     select(cell, eez, month, total_monthly_costs) %>%
     mutate(discounts  = list(discount_rates),
            disc_costs = pmap(list(month, total_monthly_costs, discounts), 
-                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ month)) %>%
+                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ (month * 1/12))) %>%
     unnest() %>%
     group_by(cell, discounts) %>%
     mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
   
-  # Find cells with zero costs ( !! find out why this is happeneing !! )
-  no_costs <- filter(supply_costs, total_disc_costs == 0)
+  # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
+  no_costs <- filter(supply_costs, total_disc_costs == 0) 
   
   # Join discounted costs with discounted profits before summing NPV
   cashflow_disc <- supply %>%
@@ -48,7 +48,7 @@ supply_curves <- function(cashflow,
     mutate(disc_profit = ifelse(is.na(disc_profit), 0, disc_profit))
   
   # Convert eez data to tibble for left join
-  colnames(eezs) <- c('eez','country','coords')
+  colnames(eezs) <- c('eez','country') #,'coords')
   eezs <- as_data_frame(eezs)
   eezs <- eezs %>%
     select(eez, country) %>%
