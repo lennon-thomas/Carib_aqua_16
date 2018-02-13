@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'est_Jan_30'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+run_name = 'est_Feb_8'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -192,8 +192,13 @@ if (econ_prep_data == TRUE){
   eez_supply <- supply_curves_results[['eez_supply']]
   carib_supply <- supply_curves_results[['carib_supply']]
 
-# Save supply curve results  
-  write.csv(npv_df,paste0(run_dir,"Results/npv_df.csv"))
+# Select on the last month of simulation for every cell
+final_npv<-npv_df %>%
+  group_by(cell) %>%
+  filter(month == max(month))
+  
+# Save supply curve results 
+  write.csv(final_npv,paste0(run_dir,"Results/npv_df.csv"))
   write.csv(eez_supply,paste0(run_dir,"Results/eez_supply_df.csv"))
   write.csv(carib_supply,paste0(run_dir,"Results/carib_supply.csv"))
 

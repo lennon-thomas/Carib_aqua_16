@@ -30,7 +30,7 @@ library(R.utils)
 library(readr)
 library(pander)
 #library(plotly)
-library(plyr)
+# library(plyr)
 
 # Run settings -------------------------------------------------------------
 
@@ -118,6 +118,14 @@ country_s_area<-cbind(country_suitable,EEZ$MRGID,as.character(EEZ$Territory1)) %
  purrr::set_names(c("Area","MRGID","EEZ")) %>%
  arrange(desc(Area)) %>%
  select("EEZ","Area","MRGID")
+
+#pull out long/lat coords and cell number of suitable cell raster layer for mapping stuff later
+
+ras_cells<-Which(country_area>0,cells = TRUE)
+
+raster_coords<-as.data.frame(cbind(suit$Longitude,suit$Latitude,ras_cells)) %>%
+  set_names(c("Longitude","Latitude","cell"))
+
 ```
 
 `r as.character(country_s_area$EEZ[1])` had the largest suitable area and `r as.character(country_s_area[country_s_area$Area==0,1])` did not have any areas identified as suitable for offshore mariculture.
@@ -125,80 +133,83 @@ country_s_area<-cbind(country_suitable,EEZ$MRGID,as.character(EEZ$Territory1)) %
 
 ```{r Fig. 1 echo = FALSE}
 
-EEZ@data$suitable<-country_suitable$sum
-EEZ@data$mytext<-paste0("EEZ =",EEZ@data$Territory1, "/n", "Suitable area (km^2) = ", EEZ@data$suitable)
+#Read in suitability results and make ggplot of suitable areas
 
-EEZ@data$id<-rownames(EEZ@data)
-EEZ.points<-fortify(EEZ, region="id")
-EEZ.df<-join(EEZ.points,EEZ@data,by="id")
-EEZ.df$suitable<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$suitable)
- 
-EEZ.df<-EEZ.df[EEZ.df$hole==FALSE,]
+  EEZ@data$suitable<-country_suitable$sum
 
-p<-ggplot(EEZ,aes(text = mytext))+ 
-  geom_polygon( aes(long, lat, group = group, fill = hole), colour = "black", size = 0.1) + 
-  scale_fill_manual(values = (c("lightblue", "white")),guide = FALSE) + 
-  theme(legend.position="none") +
-  theme_minimal() +
-   geom_raster(data=suit,aes(x=Longitude,y=Latitude,fill=suitable),fill="darkred") +
-    xlab("Longitude") +
-  ylab("Latitude") +
-  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
-
-ggplotly(p)
+  # Adding text column to spatial data frame so the plotly can show the total suitable area by eez
+  EEZ@data$mytext<-paste0("EEZ =",EEZ@data$Territory1, "/n", "Suitable area (km^2) = ", EEZ@data$suitable)
   
-##add ability to interactivy zoom into regions/
+  # Not sure if plotting from fortified data frame makes things better or not...(Maybe easier for plotly, but not using for now)
+  # EEZ@data$id<-rownames(EEZ@data)
+  # EEZ.points<-fortify(EEZ, region="id")
+  # EEZ.df<-join(EEZ.points,EEZ@data,by="id")
+  # 
+  # # Gets rid of values for polygons that are land
+  # EEZ.df$suitable<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$suitable)
+
+  #  p<-ggplot(EEZ,aes(text = mytext)) + 
+  #   geom_polygon( aes(long, lat, group = group, fill = hole), colour = "black", size = 0.1) + 
+  #   scale_fill_manual(values = (c("lightblue", "white")),guide = FALSE) + 
+  #   theme(legend.position="none") +
+  #   theme_minimal() +
+  #   geom_raster(data=suit,aes(x=Longitude,y=Latitude,fill=suitable),fill="darkred") +
+  #   xlab("Longitude") +
+  #   ylab("Latitude") +
+  #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
+  # 
+  # plotly(p)
+  
+  
+  ggplot() + 
+    geom_polygon(data=EEZ, aes(long, lat, group = group, fill = hole), colour = "black", size = 0.1) + 
+    scale_fill_manual(values = (c("lightblue", "white")),guide = FALSE) + 
+    theme(legend.position="none") +
+    theme_minimal() +
+    geom_raster(data=suit,aes(x=Longitude,y=Latitude,fill=suitable),fill="darkred") +
+    xlab("Longitude") +
+    ylab("Latitude") +
+    coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
+
+
 ```
 
 
 ## Production
 
 ```{r}
-npv_df$cell<-as.factor(npv_df$cell)
-npv_df$eez<-as.factor(npv_df$eez)
 
-eez_summary<- npv_df %>%
-  filter(discounts==0,prices==9) %>%
-  group_by(eez) %>%
- dplyr:: summarise(total_harvest = sum(harvest),
-                   npv = sum(npv)) %>%
-  ungroup()
+# Start summarizing and plotting production/npv results
 
-EEZ<-merge(EEZ,eez_summary,by.x = 'MRGID',by.y = 'eez')
+#npv_df$cell<-as.factor(npv_df$cell)
+#npv_df$eez<-as.factor(npv_df$eez)
 
+# Filter out for price == 8 
 
-EEZ@data$id = rownames(EEZ@data)
-  EEZ.points = fortify(EEZ, region="id")
-  EEZ.df = join(EEZ.points, EEZ@data, by="id")
-EEZ.df$total_harvest<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$total_harvest)
-EEZ.df$npv<-ifelse(EEZ.df$hole==TRUE,NA,EEZ.df$npv)
+npv_df_pr<-npv_df %>%
+  filter(prices == 9) %>%
+  filter(discounts== 0.05)
 
-ggplot(EEZ.df)+ 
-    geom_polygon(aes(x=long,y=lat,group=group,fill=total_harvest),col="black",lwd=0.5) +
-  #geom_polygon(data = EEZ.df, aes(long, lat, group = group),fill =NA, colour = "black", size = 0.1) + 
-  #scale_fill_manual(values=c("lightblue", "white"), guide=FALSE)+
-  theme(legend.position="none",legend.title=element_text("Total 10 yr production (kg)")) +
- theme_minimal() +
+npv_df_pr<-left_join(npv_df_pr,raster_coords)
+ 
+#Still not working quite right.
+ ggplot() + 
+    geom_polygon(data=EEZ, aes(long, lat, group = group, fill = hole), fill="white",colour = "black", size = 0.1) + 
+   # scale_fill_manual(values = (c("lightblue", "white")),guide = FALSE) + 
+    theme(legend.position="none") +
+    theme_minimal() +
+    geom_raster(data=npv_df_pr,aes(x=Longitude,y=Latitude,fill=npv)) +
+    scale_color_continuous(guide="colorbar",na.value="white",low="darkred",high="darkblue") +
     xlab("Longitude") +
-  ylab("Latitude") +
-  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-  scale_fill_continuous(na.value="white")
+    ylab("Latitude") +
+    coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
 
-ggplot(EEZ.df)+ 
-    geom_polygon(aes(x=long,y=lat,group=group,fill=npv),col="black",lwd=0.5) +
-  #geom_polygon(data = EEZ.df, aes(long, lat, group = group),fill =NA, colour = "black", size = 0.1) + 
-  #scale_fill_manual(values=c("lightblue", "white"), guide=FALSE)+
-  theme(legend.position="none",legend.title=element_text("Total 10 yr production (kg)")) +
- theme_minimal() +
-    xlab("Longitude") +
-  ylab("Latitude") +
-  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-  scale_fill_continuous(guide="colorbar",na.value="white",low="darkred",high="darkblue")
+
 
 ```
 
 ```{r}
-
+# box plots of npv for each discount rate by npv
 bp_data<-npv_df %>%
   filter(prices==9)
 bp_data$discounts<-as.factor(bp_data$discounts)
