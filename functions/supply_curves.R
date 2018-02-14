@@ -117,10 +117,10 @@ supply_curves <- function(cashflow,
   
   # Caribbean supply curve
   carib_supply %>%
-    ggplot(aes(x = prices, y = total_supply / 1e6, color = factor(discounts))) +
+    ggplot(aes(y = prices, x = total_supply / 1e6, color = factor(discounts))) +
     geom_line() +
-    labs(x = 'Price ($US/kg)',
-         y = 'Caribbean Supply (MT)',
+    labs(y = 'Price ($US/kg)',
+         x = 'Caribbean Supply (MT)',
          color = 'Discount Rate') +
     theme_bw()
     
@@ -128,10 +128,10 @@ supply_curves <- function(cashflow,
   
   # Country supply curves
   eez_supply %>%
-    ggplot(aes(x = prices, y = total_supply / 1e6, color = factor(discounts))) +
+    ggplot(aes(y = prices, x = total_supply / 1e6, color = factor(discounts))) +
     geom_line() +
-    labs(x = 'Price ($US/kg)',
-         y = '10-yr EEZ Supply (MMT)',
+    labs(y = 'Price ($US/kg)',
+         x = '10-yr EEZ Supply (MMT)',
          color = 'Discount Rate') +
     theme_bw() +
     facet_wrap(~country) +
