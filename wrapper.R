@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'est_Feb_8'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+run_name = 'est_Feb_13'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -59,7 +59,7 @@ if (dir.exists(run_dir) == F) {
 
 econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-run_sim = FALSE #run population simulation to calculate feed costs
+run_sim = TRUE #run population simulation to calculate feed costs
 
 # Parameters --------------------------------------------------------------
 
@@ -108,16 +108,18 @@ if (econ_prep_data == TRUE){
   
 } else {
   
-  file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".nc")
+  
+  econ.file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".nc")
+  econ_stack<-brick(paste0(boxdir,"economic/data/final/",econ.file.names[3]))
+  
+  file.names <- list.files(path = paste(boxdir,"TPC/", sep = ""), pattern = ".nc")
   
   model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),brick)
-  
+
   growth <- model_files[[1]]
   
   prod <- model_files[[2]]
-  
-  econ_stack<-model_files[[3]]
-
+ 
 }
   
   # Calculate average growth, cycle length, and no. of fingerlings --------
