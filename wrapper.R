@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'est_Feb_13'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+run_name = 'est_Feb_14'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -57,10 +57,10 @@ if (dir.exists(run_dir) == F) {
 }
 
 
-econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
+econ_prep_data = TRUE #Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 run_sim = TRUE #run population simulation to calculate feed costs
-
+process_growth =TRUE #process growth data to get average growth and number of harvest cycles per cell
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
@@ -112,34 +112,44 @@ if (econ_prep_data == TRUE){
   econ.file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".nc")
   econ_stack<-brick(paste0(boxdir,"economic/data/final/",econ.file.names[3]))
   
-  file.names <- list.files(path = paste(boxdir,"TPC/", sep = ""), pattern = ".nc")
+  #file.names <- list.files(path = paste(boxdir,"TPC/", sep = ""), pattern = ".nc")
   
-  model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),brick)
+  #model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),brick)
 
-  growth <- model_files[[1]]
+  growth <- brick(paste0(boxdir,"TPC/Carib_cobia_suitable.nc"),varname="Grow")
   
-  prod <- model_files[[2]]
+  prod <- brick(paste0(boxdir,"TPC/Carib_cobia_suitable.nc"),varname="Prod")
  
 }
   
   # Calculate average growth, cycle length, and no. of fingerlings --------
 
+ if(process_growth == TRUE) {
   annual_prod<-ann_prod(growth = growth)  
  
+   stocking_n<-annual_prod[[1]]
   harvest_cycles<-annual_prod[[2]]
   harvest_cycle_length<-annual_prod[[3]]
   avg_month_growth<-avg_growth(growth = growth)
  
+ } else {
+   
+    stocking_n<-brick(paste0(run_dir,'data/initial_stocking_stack.nc'))
+    harvest_cycles<-brick(paste0(run_dir,'data/harvest_cycles.nc'))
+    harvest_cycle_length<-brick(paste0(run_dir,'data/harvest_cycle_length.nc'))
+    avg_month_growth<-brick(paste0(run_dir,'data/avg_month_growth_stack.nc'))
+
+}
   #Fixes or caluclates intial stocking number
   
   if (fix_int_stock == TRUE) {
-    stocking_n<-annual_prod[[1]]
+
     stocking_n[stocking_n > 0]<-no_fingerlings
   
     
   } else {
   
-    stocking_n<-annual_prod[[1]]
+    stocking_n<-stocking_n
   }
    
   # Run Projection ----------------------------------------------------------

@@ -11,13 +11,18 @@ library(ncdf4)
 
 
 #setwd("Y:/Documents/Work for waitt/WI 2016/Caribbean-Aquaculture") #work computer directory
-boxdir<-('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/')
+boxdir<- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'
 
 #-----------------------------------------------------------------
 #-----------------------------------------------------------------
 # EEZs data from: http://www.marineregions.org/downloads.php
+#EEZ<-readOGR('/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/Suitability/raw/World_EEZ_v9_20161021/',layer="eez")
 
-EEZ = readOGR(dsn=paste(boxdir,"Suitability/raw/World_EEZ_v9_20161021/",sep=""),layer="eez",stringsAsFactors=FALSE)
+
+EEZ <- readOGR(dsn=paste0(boxdir,'Suitability/raw/World_EEZ_v9_20161021'),layer="eez",stringsAsFactors=FALSE)
+
+EEZ_bounds <- readOGR(dsn=paste0(boxdir,'Suitability/raw/World_EEZ_v9_20161021'),layer="eez_boundaries",stringsAsFactors=FALSE)
+
 carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Antigua and Barbuda Exclusive Economic Zone",
                    "Aruban Exclusive Economic Zone",
@@ -50,6 +55,8 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Virgin Islander Exclusive Economic Zone")
 
 carib_eez<- EEZ[EEZ$GeoName %in% carib_countries,]
+
+carib_bounds<-EEZ_bounds[EEZ_bounds$EEZ1 %in% carib_countries,]
 
 writeOGR(carib_eez, dsn=paste(boxdir,"Suitability/tmp",sep=""),driver="ESRI Shapefile", layer="carib_eez_shape",overwrite=TRUE)
 
