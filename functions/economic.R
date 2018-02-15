@@ -44,7 +44,17 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
   #convert into monthly costs                     
   monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
     select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                            
+ 
+   # Match country names
+  eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape") 
   
+  country<- eez_shape %>%
+    as_data_frame %>%
+    select(MRGID,Territory1)
+  
+  monthly_costs$eez<-as.factor(monthly_costs$eez)
+  
+  monthly_costs<-left_join(monthly_costs,country,by = c('eez' = 'MRGID'))
   #set capital costs to 0 for all month except month one
   
   monthly_costs$c_costs<-ifelse(monthly_costs$month==1,monthly_costs$c_costs,0)                                

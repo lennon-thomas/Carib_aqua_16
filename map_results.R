@@ -18,6 +18,7 @@
   library(viridis)
   library(ggforce)
   library(broom)
+  library(forcats)
   #library(plotly)
   # library(plyr)
   
@@ -135,7 +136,7 @@ base<- ggplot() +
                   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
                   theme(legend.position="none") +
                   theme_minimal() +
-                  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+               #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
                   xlab("Longitude") +
                   ylab("Latitude") +
                   facet_wrap(~Territory1,scales = "free")
@@ -167,17 +168,17 @@ base<- ggplot() +
   
   total_prod<- all_df %>%
     filter(prices==8.62 & discounts ==0) %>%
-    group_by(eez) %>%
-    summarise(total_harvest = sum(total_harvest)) %>%
-    mutate(total_harvest_mt = total_harvest * 0.001) %>%
-    left_join(eez.water, by = c('eez' = 'MRGID'))
+    dplyr::group_by(eez) %>%
+    summarise(t_harvest = sum(total_harvest)) %>%
+    mutate(total_harvest_mt = t_harvest * 0.001) %>%
+   left_join(eez.water, by = c('eez' = 'MRGID'))
   
  # with no economic consideration 
   total_prod_map<-  ggplot() + 
     geom_polygon(data = total_prod,aes(x = long,y = lat,group = group, fill= total_harvest_mt), colour = "black", size = 0.1 , alpha = 0.8) +
     geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
     scale_fill_viridis("Total Production (mt)") +
-    ggtitle("(No economic consideration)") +
+    ggtitle("(all suitable cells)") +
     theme_minimal() + 
     xlab("Longitude") +
     ylab("Latitude") +
@@ -190,19 +191,32 @@ base<- ggplot() +
   
  econ_prod<- all_df %>%
     filter(prices==8.62 & npv>0) %>%
-    group_by(eez,discounts) %>%
-    summarise(total_harvest = sum(total_harvest),
-              total_npv = sum(npv),
-    mutate(total_harvest_mt = total_harvest * 0.001) %>%
-    left_join(eez.water, by = c('eez' = 'MRGID'))
+    dplyr::group_by(eez,discounts) %>%
+    summarise(all_harvest = sum(total_harvest*0.001)) %>%
+    spread(discounts, all_harvest) %>%
+    set_names(c("eez","discount_0","discount_0.5","discount_0.1"))
  
- 
+e_prod<-gather(econ_prod,"discount","harvest_mt",c(2:4))%>%
+  as_data_frame()
+
+t_prod<-total_prod %>%
+  select(eez,total_harvest_mt)%>%
+  gather("discount","harvest_mt",2) %>%
+  as_data_frame() 
+
+c_names<-as.data.frame(EEZ@data)%>%
+  select(MRGID,Territory1)
+
+all_prod<-bind_rows(e_prod,t_prod) %>%
+  set_names(c("MRGID","discount","harvest_mt")) 
+
+final_prod<-left_join(all_prod,c_names)
   
-  ggplot(all_df,aes(x=discounts,y=total_harvest,fill = Territory1))+
-    geom_bar() +
+  ggplot(final_prod,aes(x=discount,y=harvest_mt,fill = Territory1))+
+    geom_bar(stat="identity") +
     theme_minimal() +
-    xlab("Total Harvest (mt)") +
-    ylab("Economic Scenario")
+    ylab("Total Harvest (mt)") +
+    xlab("Economic Scenario")
 # NPV maps/histograms for current price -----------------------------------------------------
 
   # Current price and only profitable farms by EEZ
@@ -217,7 +231,7 @@ base<- ggplot() +
   # Map of NPV by discount rate (need to plot on separate pages)
   
   npv_discount_map<-  ggplot() + 
-    geom_polygon(data = npnv_eez,aes(x = long,y = lat,group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+    geom_polygon(data = npv_eez,aes(x = long,y = lat,group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
     geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
     scale_fill_viridis("10 year NPV ($)") +
     theme_minimal() + 
@@ -263,7 +277,7 @@ ggplot(data = npv_cell, aes(x=npv,fill=Discount_rate))+
   xlab("NPV ($)") +
   ylab("Frequency") +
   ggtitle("NPV by cell") +
-  facet_wrap(~Territory1, scales = "free")
+  facet_wrap(~Territory1, scales = "free_y")
 ggsave(paste0(fig_folder,'eez_npv_cell.png'), width = 12, height = 12)
 
 
@@ -290,9 +304,9 @@ growth_df<-as.data.frame(avg_growth) %>%
 
 growth_df<-left_join(growth_df,countries)
 
-#Box plot of avergage SST per month for whole Carib
+#Box plot of avergage growth per month for whole Carib
 
-ggplot(growth_df, aes(x=Month,y=avg_growth)) +
+ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) ,y=avg_growth)) +
   geom_boxplot()+
   theme_minimal() +
   xlab("Month") +
@@ -300,7 +314,7 @@ ggplot(growth_df, aes(x=Month,y=avg_growth)) +
 
 ggsave(paste0(fig_folder,'Caribbean_avg_growth.png'), width = 6, height = 5)
 
-ggplot(growth_df, aes(x=Month,y=avg_growth)) +
+ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")),y=avg_growth)) +
   geom_boxplot()+
   theme_minimal() +
   xlab("Month") +
