@@ -21,7 +21,7 @@ library(skimr)
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -38,7 +38,7 @@ suitable <- read_csv(paste0(boxdir, 'results/suitability/suitable_area_df.csv'))
 
 ## Suitability
 
-```{r, fig.cap="Suitable areas for offshore mariculture in the Caribbean"}
+```{r, fig.cap="Figure 1. Suitable areas for offshore mariculture in the Caribbean"}
 knitr::include_graphics(path = paste0(figure_folder, '/carib_suit_area.png'))
 ```
 
@@ -49,21 +49,17 @@ suitable %>%
   arrange(desc(suit_area_km)) %>% 
   rename(Country              = country,
          `Suitable Area (km)` = suit_area_km) %>% 
-  knitr::kable(caption = 'Area (square kilometers) suitable for offshore mariculture by EEZ for Caribbean nations')
+  knitr::kable(caption = 'Table 1: Area (square kilometers) suitable for offshore mariculture by EEZ for Caribbean nations')
 ```
 
 There is considerable variability in the amount of area suitable for offshore mariculture in Caribbean nations (Table 1). Both the Bahamas and Trinadad and Tobago have more than twice the suitable area than the country with the next largest amound of suitable area (Jamaica). If economic constraints are ignored and all suitable farm sites are developed, the Caribbean's potential to produce cobia from mariculture is extremely large (expand).
 
 
-```{r, fig.cap="Total potential cobia production from all suitable areas in the Caribbean"}
+```{r, fig.cap="Figure 2. Total potential cobia production from all suitable areas in the Caribbean"}
 knitr::include_graphics(path = paste0(figure_folder, '/total_prod_map.png'))
 ```
 
 Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend (Figure 3). There is also a higher degree of variability in the winter months, likely due to the large geographic range of represented.
-
-```{r, fig.cap="Cobia growth by month in the Caribbean. Growth is modeled as a function of sea surface temperature and thus show a clear seasonal trend"}
-knitr::include_graphics(path = paste0(figure_folder, '/Caribbean_avg_growth.png'))
-```
 
 As a result of the variability in growth rates acros the Caribbean, farms vary in the lenght of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure 4).
 
@@ -73,34 +69,26 @@ INSERT HISTOGRAM OF HARVEST LENGTH
 
 When evaluating cobia's mariculture potential in the Caribbean, we also considered economic constraints by using a bioeconomic model to project farm costs and revenue. For each farm, we calculate the projected net present value (NPV) from the discounted stream of costs and revenues. We then limited our discussion of results to only include farms (cells) with a positive NPV under the assumption that only profitable farm locations would be developed.
 
-```{r, fig.cap="Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
+```{r, fig.cap="Figure 2. Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
 knitr::include_graphics(path = paste0(figure_folder, '/npv_cntry_ridgeplot.png'))
 ```
 
-```{r, fig.cap="Average total harvest (kg) and net present value ($USD) for a single farm by Caribbean EEZ. Dot size represent the number of profitable farms per EEZ"}
-knitr::include_graphics(path = paste0(figure_folder, '/npv_harvest_dotplot.png'))
+```{r, fig.cap="Figure 4. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
+knitr::include_graphics(path = paste0(figure_folder, '/carib_supply_curves.png'))
 ```
 
-### Costs by EEZ
 
-```{r, fig.cap="Average farming cost by cost category per EEZ."}
-knitr::include_graphics(path = paste0(figure_folder, '/cost_cntry_barplot.png'))
-```
-
-## Sensitivity Analyses
-
-The results presented above assume the current price of cobia (~$8.62/kg) and a 0% discount rate. Recognizing that prices are likely to change and that investments in mariculture will assume a certain level of discounting, we examined how results change across five discount rates and a range of prices.
-
-
-```{r, fig.cap="Total NPV by EEZ under three discounting scenarios (0%, 5%, and 10%)."}
+```{r, fig.cap="Figure 5. Total NPV by EEZ under three discounting scenarios (0%, 5%, and 10%)."}
 knitr::include_graphics(path = paste0(figure_folder, '/npv_discount_map.png'))
 ```
 
-```{r, fig.cap="Distribution of farm-scale NPV in the Caribbean under a range of prices for cobia and discount rates."}
-knitr::include_graphics(path = paste0(figure_folder, '/npv_price_discount_scenarios.png'))
+
+## Supplementary Figures
+
+```{r, fig.cap="Figure S1. Cobia growth by month in the Caribbean. Growth is modeled as a function of sea surface temperature and thus show a clear seasonal trend"}
+knitr::include_graphics(path = paste0(figure_folder, '/Caribbean_avg_growth.png'))
 ```
 
-
-```{r, fig.cap="Total NPV under three discounting scenarios (0%, 5%, and 10%)."}
-knitr::include_graphics(path = paste0(figure_folder, '/Caribbean_npv_cell.png'))
+```{r, fig.cap="Figure S2. Histogram of harvest cycle length for cobia farms in the Caribbean. One harvest cycle is calculated as the number of months required to raise a cobia from an initial stocking weight of 0.5 grams to 5 kg."}
+knitr::include_graphics(path = paste0(figure_folder, '/harv_length_hist.png'))
 ```
