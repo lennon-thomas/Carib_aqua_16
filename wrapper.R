@@ -25,7 +25,7 @@ library(readr)
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'est_Feb_14'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+run_name = 'est_Feb_13'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -57,10 +57,10 @@ if (dir.exists(run_dir) == F) {
 }
 
 
-econ_prep_data = TRUE #Prep economic data files (TRUE) or just read in existing files (FALSE)
+econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-run_sim = TRUE #run population simulation to calculate feed costs
-process_growth =TRUE #process growth data to get average growth and number of harvest cycles per cell
+run_sim = FALSE #run population simulation to calculate feed costs
+process_growth = FALSE #process growth data to get average growth and number of harvest cycles per cell
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
@@ -194,9 +194,14 @@ if (econ_prep_data == TRUE){
     names(countries) <- (c("eez","country"))
     
 # Run supply curve analysis
-  supply_curves_results <- supply_curves(cashflow = monthly_cashflow, cobia_price = cobia_price, prices = c(5:15),
-                                         discount_rates = c(0,0.05,0.1,0.15,0.2), eezs = countries, 
-                                         figure_folder = figure_folder, result_folder = result_folder)
+  supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
+                                         cobia_price = cobia_price, 
+                                         prices = c(5:12),
+                                         feed_price_index = c(1, 0.9),
+                                         discount_rates = c(0.05, 0.1, 0.15),
+                                         eezs = countries, 
+                                         figure_folder = figure_folder, 
+                                         result_folder = result_folder)
   
 
 # Extract supply curve results
@@ -205,7 +210,7 @@ if (econ_prep_data == TRUE){
   carib_supply <- supply_curves_results[['carib_supply']]
 
 # Select on the last month of simulation for every cell
-final_npv<-npv_df %>%
+final_npv <- npv_df %>%
   group_by(cell) %>%
   filter(month == max(month))
   

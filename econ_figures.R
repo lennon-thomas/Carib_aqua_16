@@ -22,7 +22,7 @@ library(scales)
 carib_theme <- function() {
   theme_minimal() +
     theme(text         = element_text(size = 6),
-          title        = element_text(size = 12),
+          title        = element_text(size = 10),
           axis.text    = element_text(size = 10),
           legend.text  = element_text(size = 10))
 }
@@ -40,16 +40,14 @@ run_name = 'est_Feb_13'
 # Load run results 
 result_folder <- paste0(boxdir,'results/',run_name,"/Results")
 figure_folder <- paste0(boxdir,'results/',run_name,"/Figures")
-file.names <- list.files(path = result_folder, pattern = ".csv")
-result_files <- lapply(paste0(result_folder,"/",file.names),read.csv, stringsAsFactors = F)
 
 # Extract individual result data sets
-carib_supply <- result_files[[1]]
-eez_supply_df <- result_files[[2]]
-cashflow <- result_files[[3]]
-npv_df <- result_files[[4]]
-sim_results <- result_files[[5]]
-supply_summary<-result_files[[6]]
+carib_supply <- read_csv(file = paste0(result_folder,"/carib_supply.csv"))
+eez_supply_df <- read_csv(file = paste0(result_folder,"/eez_supply_df.csv"))
+cashflow <- read.csv(file = paste0(result_folder,"/monthly_cashflow.csv")) %>% tbl_df()
+npv_df <- read_csv(file = paste0(result_folder,"/npv_df.csv"))
+sim_results <- read_csv(file = paste0(result_folder,"/sim_function_results.csv"))
+supply_summary <- read_csv(file = paste0(result_folder,"/supply_summary.csv"))
 
 # NPV Summaries -----------------------------------------------------------
 
@@ -58,8 +56,8 @@ pos_npv <- filter(npv_df, npv > 0)
 
 # Summarize NPV by price and discount options
 npv_summary <- pos_npv %>% 
-  select(prices, discounts, npv, total_harvest) %>% 
-  group_by(prices, discounts) %>% 
+  select(prices, discounts, feed_price_index, npv, total_harvest) %>% 
+  group_by(prices, discounts, feed_price_index) %>% 
   skim()
 
 # Caribbean NPV summary table
@@ -67,34 +65,27 @@ npv_summary_tbl <- npv_summary %>%
   select(-type, -level, - formatted) %>% 
   filter(stat %in% c('median', 'mean','sd', 'p75', 'p100')) %>% 
   spread(stat, value) %>% 
-  arrange(prices, variable)
+  arrange(prices, variable, feed_price_index)
 
 # Country level NPV summary
 npv_cntry_summary <- pos_npv %>% 
-  select(country, prices, discounts, npv, total_harvest) %>% 
-  group_by(country, prices, discounts) %>% 
+  select(country, prices, discounts, feed_price_index, npv, total_harvest) %>% 
+  group_by(country, prices, discounts, feed_price_index) %>% 
   skim()
 
-npv_cntry_plot_df <- npv_cntry_summary %>% 
-  ungroup() %>% 
-  filter(prices == 8.62 & discounts == 0) %>% 
-  filter(stat %in% c('n', 'mean')) %>% 
-  select(country, variable, stat, value) %>% 
-  spread(variable, value) %>% 
-  group_by(country) %>% 
-  mutate(farms = npv[stat == 'n']) %>% 
-  filter(stat == 'mean')
-
 # Pull out base scenario results from NPV ($8.62 and 0% discount results)
-main_npv <- filter(pos_npv, prices == 8.62 & discounts == 0)
+main_npv <- filter(pos_npv, prices == 8.62 & discounts == 0.15 & feed_price_index == 1)
 
 # Country total NPV and farms 
 dense_df1 <- main_npv %>%
   group_by(country) %>% 
   mutate(total_npv = sum(npv, na.rm = T),
-         farms     = length(unique(cell))) %>% 
+         farms     = length(unique(cell)),
+         npv_cv    = raster::cv(npv, na.rm = T),
+         npv_cv    = ifelse(npv_cv > 60, 60, npv_cv)) %>% 
   ungroup() %>% 
-  mutate(discounts = factor(discounts))
+  mutate(discounts = factor(discounts),
+         carib_npv = median(npv, na.rm = T))
 
 # Filter out first harvest cycle and calculate total costs per cell
 cost_summary <- sim_results %>% 
@@ -127,30 +118,19 @@ carib_cost_summary <- cost_summary %>%
 
 # ridge plot of NPV by EEZ
 dense_df1 %>% 
-  ggplot(aes(x = npv, fill = log10(total_npv))) +
-  geom_density_ridges2(aes(y = fct_reorder(country, npv, fun = median)), alpha = 0.8) +
-  scale_x_continuous(limits = c(0,NA), expand = c(0,0)) +
+  ggplot(aes(x = npv / 1e6, fill = npv_cv)) +
+  geom_density_ridges2(aes(y = fct_reorder(country, npv, fun = median, text = npv_cv)), alpha = 0.8, scale = 1.2) +
+  geom_vline(aes(xintercept = carib_npv / 1e6), linetype = 2, color = 'red') +
+  scale_x_continuous(expand = c(0,0)) +
   scale_fill_viridis() +
-  labs(title = 'NPV of cobia aquaculture per farm by Caribbean EEZ',
-       x     = 'Net Present Value (NPV)',
-       y     = NULL,
-       fill  = paste0('Total country\nNPV (log)')) +
+  labs(title    = 'NPV of cobia aquaculture per farm by Caribbean EEZ',
+       subtitle = 'Discount rate = 15%',
+       x        = 'Net Present Value ($USD, millions)',
+       y        = NULL,
+       fill     = paste0('Coefficient of\nvariation')) +
   carib_theme()
 
-ggsave(filename = paste0(figure_folder, '/npv_cntry_ridgeplot.png'), width = 8, height = 5)
-
-# dotplot of NPV against total harvest
-ggplot(npv_cntry_plot_df, aes(x = total_harvest, y = npv)) +
-  geom_point(aes(size = farms)) +
-  geom_text_repel(aes(label = country)) +
-  scale_size_continuous(breaks = seq(from = 1000, to = 9000, by = 1000)) +
-  scale_x_continuous(labels = comma) +
-  labs(x = 'Average farm harvest (kg)',
-       y = 'Average farm net present value (NPV)',
-       size = "Number of farms") +
-  carib_theme()
-
-ggsave(filename = paste0(figure_folder, '/npv_harvest_dotplot.png'), width = 8, height = 5)
+ggsave(filename = paste0(figure_folder, '/npv_cntry_ridgeplot.png'), width = 6, height = 5)
 
 # Stacked barplot of average farm cost per eez
 eez_cost_summary %>% 
@@ -171,11 +151,50 @@ ggsave(filename = paste0(figure_folder, '/cost_cntry_barplot.png'), width = 6, h
 
 # Density plot of profitable farms by price and discount scenarios
 pos_npv %>%  
-  ggplot(aes(x = npv / 1e6)) +
-  geom_density() +
-  facet_grid(prices ~ discounts, scales = 'free_y') +
+  filter(feed_price_index == 1 & prices == 8.62) %>% 
+  ungroup() %>%
+  ggplot(aes(x = npv / 1e6, fill = factor(discounts))) +
+  geom_histogram(binwidth = 0.25, position = 'dodge') +
   labs(x = 'NPV (millions)') +
-  carib_theme() +
-  theme(axis.text.y = element_blank())
+  carib_theme() 
 
-ggsave(filename = paste0(figure_folder, '/npv_price_discount_scenarios.png'), width = 6, height = 8)
+ggsave(filename = paste0(figure_folder, '/npv_discount_scenarios.png'), width = 6, height = 8)
+
+# Caribbean supply curve
+# Total Caribbean supply from profitable farms - 10% discount rate
+supply_plot_df <- npv_df %>%
+  group_by(cell) %>%
+  filter(month == max(month) & discounts == 0.15) %>%
+  mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e4 / 10)) %>%  # supply = 0 if NPV is negative
+  group_by(prices, discounts, feed_price_index) %>%
+  summarize(total_supply  = sum(supply, na.rm = T)) %>%  # supply
+  ungroup()
+
+# Find supply curve intercepts
+intercepts <- supply_plot_df %>% 
+  filter(prices == 8.62)
+
+supply_plot_df %>%
+  ggplot(aes(x = prices, y = total_supply / 1e6, color = factor(feed_price_index))) +
+  geom_line() +
+  geom_vline(xintercept = 8.62, linetype = 2, color = 'grey50') +
+  geom_segment(aes(x = 0, xend = 8.62,
+                   y = total_supply[prices == 8.62 & feed_price_index == 1] / 1e6,
+                   yend = total_supply[prices == 8.62 & feed_price_index == 1] / 1e6),
+               linetype = 2, color = 'grey50') +
+  geom_segment(aes(x = 0, xend = 8.62,
+                   y = total_supply[prices == 8.62 & feed_price_index == 0.9] / 1e6,
+                   yend = total_supply[prices == 8.62 & feed_price_index == 0.9] / 1e6),
+               linetype = 2, color = 'grey50') +
+  coord_cartesian(xlim = c(7, 12)) +
+  scale_x_continuous(breaks = unique(supply_plot_df$prices), 
+                     labels = unique(supply_plot_df$prices)) +
+  scale_color_brewer(palette = 'Set1') +
+  labs(x     = 'Price ($US/kg)',
+       y     = 'Caribbean Supply (MMT)',
+       color = 'Feed price\nindex',
+       title = 'Supply of cobia in the Caribbean',
+       subtitle = 'Discount rate = 15%') +
+  carib_theme()
+
+ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 4)
