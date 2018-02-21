@@ -20,31 +20,21 @@ supply_curves <- function(cashflow,
   cashflow <- cashflow %>% 
     left_join(eezs %>% 
                 select(eez, disc_rate) %>% 
-                mutate(discounts = 'cntry'))
-  
+                mutate(disc_scenario = 'cntry')) 
+   
   # Calculate discounted profits for a range of prices and the baseline (country specific) discount rate
   supply <- cashflow %>%
-    select(cell, eez, month, harvest, disc_rate, discounts) %>%
+    select(cell, eez, month, harvest, disc_rate, disc_scenario) %>%
     filter(harvest > 0) %>%
     mutate(prices       = list(prices),
            profit       = map2(harvest, prices, `*`)) %>%
     unnest() %>% 
-    mutate(disc_profit = profit / (1 + disc_rate) ^ (month * 1/12))
-  
-  # Repeat process for additional discount rates if present
-  if(is.na(discount_rates)==F) {
-    
-    supply <- supply %>% 
-      select(-disc_rate, - disc_profit, -discounts) %>%  # drop baseline discount rate and discount profits calculated previously
-      mutate(disc_rate   = list(discount_rates), # add additional discount rates
-             disc_profit = pmap(list(month, profit, disc_rate), # map discounting function across discount rates
-                                function(month, profit, disc_rate) profit / (1 + disc_rate) ^ (month * 1/12))) %>%
-      unnest() %>% 
-      mutate(discounts = as.character(disc_rate)) %>% # label additonal scenarios
-      bind_rows(supply) # join with baseline data
-    
-  }
-    
+    group_by(eez) %>% 
+    mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
+           disc_scenario = list(c('cntry', as.character(discount_rates))),
+           disc_profit = pmap(list(month, profit, disc_rate), # map discounting function across discount rates
+                              function(month, profit, disc_rate) profit / (1 + disc_rate) ^ (month * 1/12))) %>%
+    unnest()
    
   # Calculate discounted costs for a range of feed costs and discount rates
   supply_costs <- cashflow %>%
@@ -53,11 +43,13 @@ supply_curves <- function(cashflow,
     mutate(feed_cost           = feed_cost * feed_price_index,
            total_monthly_costs = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost) %>% 
     select(cell, eez, month, feed_price_index, total_monthly_costs, disc_rate) %>%
-    mutate(discounts  = list(c(disc_rate, discount_rates))),
-           disc_costs = pmap(list(month, total_monthly_costs, discounts), 
-                              function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ (month * 1/12))) %>%
+    group_by(eez) %>% 
+    mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
+           disc_scenario = list(c('cntry', as.character(discount_rates))),
+           disc_costs = pmap(list(month, total_monthly_costs, disc_rate), 
+                              function(month, total_monthly_costs, disc_rate) total_monthly_costs / (1 + disc_rate) ^ (month * 1/12))) %>%
     unnest() %>%
-    group_by(cell, discounts, feed_price_index) %>%
+    group_by(cell, disc_scenario, feed_price_index) %>%
     mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
   
   # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
@@ -71,21 +63,20 @@ supply_curves <- function(cashflow,
     mutate(disc_profit = ifelse(is.na(disc_profit), 0, disc_profit))
   
   # Convert eez data to tibble for left join
-  colnames(eezs) <- c('eez','country') #,'coords')
-  eezs <- as_data_frame(eezs)
-  eezs <- eezs %>%
-    select(eez, country) %>%
+  eez_df <- select(eezs, eez, country) %>%  tbl_df()
+  
+  eez_df <- eez_df %>%
     mutate(eez = as.numeric(levels(eez)[eez]),
            country = as.character(country))
   
   # Calculate present value as discounted profits minus discounted costs
   npv_df <- cashflow_disc %>%
-    group_by(cell, discounts, prices, feed_price_index) %>%
+    group_by(cell, disc_scenario, prices, feed_price_index) %>%
     mutate(total_disc_profit = cumsum(disc_profit),
            total_harvest     = sum(harvest, na.rm = T),
            npv               = total_disc_profit - total_disc_costs,
            eez               = as.numeric(eez)) %>%
-    left_join(eezs)
+    left_join(eez_df)
 
   # Total Caribbean supply from profitable farms 
   carib_supply <- npv_df %>%
@@ -94,7 +85,7 @@ supply_curves <- function(cashflow,
     mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e4), # supply = 0 if NPV is negative
            npv    = ifelse(npv < 0, 0, npv)) %>% # npv set to 0 for non profitable farms
     filter(npv > 0) %>%
-    group_by(prices, discounts, feed_price_index) %>%
+    group_by(prices, disc_scenario, feed_price_index) %>%
     summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
               min_supply    = min(supply, na.rm = T),
               max_supply    = max(supply, na.rm = T),
@@ -113,7 +104,7 @@ supply_curves <- function(cashflow,
     filter(month == max(month)) %>%
     mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e4), # supply = 0 if NPV is negative
            npv    = ifelse(npv < 0, 0, npv)) %>% # npv set to 0 for non profitable farms
-    group_by(country, prices, discounts, feed_price_index) %>%
+    group_by(country, prices, disc_scenario, feed_price_index) %>%
     filter(npv > 0) %>%
     summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
               min_supply    = min(supply, na.rm = T),
