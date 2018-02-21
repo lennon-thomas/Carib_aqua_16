@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'est_Feb_13'    #"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+run_name = 'est_Feb_13'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -61,6 +61,7 @@ econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 run_sim = FALSE #run population simulation to calculate feed costs
 process_growth = FALSE #process growth data to get average growth and number of harvest cycles per cell
+
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
@@ -193,12 +194,25 @@ if (econ_prep_data == TRUE){
     countries <- as.data.frame(carib_eez[,c(2,6)])
     names(countries) <- (c("eez","country"))
     
+  # Add risk scores and discount rates to EEZ dataframe
+    risk_scores <- read_csv(paste0(boxdir, 'data/final_risk_score.csv')) %>% 
+      rename(country = Territory1) %>% 
+      mutate(country = ifelse(country == 'Curacao', 'Curaçao', country),
+             country = ifelse(country == 'Saint-Barth\x8elemy', "Saint-Barthélemy", country))
+             
+  # Join country lookup table with risk scores and calculate discount rates based on Brazil score (2.93) and discount rate (14%)
+    countries <- countries %>% 
+      left_join(risk_scores) %>% 
+      mutate(risk_score  = ifelse(country == "Saint-Barthélemy", 2.2, risk_score),
+             brazil_diff = (2.94 - risk_score) / 2.94,
+             disc_rate   = 0.14 * (1-brazil_diff))
+      
 # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
                                          cobia_price = cobia_price, 
                                          prices = c(5:12),
                                          feed_price_index = c(1, 0.9),
-                                         discount_rates = c(0.05, 0.1, 0.15),
+                                         discount_rates = c(0),
                                          eezs = countries, 
                                          figure_folder = figure_folder, 
                                          result_folder = result_folder)

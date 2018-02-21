@@ -14,19 +14,37 @@ supply_curves <- function(cashflow,
                           figure_folder) {
   
   # insert current price into vector of prices
-  prices <- c(prices, cobia_price)
+  prices <- c(prices, cobia_price) 
   
-  # Calculate discounted profits for a range of prices and discount rates
+  # Add discount rates by joining cashflow with eezs
+  cashflow <- cashflow %>% 
+    left_join(eezs %>% 
+                select(eez, disc_rate) %>% 
+                mutate(discounts = 'cntry'))
+  
+  # Calculate discounted profits for a range of prices and the baseline (country specific) discount rate
   supply <- cashflow %>%
-    select(cell, eez, month, harvest) %>%
+    select(cell, eez, month, harvest, disc_rate, discounts) %>%
     filter(harvest > 0) %>%
     mutate(prices       = list(prices),
            profit       = map2(harvest, prices, `*`)) %>%
-    unnest() %>%
-    mutate(discounts   = list(discount_rates),
-           disc_profit = pmap(list(month, profit, discounts), 
-                              function(month, profit, discounts) profit / (1 + discounts) ^ (month * 1/12))) %>%
-    unnest()    
+    unnest() %>% 
+    mutate(disc_profit = profit / (1 + disc_rate) ^ (month * 1/12))
+  
+  # Repeat process for additional discount rates if present
+  if(is.na(discount_rates)==F) {
+    
+    supply <- supply %>% 
+      select(-disc_rate, - disc_profit, -discounts) %>%  # drop baseline discount rate and discount profits calculated previously
+      mutate(disc_rate   = list(discount_rates), # add additional discount rates
+             disc_profit = pmap(list(month, profit, disc_rate), # map discounting function across discount rates
+                                function(month, profit, disc_rate) profit / (1 + disc_rate) ^ (month * 1/12))) %>%
+      unnest() %>% 
+      mutate(discounts = as.character(disc_rate)) %>% # label additonal scenarios
+      bind_rows(supply) # join with baseline data
+    
+  }
+    
    
   # Calculate discounted costs for a range of feed costs and discount rates
   supply_costs <- cashflow %>%
@@ -34,8 +52,8 @@ supply_curves <- function(cashflow,
     unnest() %>% 
     mutate(feed_cost           = feed_cost * feed_price_index,
            total_monthly_costs = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost) %>% 
-    select(cell, eez, month, feed_price_index, total_monthly_costs) %>%
-    mutate(discounts  = list(discount_rates),
+    select(cell, eez, month, feed_price_index, total_monthly_costs, disc_rate) %>%
+    mutate(discounts  = list(c(disc_rate, discount_rates))),
            disc_costs = pmap(list(month, total_monthly_costs, discounts), 
                               function(month, total_monthly_costs, discounts) total_monthly_costs / (1 + discounts) ^ (month * 1/12))) %>%
     unnest() %>%
