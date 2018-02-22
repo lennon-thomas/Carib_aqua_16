@@ -5,19 +5,19 @@ econ_data_prep <- function() {
   
 # Read in raw data --------------------------------------------------------
 
-prod<-brick(paste(boxdir,"TPC/Carib_cobia_suitable.nc",sep=""),varname="Prod") 
+prod<-brick(paste(boxdir,"data/TPC/Carib_cobia_suitable.nc",sep=""),varname="Prod") 
 
-growth<-brick(paste(boxdir,"TPC/Carib_cobia_suitable.nc",sep=""),varname="Grow")
+growth<-brick(paste(boxdir,"data/TPC/Carib_cobia_suitable.nc",sep=""),varname="Grow")
 
-initial_stock<-raster(paste(boxdir,"TPC/ initial_stock.tif",sep = ""))
+initial_stock<-raster(paste(boxdir,"data/TPC/ initial_stock.tif",sep = ""))
 
-eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape")
+eez_shape<-readOGR(dsn = paste(boxdir,"data/economic_prep/",sep=""),layer = "carib_eez_shape")
 
-econ_params<-read.csv(paste(boxdir,"economic/data/eez_parameters.csv",sep=""))
+econ_params<-read.csv(paste(boxdir,"data/economic_prep/eez_parameters.csv",sep=""))
 
-depth<-raster(paste(boxdir,"Suitability/tmp/carib_depth.tif",sep=""))
+depth<-raster(paste(boxdir,"data/economic_prep/carib_depth.tif",sep=""))
 
-shore_distance<-raster(paste(boxdir,"economic/data/tmp/shore_distanc.tif",sep=""))
+shore_distance<-raster(paste(boxdir,"data/economic_prep/shore_distanc.tif",sep=""))
 
 # Format Data-------------------------------------------------------------
 
@@ -68,11 +68,7 @@ cell_nos<-mask(cell_nos,fuel_price)
 
 # Create raster of eez id numbers
 
-#econ_shape$MRGID<-{as.numeric(levels(econ_shape$MRGID))[econ_shape$MRGID]}
-
 eez_shape$MRGID<-{as.numeric(levels(eez_shape$MRGID))[eez_shape$MRGID]}
-
-#eez<-fasterize(econ_shape,depth,field ='MRGID')
 
 eez<-rasterize(eez_shape,depth,field = 'MRGID')
 
@@ -86,19 +82,17 @@ names(econ_stack)<-econ_names
 
 #final files
 
-writeRaster(prod,paste(boxdir,"economic/data/final/cobia_prod.nc",sep = ""),format = "CDF",varname = "prod", overwrite =TRUE)
+writeRaster(prod,paste(boxdir,"data/economic_final/cobia_prod.nc",sep = ""),format = "CDF",varname = "prod", overwrite =TRUE)
 
-writeRaster(growth,paste(boxdir,"economic/data/final/cobia_growth.nc",sep = ""),format = "CDF",varname= "growth",overwrite =TRUE)
+writeRaster(growth,paste(boxdir,"data/economic_final/cobia_growth.nc",sep = ""),format = "CDF",varname= "growth",overwrite =TRUE)
 
-writeRaster(econ_stack,paste(boxdir,'economic/data/final/econ_stack.nc',sep = ""), format = "CDF",varname="econ", overwrite =TRUE)
+writeRaster(econ_stack,paste(boxdir,'data/economic_final/econ_stack.nc',sep = ""), format = "CDF",varname="econ", overwrite =TRUE)
 
 # Read files back in (to save space) and save workspace image---------------------------------------
 
-#fixed_cost<-read.csv(paste(boxdir,"economic/data/final/fixed_costs.csv",sep = ""))
+file.names <- list.files(path = paste(boxdir,"data/economic_final/", sep = ""), pattern = ".nc")
 
-file.names <- list.files(path = paste(boxdir,"economic/data/final/", sep = ""), pattern = ".nc")
-
-model_files <- lapply(paste(boxdir,"economic/data/final/",file.names, sep = ""),brick)
+model_files <- lapply(paste(boxdir,"data/economic_final/",file.names, sep = ""),brick)
 
 growth <- model_files[[1]]
 

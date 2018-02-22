@@ -54,7 +54,17 @@
                     col_types = "iiddiic") %>%
     select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
   
-  # Load sim data
+suit_df_summary<- suit_df %>%
+  group_by(country) %>%
+  summarise(suitable_area_km = round(sum(suit_area_km,na.rm = TRUE),2),
+            total_area_km = round(sum(study_area_km,na.rm =TRUE),2)) %>%
+  mutate(suitable_perc = round(suitable_area_km / total_area_km * 100,2)) %>%
+  arrange(desc(suitable_perc)) %>%
+  set_names(c("Country","Suitable area (km^2)","Total EEZ area (km^2)","Suitable area (% of EEZ)"))
+  
+write.csv(suit_df_summary,paste0(boxdir,"results/Suitability/suit_df_summary.csv"))       
+  
+# Load sim data
   
   data_folder <- paste0(boxdir,'results/',run_name,"/Data/")
   
@@ -73,7 +83,7 @@
   rm(data_files)
 
 # Load run results 
-#"calc_0.02" #run name reflects intital stocking density (calculated or fixed)and feed rates (as % body weight)
+
 
   result_folder <- paste0(boxdir,'results/',run_name,"/Results")
   
@@ -109,6 +119,7 @@
     set_names(c("cell","long","lat","suitable"))
   
   all_df<-left_join(npv_df,suit_coords)
+
   
   all_df<-dplyr:: rename(all_df,Territory1 = country)
 
@@ -141,21 +152,19 @@ base<- ggplot() +
                   ylab("Latitude") +
                   facet_wrap(~Territory1,scales = "free")
                   #facet_wrap_paginate(~Territory1,scales="free",ncol = 1, nrow = 2, page = i) 
-         
-
 
 # Suitable area maps -----------------------------------------------------
 
                   
   suitable_plot<-base +
-                    geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="darkred") +
+                    geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="orange") +
                     theme(legend.position = "none") +
                     ggtitle("Suitable Areas for Offshore Mariculture")         
     
   ggsave(filename = paste0(fig_folder,'carib_suit_area.png'), width = 6, height = 5)
                                     
   suitable_plot_facet<-base_facet +
-                          geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="darkred") +
+                          geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="orange") +
                           theme(legend.position = "none") +
                           ggtitle("Suitable Areas for Offshore Mariculture")
 
@@ -170,8 +179,8 @@ base<- ggplot() +
     filter(prices==8.62 & discounts ==0) %>%
     dplyr::group_by(eez) %>%
     summarise(t_harvest = sum(total_harvest)) %>%
-    mutate(total_harvest_mt = t_harvest * 0.001) %>%
-   left_join(eez.water, by = c('eez' = 'MRGID'))
+    mutate(total_harvest_mt = t_harvest * 0.001) 
+  # left_join(eez.water, by = c('eez' = 'MRGID'))
   
  # with no economic consideration 
   total_prod_map<-  ggplot() + 
@@ -212,11 +221,16 @@ all_prod<-bind_rows(e_prod,t_prod) %>%
 
 final_prod<-left_join(all_prod,c_names)
   
-  ggplot(final_prod,aes(x=discount,y=harvest_mt,fill = Territory1))+
+  ggplot(final_prod,aes(x=fct_relevel(discount,c("total_harvest_mt","discount_0","discount_0.5","discount_0.1")),y=harvest_mt))+
     geom_bar(stat="identity") +
     theme_minimal() +
     ylab("Total Harvest (mt)") +
-    xlab("Economic Scenario")
+    xlab("Economic Scenario") +
+    scale_x_discrete(labels=c("total_harvest_mt" = "All suitable cells", "discount_0" = "No discount rate",
+                              "discount_0.5" = "Discount rate = 0.05","discount_0.1"= "Discount rate = 0.10"))
+  ggsave("production.png",width=5, height=6)
+  
+   # scale_fill_brewer()
 # NPV maps/histograms for current price -----------------------------------------------------
 
   # Current price and only profitable farms by EEZ
@@ -278,16 +292,16 @@ ggplot(data = npv_cell, aes(x=npv,fill=Discount_rate))+
   ylab("Frequency") +
   ggtitle("NPV by cell") +
   facet_wrap(~Territory1, scales = "free_y")
-ggsave(paste0(fig_folder,'eez_npv_cell.png'), width = 12, height = 12)
+ggsave(paste0(figure_folder,'eez_npv_cell.png'), width = 12, height = 12)
 
 
 # Histograms of  avg harvest cycle length ---------------------------------
 
 
-carib_harv_length_plot<- hist(harv_cycle_length[[1]], maxpixels = 1000000,
-                                    main = "Distribution of harvest cycle lengths",
-                                    xlab = "Harvest cycle length (months)", ylab = "Frequency")
+hist(harv_cycle_length[[1]], maxpixels = 1000000,
+                                    main = "Distribution of harvest cycle lengths",xlab= "Harvest cycle length (months)")
 
+savePlot(paste0(figure_folder,"harv_length_hist.png"))
 
 # Boxplot of average growth by month
 
