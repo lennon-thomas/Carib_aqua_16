@@ -59,8 +59,8 @@ if (dir.exists(run_dir) == F) {
 
 econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-run_sim = TRUE #run population simulation to calculate feed costs
-process_growth = TRUE #process growth data to get average growth and number of harvest cycles per cell
+run_sim = FALSE #run population simulation to calculate feed costs
+process_growth = FALSE #process growth data to get average growth and number of harvest cycles per cell
 
 # Parameters --------------------------------------------------------------
 
@@ -136,13 +136,13 @@ if (econ_prep_data == TRUE){
  
  } else {
    
-    stocking_n<-brick(paste0(run_dir,'data/prod_final/initial_stocking_stack.nc'))
+    stocking_n<-brick(paste0(boxdir,'data/prod_final/initial_stocking_stack.nc'))
     
-    harvest_cycles<-brick(paste0(run_dir,'data/prod_final/harvest_cycles.nc'))
+    harvest_cycles<-brick(paste0(boxdir,'data/prod_final/harvest_cycles.nc'))
     
-    harvest_cycle_length<-brick(paste0(run_dir,'data/prod_final/harvest_cycle_length.nc'))
+    harvest_cycle_length<-brick(paste0(boxdir,'data/prod_final/harvest_cycle_length.nc'))
     
-    avg_month_growth<-brick(paste0(run_dir,'data/prod_final/avg_month_growth_stack.nc'))
+    avg_month_growth<-brick(paste0(boxdir,'data/prod_final/avg_month_growth_stack.nc'))
 
 }
   #Fixes or caluclates intial stocking number
@@ -170,17 +170,17 @@ if (econ_prep_data == TRUE){
   
   # Calculate monthly costs and revenue costs by cell ---------------------------------------------------------
   
-  monthly_cashflow <- monthly_cost_est(sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days,discount_rate)
+  monthly_cashflow <- monthly_cost_est(sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days)
   
   monthly_cashflow[is.na(monthly_cashflow)] <- 0
   
   # Save results ------------------------------------------------------------
    
    # Save avg monthly growth and initial stocking rasters
-   writeRaster(avg_month_growth, paste0(run_dir,'data/prod_final/avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE) ##getting weird error when trying to save this file
-   writeRaster(stocking_n, paste0(run_dir,'data/prod_final/initial_stocking_stack.nc'), format = "CDF", overwrite =TRUE)
-   writeRaster(harvest_cycles, paste0(run_dir,'data/prod_final/harvest_cycles.nc'), format = "CDF", overwrite =TRUE)
-   writeRaster(harvest_cycle_length, paste0(run_dir,'data/prod_final/harvest_cycle_length.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(avg_month_growth, paste0(boxdir,'data/prod_final/avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE) ##getting weird error when trying to save this file
+   writeRaster(stocking_n, paste0(boxdir,'data/prod_final/initial_stocking_stack.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(harvest_cycles, paste0(boxdir,'data/prod_final/harvest_cycles.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(harvest_cycle_length, paste0(boxdir,'data/prod_final/harvest_cycle_length.nc'), format = "CDF", overwrite =TRUE)
    
    # Save simulation results and monthly cashflow
    write_csv(sim_results, path = paste0(run_dir,"Results/sim_function_results.csv"))
@@ -188,8 +188,7 @@ if (econ_prep_data == TRUE){
 
   # Set file names to match Box directory path
     econ_stack@file@name <- paste0(boxdir,'data/economic_final/econ_stack.nc')
-    #econ_names<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez")
-
+   
   # Read in Caribbean EEZ shapefile
     carib_eez <- readOGR(dsn = paste(boxdir, "data/economic_prep/",sep = ""), layer = "carib_eez_shape")
     countries <- as.data.frame(carib_eez[,c(2,6)])
@@ -234,23 +233,13 @@ if (econ_prep_data == TRUE){
   write.csv(eez_supply,paste0(run_dir,"Results/eez_supply_df.csv"))
   write.csv(carib_supply,paste0(run_dir,"Results/carib_supply.csv"))
 
-# Write text file that includes run info
+# Write text file that includes run info- may want to add more to this (like price) later
 date<- Sys.Date() 
-   
-  write.table(
-    paste0("date =",date;
-           "run name =", run_name;
-           "fix_int_stock =",fix_int_stock ;
-            "fcr =", fcr;
-            "cobia_price =",cobia_price; 
-            "feed_price_index =", feed_price_index
-           
-           ),
-    file = paste0(rundir,'data/rundescription.txt',
-    append = TRUE,
-    sep = ";",
-    dec = ".",
-    row.names = FALSE,
-    col.names = FALSE
-  )
+
+cat(paste0("Date: ",date),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n")
+cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
+cat(paste0("Fix_int_stock? ",fix_int_stock),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)   
+cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
+cat(paste0("FCR: ",fcr),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
+
   
