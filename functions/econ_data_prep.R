@@ -100,6 +100,7 @@ prod <- model_files[[2]]
 
 econ_stack<-model_files[[3]]
 
+# This saves economic_data to the results folder of the run.. the actual economic data files are saved in the data folder of main directory (may want to change if these economic parameters end up varying)
 save(list = c('growth', 'prod', 'econ_stack'), file = paste(run_dir, "Data/economic_data.Rdata",sep = ""))
 
 return(list('growth' = growth, 'prod' = prod, 'econ_stack' = econ_stack))

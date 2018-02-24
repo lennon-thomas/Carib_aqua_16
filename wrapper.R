@@ -60,7 +60,7 @@ if (dir.exists(run_dir) == F) {
 econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 run_sim = FALSE #run population simulation to calculate feed costs
-process_growth = FALSE #process growth data to get average growth and number of harvest cycles per cell
+process_growth = TRUE #process growth data to get average growth and number of harvest cycles per cell
 
 # Parameters --------------------------------------------------------------
 
@@ -136,13 +136,13 @@ if (econ_prep_data == TRUE){
  
  } else {
    
-    stocking_n<-brick(paste0(boxdir,'data/prod_final/initial_stocking_stack.nc'))
+    stocking_n<-brick(paste0(data_folder,'initial_stocking_stack.nc'))
     
-    harvest_cycles<-brick(paste0(boxdir,'data/prod_final/harvest_cycles.nc'))
+    harvest_cycles<-brick(paste0(data_folder,'harvest_cycles.nc'))
     
-    harvest_cycle_length<-brick(paste0(boxdir,'data/prod_final/harvest_cycle_length.nc'))
+    harvest_cycle_length<-brick(paste0(data_folder,'harvest_cycle_length.nc'))
     
-    avg_month_growth<-brick(paste0(boxdir,'data/prod_final/avg_month_growth_stack.nc'))
+    avg_month_growth<-brick(paste0(data_folder,'avg_month_growth_stack.nc'))
 
 }
   #Fixes or caluclates intial stocking number
@@ -177,10 +177,10 @@ if (econ_prep_data == TRUE){
   # Save results ------------------------------------------------------------
    
    # Save avg monthly growth and initial stocking rasters
-   writeRaster(avg_month_growth, paste0(boxdir,'data/prod_final/avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE) ##getting weird error when trying to save this file
-   writeRaster(stocking_n, paste0(boxdir,'data/prod_final/initial_stocking_stack.nc'), format = "CDF", overwrite =TRUE)
-   writeRaster(harvest_cycles, paste0(boxdir,'data/prod_final/harvest_cycles.nc'), format = "CDF", overwrite =TRUE)
-   writeRaster(harvest_cycle_length, paste0(boxdir,'data/prod_final/harvest_cycle_length.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(avg_month_growth, paste0(data_folder,'avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE) ##getting weird error when trying to save this file
+   writeRaster(stocking_n, paste0(data_folder,'initial_stocking_stack.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(harvest_cycles, paste0(data_folder,'harvest_cycles.nc'), format = "CDF", overwrite =TRUE)
+   writeRaster(harvest_cycle_length, paste0(data_folder,'harvest_cycle_length.nc'), format = "CDF", overwrite =TRUE)
    
    # Save simulation results and monthly cashflow
    write_csv(sim_results, path = paste0(run_dir,"Results/sim_function_results.csv"))
@@ -236,7 +236,7 @@ if (econ_prep_data == TRUE){
 # Write text file that includes run info- may want to add more to this (like price) later
 date<- Sys.Date() 
 
-cat(paste0("Date: ",date),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n")
+cat(paste0("Date: ", date),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n")
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 cat(paste0("Fix_int_stock? ",fix_int_stock),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)   
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
