@@ -68,8 +68,8 @@ run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 ## Read in data tables
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
 table3<-read.csv("table_3.csv",check.names=FALSE)
-table4<-read.csv("table3.csv",check.names=FALSE)
-table5<-read.csv(paste0(boxdir,"results/Suitability/suit_by_variable.csv"),check.names=FALSE)
+table4<-read.csv("table4.csv",check.names=FALSE)
+#table5<-read.csv(paste0(boxdir,"results/Suitability/suit_by_variable.csv"),check.names=FALSE)
 table6<- read_csv(file = paste0(boxdir,filename = "results/Suitability/Suit_df_summary.csv"))
 
 
@@ -156,9 +156,9 @@ tm_shape(EEZ) +
 
 We develop a spatial bioeconomic model to estimate the production potential (in terms of biomass (*t*) and Net Present Value (NPV)) for offshore cobia mariculture in the Caribbean region (Figure 1). The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that would be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a temperature performance curve (TPC) to predict temperature-dependent growth of cobia at each farm and we establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price and production costs. We also consider a scenario where Caribbean production affects the global price of cobia. Finally, we use our production model and estimated economic parameters to calculate Net Present Value (*NPV*) over a 10 year time horizon. We assume that only farms that have a positive NPV will be developed.
 
-```{r include = FASLE fig2, fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
+```{r,  fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
 
-knitr::include_graphics('modelflow/modelflow2/Slide1.png')
+#knitr::include_graphics('modelflow/modelflow2/Slide1.png')
 ```
 
 
@@ -207,7 +207,7 @@ $$
 
 where $T$ is sea surface temperature in $^\circ$C, $T_o$ is the optimal temperature for cobia growth in $^\circ$C, and $a_1$ and $a_2$ are slope parameters (kg per month per $^\circ$C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. The following values and references for temperature-growth components of cobia were adopted from Klinger, Levin, and Watson (2017), who also used a TPC to model cobia growth.
 
-```{r table2}
+```{r table2, results = 'asis'}
 temp_params <- data_frame(Parameter = c('Tmin',
                                         'Topt',
                                         'Tmax',
@@ -215,8 +215,13 @@ temp_params <- data_frame(Parameter = c('Tmin',
                                         'a1','a2','b1','b2'),
                           Value = c(22,29,32,0.5,0.0714,-0.1667,-1.5714,5.3333))
 
-kable(temp_params,
-      caption = 'Temperature-growth parameters and linear function constants for cobia')
+
+pander::pandoc.table(temp_params, 
+             digits = 2,
+             split.tables = Inf,
+             # split.cells = c(15,5,120,15,10),
+             # justify = c("center","center","center","center","center"),
+             caption = 'Temperature-growth parameters and linear function constants for cobia')
 ```
 
 Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ is then calculated for each calendar month $t$:
@@ -302,10 +307,11 @@ Where 2,720 is the total monthly labor hours required at site $i$ (17 full time 
 Fingerling and feed costs ($F$) at site $i$ in month $t$ include the cost of an individual fingerling (\$2.58) times the number of fingerlings stocked in month $t$ ($n_{0,i,t}$). Feed costs are calculated based on a constant feeding strategy of 2% of total biomass and a feed price of \$1.68 per kg. Because our model operates at monthly, not daily, timesteps, we calculate total feed based on the average total biomass during month $t$  $\frac{B_{i,t} + B_{i,t-1}}{2}$.
 
 $$ F_{i,t} = 2.58n_{0,i,t} + 1.64 * 0.02(\frac{B_{i,t} + B_{i,t-1}}{2})   $$
-```{r}
+```{r,results='asis'}
 rownames(table4) <- NULL
 pander::pandoc.table(table4,
                      big.mark = ',',
+                     split.tables = Inf,
                      round = 2,
                      digits = 2,
                      caption = "Table XX: Cost parameters used in the bioeconomic model for cobia offshore aquaculture")
@@ -392,16 +398,6 @@ The suitable area based on each of the factors considered in our analysis are li
 
 Depth is the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
 
-```{r table5, results='asis'
-rownames(table5) <- NULL
-pander::pandoc.table(table5,
-                     big.mark = ',',
-                     round = 2,
-                     digits = 2,
-                     caption = "Table XX: Suitable area (km^2 and %) associated with each data layer considered in our suitability analysis")
-```
-
-
 There is considerable variability in the amount of area suitable for offshore mariculture in Caribbean nations (Table 1). Both the Bahamas and Trinadad and Tobago have more than twice the suitable area than the country with the next largest amound of suitable area (Jamaica) 
 
 . 
@@ -427,32 +423,63 @@ Cobia growth is a function of temperature and, in addition to the amount of suit
 
 ```{r}
 
-include_graphics(path = paste0(run_dir,'Figures/EEZ_avg_growth.png'))
+include_graphics(path = paste0(run_dir,'Figures/Caribbean_avg_growth.png'))
 ```
 
-As a result of the variability in growth rates acros the Caribbean, farms vary in the lenght of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure XX).
+As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure XX).
 
 ```{r}
 
-include_graphics(path = paste0(run_dir,'Figures/harv_length_hist.png'))
+#include_graphics(path = paste0(run_dir,'Figures/harv_length_hist.png'))
 
 ```
 
+```{r}
+include_graphics(path = paste0(run_dir,'Figures/production.png'))
+```
 
 ## Profitability
 
 When evaluating cobia's mariculture potential in the Caribbean, we also considered economic constraints by using a bioeconomic model to project farm costs and revenue. For each farm, we calculate the projected net present value (NPV) from the discounted stream of costs and revenues. We then limited our discussion of results to only include farms (cells) with a positive NPV under the assumption that only profitable farm locations would be developed.
 
-```{r, fig.cap="Figure XX. Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
-knitr::include_graphics(path = paste0(figure_folder, '/npv_cntry_ridgeplot.png'))
+For our base case scenario (country specific risk, current global price, high feed cost), 17 EEZs were profitable after 10 years, and Trinidad and Tobago had the highest NPV, followed by Jamaica.
+
+```{r}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/risk_high_feed_map.png'))
+```
+
+```{r}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/Caribbean_npv_cell.png'))
 ```
 
 
+```{r, fig.cap="Figure XX. Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
+```
+
+```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
+
+```
 
 ## Sensitivity Analyses
 
+## Other Figures
+
 ```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
-knitr::include_graphics(path = paste0(figure_folder, '/carib_supply_curves.png'))
+
+knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_suitable.png'))
+
+knitr::include_graphics(path = paste0(run_dir, 'Figures/cost_cntry_barplot.png'))
+
+knitr::include_graphics(path = paste0(run_dir, 'Figures/EEZ_avg_growth.png'))
+
+
+knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_npv_cell.png'))
+
+```
+
+```
 
 ```
 

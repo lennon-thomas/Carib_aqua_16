@@ -19,7 +19,7 @@
   library(ggforce)
   library(broom)
   library(forcats)
-  library(rasterVis)
+#  library(rasterVis)
   #library(plotly)
   # library(plyr)
   
@@ -31,7 +31,7 @@
   if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
   if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
   
-  run_name = 'fixed_Feb_26'
+  run_name = 'est_Feb_21'
 
 # Create figure folder
   fig_folder <- paste0(boxdir,'results/',run_name, "/Figures/")
@@ -227,7 +227,7 @@ base<- ggplot() +
     summarise(total_harvest_mt = sum(total_harvest * 0.001)) %>%
     mutate(disc_scenario = "all_suitable",
            feed_price_index = NA) %>%
-    select(eez,disc_scenario,feed_price_index,total_harvest_mt,scenario_names)
+    select(eez,disc_scenario,feed_price_index,total_harvest_mt)
 
   c_names<-as.data.frame(EEZ@data)%>%
     select(MRGID,Territory1)
