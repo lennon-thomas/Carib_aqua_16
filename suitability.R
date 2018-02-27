@@ -218,6 +218,24 @@ study_area<-as.data.frame(area(raster_eez,na.rm = TRUE))
 
 suitable_areas<-as.data.frame(area(all_suitable,na.rm = TRUE))
 
+depth_df<-as.data.frame(area(carib_depth,na.rm=TRUE))
+
+MPA_df<-as.data.frame(area(MPA,na.rm =TRUE))
+
+current_df<-as.data.frame(area(current,na.rm = TRUE))
+
+coral_df<-as.data.frame(area(coral,na.rm = TRUE))
+
+ship_df<-as.data.frame(area(coral,na.rm = TRUE))
+
+oil_df<-as.data.frame(area(coral,na.rm = TRUE))
+
+
+suit_by_variable<- as.data.frame((cbind(c(study_area,depth_df,MPA_df,current_df,coral_df,ship_df,oil_df, suitable_areas)))) %>%
+  gather("variable","area")
+
+
+
 cell_no<-as.data.frame(suit_no)
 
 suit_index<-as.data.frame(all_suitable)
@@ -275,6 +293,7 @@ colnames(country_suitable)<-c("EEZ","Total Area","Suitable Area","Percent Suitab
 country_suitable$EEZ<-as.character(country_suitable$EEZ)
 
 write.csv(country_suitable,paste(boxdir,filename = "Suitability/results/suitable area by eez.csv",sep = ""))
+
 
 
 #-----------------------------------------------------------------

@@ -30,12 +30,12 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
 
-run_name = 'est_Feb_13'  
+run_name = 'est_Feb_21'  
 
 # Load run results 
 result_folder <- paste0(boxdir,'results/',run_name,"/Results")
@@ -56,7 +56,7 @@ pos_npv <- filter(npv_df, npv > 0)
 
 # Summarize NPV by price and discount options
 npv_summary <- pos_npv %>% 
-  select(prices, disc_rate, disc_scenario, feed_price_index, npv, total_harvest) %>% 
+  select(prices, disc_scenario, feed_price_index, npv, total_harvest) %>% 
   group_by(prices, disc_scenario, feed_price_index) %>% 
   skim()
 

@@ -3,7 +3,7 @@
 
 # Calculate monthly and total costs of feed for each farm assuming a constant fcr and different stocking_n
 
-monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days,discount_rate){
+monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days){
   
   #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
   names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez","cell_no")
@@ -29,28 +29,25 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
   # Calculate monthly labor costs (same for all months)
   suitable_economic<-suitable_economic %>%
     mutate(total_monthly_labor = min_wage * site_hours * site_workers)
-  #  cell = as.numeric(row.names(suitable_economic)))
-  
-  #  monthly_costs<-left_join(monthly_costs,labor,by='cell')
+
   
   # Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
   
   suitable_economic<-suitable_economic %>%
     mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 *4) 
-  # cell = as.numeric(row.names(suitable_economic)))
-  
+
   
   
   #convert into monthly costs                     
   monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
-    select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                            
+    dplyr::select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                            
  
    # Match country names
   eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape") 
   
   country<- eez_shape %>%
     as_data_frame %>%
-    select(MRGID,Territory1)
+    dplyr::select(MRGID,Territory1)
   
   monthly_costs$eez<-as.factor(monthly_costs$eez)
   
@@ -79,8 +76,8 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
                                                               ifelse( month > 72 & month <= 84, 7,
                                                                       ifelse( month > 84 & month <= 96, 8,
                                                                               ifelse( month > 96 & month <= 108, 9,
-                                                                                      10))))))))),
-           present_value = cash_flow/(1+(discount_rate/12))^(month))  # check with tyler to make sure this is correct
+                                                                                      10))))))))))#,
+       #    present_value = cash_flow/(1+(discount_rate/12))^(month))  # check with tyler to make sure this is correct
   
   
   
