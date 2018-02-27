@@ -56,8 +56,8 @@ pos_npv <- filter(npv_df, npv > 0)
 
 # Summarize NPV by price and discount options
 npv_summary <- pos_npv %>% 
-  select(prices, discounts, feed_price_index, npv, total_harvest) %>% 
-  group_by(prices, discounts, feed_price_index) %>% 
+  select(prices, disc_rate, disc_scenario, feed_price_index, npv, total_harvest) %>% 
+  group_by(prices, disc_scenario, feed_price_index) %>% 
   skim()
 
 # Caribbean NPV summary table
@@ -65,16 +65,16 @@ npv_summary_tbl <- npv_summary %>%
   select(-type, -level, - formatted) %>% 
   filter(stat %in% c('median', 'mean','sd', 'p75', 'p100')) %>% 
   spread(stat, value) %>% 
-  arrange(prices, variable, feed_price_index)
+  arrange(prices, disc_scenario, feed_price_index, variable)
 
 # Country level NPV summary
 npv_cntry_summary <- pos_npv %>% 
-  select(country, prices, discounts, feed_price_index, npv, total_harvest) %>% 
-  group_by(country, prices, discounts, feed_price_index) %>% 
+  select(country, prices, disc_rate, disc_scenario, feed_price_index, npv, total_harvest) %>% 
+  group_by(country, prices, disc_scenario, feed_price_index) %>% 
   skim()
 
 # Pull out base scenario results from NPV ($8.62 and 0% discount results)
-main_npv <- filter(pos_npv, prices == 8.62 & discounts == 0.15 & feed_price_index == 1)
+main_npv <- filter(pos_npv, prices == 8.62 & disc_scenario == 'cntry' & feed_price_index == 1)
 
 # Country total NPV and farms 
 dense_df1 <- main_npv %>%
@@ -84,8 +84,7 @@ dense_df1 <- main_npv %>%
          npv_cv    = raster::cv(npv, na.rm = T),
          npv_cv    = ifelse(npv_cv > 60, 60, npv_cv)) %>% 
   ungroup() %>% 
-  mutate(discounts = factor(discounts),
-         carib_npv = median(npv, na.rm = T))
+  mutate(carib_npv = median(npv, na.rm = T))
 
 # Filter out first harvest cycle and calculate total costs per cell
 cost_summary <- sim_results %>% 
@@ -124,7 +123,6 @@ dense_df1 %>%
   scale_x_continuous(expand = c(0,0)) +
   scale_fill_viridis() +
   labs(title    = 'NPV of cobia aquaculture per farm by Caribbean EEZ',
-       subtitle = 'Discount rate = 15%',
        x        = 'Net Present Value ($USD, millions)',
        y        = NULL,
        fill     = paste0('Coefficient of\nvariation')) +
@@ -153,7 +151,7 @@ ggsave(filename = paste0(figure_folder, '/cost_cntry_barplot.png'), width = 6, h
 pos_npv %>%  
   filter(feed_price_index == 1 & prices == 8.62) %>% 
   ungroup() %>%
-  ggplot(aes(x = npv / 1e6, fill = factor(discounts))) +
+  ggplot(aes(x = npv / 1e6, fill = disc_scenario)) +
   geom_histogram(binwidth = 0.25, position = 'dodge') +
   labs(x = 'NPV (millions)') +
   carib_theme() 
@@ -164,9 +162,9 @@ ggsave(filename = paste0(figure_folder, '/npv_discount_scenarios.png'), width = 
 # Total Caribbean supply from profitable farms - 10% discount rate
 supply_plot_df <- npv_df %>%
   group_by(cell) %>%
-  filter(month == max(month) & discounts == 0.15) %>%
+  filter(month == max(month) & disc_scenario == 'cntry') %>%
   mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e4 / 10)) %>%  # supply = 0 if NPV is negative
-  group_by(prices, discounts, feed_price_index) %>%
+  group_by(prices, disc_scenario, feed_price_index) %>%
   summarize(total_supply  = sum(supply, na.rm = T)) %>%  # supply
   ungroup()
 
@@ -193,8 +191,8 @@ supply_plot_df %>%
   labs(x     = 'Price ($US/kg)',
        y     = 'Caribbean Supply (MMT)',
        color = 'Feed price\nindex',
-       title = 'Supply of cobia in the Caribbean',
-       subtitle = 'Discount rate = 15%') +
-  carib_theme()
+       title = 'Supply of cobia in the Caribbean') +
+  carib_theme() +
+  theme(panel.grid.minor = element_blank())
 
 ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 4)
