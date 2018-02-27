@@ -62,19 +62,22 @@ if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/B
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 
 # Specify run directory to source results from
-run_name = "test"
+run_name = "est_Feb_21"
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in data tables
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
-table2<-read.csv("table2a.csv",check.names=FALSE)
-table3<-read.csv("table3.csv",check.names=FALSE)
+table3<-read.csv("table_3.csv",check.names=FALSE)
+table4<-read.csv("table3.csv",check.names=FALSE)
+table5<-read.csv(paste0(boxdir,"results/Suitability/suit_by_variable.csv"),check.names=FALSE)
+table6<- read_csv(file = paste0(boxdir,filename = "results/Suitability/Suit_df_summary.csv"))
+
 
 # Load EEZ shapefile
 EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
 
 # Load country suitability results
-country_suitable <- read_csv(file = paste(boxdir,filename = "Suitability/results/suitable area by eez.csv",sep = ""),)
+
 
 carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Antigua and Barbuda Exclusive Economic Zone",
@@ -153,7 +156,7 @@ tm_shape(EEZ) +
 
 We develop a spatial bioeconomic model to estimate the production potential (in terms of biomass (*t*) and Net Present Value (NPV)) for offshore cobia mariculture in the Caribbean region (Figure 1). The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that would be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a temperature performance curve (TPC) to predict temperature-dependent growth of cobia at each farm and we establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price and production costs. We also consider a scenario where Caribbean production affects the global price of cobia. Finally, we use our production model and estimated economic parameters to calculate Net Present Value (*NPV*) over a 10 year time horizon. We assume that only farms that have a positive NPV will be developed.
 
-```{r fig2, fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
+```{r include = FASLE fig2, fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
 
 knitr::include_graphics('modelflow/modelflow2/Slide1.png')
 ```
@@ -204,7 +207,7 @@ $$
 
 where $T$ is sea surface temperature in $^\circ$C, $T_o$ is the optimal temperature for cobia growth in $^\circ$C, and $a_1$ and $a_2$ are slope parameters (kg per month per $^\circ$C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. The following values and references for temperature-growth components of cobia were adopted from Klinger, Levin, and Watson (2017), who also used a TPC to model cobia growth.
 
-```{r}
+```{r table2}
 temp_params <- data_frame(Parameter = c('Tmin',
                                         'Topt',
                                         'Tmax',
@@ -228,9 +231,9 @@ To estimate production, we assume a fixed farm design, per 1 km^2^ site, across 
 
 The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
 
-```{r table2, results='asis'}
+```{r table3, results='asis'}
 
-pander::pandoc.table(table2,
+pander::pandoc.table(table3,
              digits = 2,
              caption = 'Table 2: Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
              split.cells = c(80,20))
@@ -245,13 +248,7 @@ $$ w_{i,t} = \sum_{t_s}^{t} \bar{G}_{i,t} $$
 We apply an instantaneous mortality rate of 0.024, which we adopt from previous studies that have estimated a total 12 month survival rate of 75% for cobia raised in offshore cages in the Caribbean ([@Benetti2008c]; Huang 2011). A cage at site $i$ is harvested when individual fish have grown to a harvestable size of 5 - 6 kg. 
 
 #### Stocking Density
-To maintain a steady supply of product, commercial mariculture farms typically stage the stocking of cages so that fish of a harvestable size are available year-round. We therefore assume that five cages at each site are stocked with cobia fingerlings during the first month, and that one (or more) cage is stocked with fingerlings each month thereafter. XX suggest $15 \frac{kg}{m^3}$ as a target harvest density for sustainable offshore mariculture. Because growth rates vary across farm sites and all sites are assumed to experience an instantaneous mortality rate of 0.024, we investigate the following two scenarios of the initial number of stocked fingerlings ($n_0$):
-
-##### Fixed Stocking Density
-The number of fingerlings stocked in each cage is fixed at the level that achieves the target harvest density of in 12 months. Given a cage volume of 6,400 m^3^, a total survival rate of 75%, and a target harvest density of $15 \frac{kg}{m^3}$, $n_0$ is set to 25,600.
-
-##### Optimal Stocking Density
-The number of fingerlings stocked in each cage is optimized at the level that achieves the target harvest density ($15 \frac{kg}{m^3}$) at the time fish reach the final harvest weight of 5 kg, or 19,200 fish per cage. 
+XX suggest $15 \frac{kg}{m^3}$ as a target harvest density for sustainable offshore mariculture. Because growth rates vary across farm sites and all sites are assumed to experience an instantaneous mortality rate of 0.024, we calculate the optimal initial number of stocked fingerlings ($n_0$).The number of fingerlings stocked in each cage is optimized at the level that achieves the target harvest density ($15 \frac{kg}{m^3}$) at the time fish reach the final harvest weight of 5 kg, or 19,200 fish per cage. 
 
 The optimal stocking number ($n^*$) for each site is estimated using the historical SST timeseries. The number of hypothetical completed grow out cycles ($g$), wherein a cobia is raised from an initial stocking weight of 0.15 g to a final harvest weight of 5 kg, is calculated for each site $i$ by first dividing the cumulative individual growth over the 120 month timeseries by the target harvest weight. 
 
@@ -272,7 +269,7 @@ Where $C$ is the number of stocked cages at site $i$, $w_{c,i,t}$ is the weight 
 ### Economic Model
 
 #### Costs
-The total cost $TC$ of production for each farm $i$ consists of start up costs ($SC$) plus the sum of operating costs ($OC$) 
+The total cost $TC$ of production for each farm $i$ consists of start up costs ($SC$) plus the sum of operating costs ($OC$). Cost parameters were obtained from published literature or from personal communication with industry experts (Table 5) 
 
 $$ TC_i = SC_i + \displaystyle\sum_{t=1}^T OC_{i,t} $$
 
@@ -305,6 +302,14 @@ Where 2,720 is the total monthly labor hours required at site $i$ (17 full time 
 Fingerling and feed costs ($F$) at site $i$ in month $t$ include the cost of an individual fingerling (\$2.58) times the number of fingerlings stocked in month $t$ ($n_{0,i,t}$). Feed costs are calculated based on a constant feeding strategy of 2% of total biomass and a feed price of \$1.68 per kg. Because our model operates at monthly, not daily, timesteps, we calculate total feed based on the average total biomass during month $t$  $\frac{B_{i,t} + B_{i,t-1}}{2}$.
 
 $$ F_{i,t} = 2.58n_{0,i,t} + 1.64 * 0.02(\frac{B_{i,t} + B_{i,t-1}}{2})   $$
+```{r}
+rownames(table4) <- NULL
+pander::pandoc.table(table4,
+                     big.mark = ',',
+                     round = 2,
+                     digits = 2,
+                     caption = "Table XX: Cost parameters used in the bioeconomic model for cobia offshore aquaculture")
+```
 
 #### Revenues
 Farms earn revenue by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w$) reaches 5 kg. In these harvest months, farm revenue is simply a function of harvest weight (kg) and cobia price ($p$), $R_{i,t} = B_{i,t}p_t$, otherwise $R_{i,t} = 0$:
@@ -325,7 +330,7 @@ We then calculate the 10-year net present value (NPV) of farm $i$ using EEZ-spec
 
 $$ NPV_i = \displaystyle\sum_{t=0}^{T} \frac{\pi^i_t}{(1+\delta_{z})^t} $$
 
-#### Discount Rate
+#### Discount Rate (need to update and add methods used to convert to discount rate)
 
 Individual discount rates are determined for each Caribbean country that incorporate the foreign investment risk associated with that country. We modify previously published methodologies to quantify a country’s relative investment risk in the Caribbean, where limited data on economic and political conditions are available. Bhalla [-@Bhalla1983] developed the Foreign Investment Risk Matrix (FIRM) to assist investors in classifying the political and economic risks associated with investing in different countries using discrete risk categories. An expanded version of FIRM was developed by McGowan and Moeller [-@McGowanJr2009] that utilizes three political and three economic continuous risk variables that are readily available for most countries. 
 
@@ -349,42 +354,28 @@ $$ H_{Z} = \displaystyle\sum_{z}^{Z} H_{z} $$
 
 $$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 
-Lastly, feasible farms within each EEZ are ranked according to yield and profit (highest to lowest) and ranges for farm-scale yield and revenue were compared within and across EEZs.
 
-## Production Scenarios 
 
-We apply our bioeconomic model to three production scenarios that consider different price structures:
+## Bioeconomic Scenarios (would be helpful to talk through how we want to define our base case and whether everything else should just fall under sensitivity)
 
-1. Maximum production scenario: The global price required to make all suitable cells profitable is estimated and all suitable cells are developed
+We examine average annual production under 2 scenarios: 1) a maximum production scenario, where the annual production cobia is estimated assuming all farms were developmed in all cells that were identified as suitable without economic considerations, and (2) total production of farms that only includes farms that are profitable after 10 years, assuming the current global price of cobia.he total production under both scenarios both production scenario is compared to current seafood production (wildfisheries capture + aquaculture) and current seafood consumption in the Caribbean region. Production both within and across EEZs are also compared.
 
-2. Current market scenario: Total production assuming current market price (insert value and reference) of cobia
+The 10 year NPV under scenario #2 is examined for profitable all profitable cells at the level farms, EEZs and Caribbean region. The 10 year NPVs are also examined and compared for each of sensitivity scenarios described below. 
 
-For both scenarios we examine and compare the following:
+## Sensitivity analyses (maybe we just big one 'base run from Table xx and then the rest of the sccenarios fall under Sensitivity analyses?)
 
-*	Total production (in terms of profit and weight) for the entire study (Caribbean) region (do economic constraints restrict things to below ecological limits (see below).... if its below then economic constraints will keep it below ecological capacity)
-*	Total production (in terms of profit and weight) for each EEZ
-*	Range of individual farm production within EEZs (to see potential gains of strategic spatial planning) and across EEZs (to determine the island countries with the greatest potential for offshore aquaculture development)
+Due the uncertainty of future market conditions, economic status of countries,impacts new techonological developments, and to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we apply our bioeconomic model under several different scenarios to examine NPV of the region and each EEZ over a 10 year period by performing a suite of sensitivity analyses. using different assumptions about: feed costs, discount rates, intial stocking densities. 10 year NPV of different model runs are compared.
 
-### Ecological Carrying Capacity
+### Fixed Stocking Density
+The number of fingerlings stocked in each cage is fixed at the level that achieves the target harvest density of in 12 months. Given a cage volume of 6,400 m^3^, a total survival rate of 75%, and a target harvest density of $15 \frac{kg}{m^3}$, $n_0$ is set to 25,600.
 
-Determining the aquaculture production level that a given region (in this case, an EEZ) can sustain without resulting in negative impacts to the surrounding ecosystem and environment is difficult, and will depend on the specific local oceanographic conditions and ecosystem dynamics. Although models have been developed to simulate conditions of a local area and to generate impacts of given aquaculture production scenarios on the surrounding ecosystem (AquaModel; FARM), currently, limited empirical evidence exists to estimate the ecological carrying capacity for aquaculture production at a regional scale.
+### Low Feed cost scenario
 
-We examine the production estimates for each scenario and determine how they compare to two benchmarks we define as ecological capacity limits: 
+We assume techonology of feed development of advances, reducing current feed costs by 10% of the current assumed value.
 
-1. Existing practices capacity limit - Ecological production limit is determined by identifying the highest aquaculture per unit area of EEZ worldwide. At the scale of an entire EEZ, no EEZ currently has such extensive aquaculture to have resulted in a documented surpassing of the ecosystem’s capacity, so this could provide a useful point of reference. 
-2. Precautionary ecological capacity limit - Aquaculture production per unit area allowed in the Gulf of Mexico by the current NOAA Fishery Management Plan (FMP) for offshore aquaculture development in the region. The FMP regulations were designed with the intent to be precautionary in terms of avoiding detrimental impacts on the ecosystem, so this can be viewed as a conservative limit. 
+### Discount rates
 
-## Sensitivity analyses 
-
-Finally, to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we determine the main factors contributing to variability of farm and EEZ level aquaculture production by performing a suite of sensitivity analyses. 
-
-Specifically, we compare the output at both the individual farm, EEZ, and regional level by running the model under a range of values for the following parameters:
-
-* Range of suitable depths
-* Costs fingerling and feed 
-* Cobia price
-  - shift in demand curve
-* Risk parameters
+We assume a fixed discount rate of 14% across all EEZs.
 
 # Results
 
@@ -393,65 +384,77 @@ Specifically, we compare the output at both the individual farm, EEZ, and region
 Based on the factors and criteria described in Table 1, we find a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, round = 0) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
 
 ```{r fig.3}
-g_antilles_fig<-  tm_shape(GA_suit) +
-                    tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas"), title = "Greater Antilles") +
-                  tm_shape(GA,is.master = TRUE) +
-                    tm_fill(col="lightblue",alpha = 0.4,title = "Greater Antilles") +
-                    tm_borders(lwd = 1.2) +
-                    tm_legend(main.title.size = 1, main.title="Greater Antilles", position = c("right","top"))
-                   
-                 
-                  
-
-luc_arc_suitable.fig<- tm_shape(LUC_suit) +
-                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
-                       tm_shape(LUC,is.master = TRUE) +
-                          tm_fill(col="lightblue",alpha = 0.4,title ="TESt") +
-                          tm_borders(lwd = 1.2) +
-                          tm_legend(main.title.size = 1, text.size = 1, main.title.position = c("center"),main.title = "Lucayan Archipelago")
-
-
-
-lee_ant_suitable.fig<- tm_shape(LEE_suit) +
-                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
-                       tm_shape(LEE,is.master = TRUE) +
-                          tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
-                          tm_borders(lwd = 1.2) +
-                          tm_legend(main.title.size = 1, text.size = 1, main.title.position = c("center"), main.title = "Leeward Antilles")
-
-
-less_ant_suitable.fig<- tm_shape(LS_suit) +
-                          tm_raster(showNA = FALSE, legend.show = FALSE, palette = c("white","red"),labels = c("","Suitable Areas")) +
-                       tm_shape(LS,is.master = TRUE) +
-                          tm_fill(col="lightblue",alpha = 0.4,title = "Leeward Antilles") +
-                          tm_borders(lwd = 1.2) +
-                          tm_legend(main.title.size = 1, text.size = 1, main.title.position = c("center"), main.title = "Lesser Antilles")
-
-
-tmap_arrange(g_antilles_fig, luc_arc_suitable.fig,lee_ant_suitable.fig,less_ant_suitable.fig)
+include_graphics(path = paste0(boxdir,'results/Suitabilty/all_suitable.png'))
 
 ```
 
-The suitable area based on each of the factors considered in our analysis are listed in Table 4. 
+The suitable area based on each of the factors considered in our analysis are listed in Table 5. 
 
 Depth is the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
-. 
-```{r table4, results='asis'}
-rownames(country_suitable) <- NULL
-pander::pandoc.table(country_suitable,
+
+```{r table5, results='asis'
+rownames(table5) <- NULL
+pander::pandoc.table(table5,
                      big.mark = ',',
                      round = 2,
+                     digits = 2,
+                     caption = "Table XX: Suitable area (km^2 and %) associated with each data layer considered in our suitability analysis")
+```
+
+
+There is considerable variability in the amount of area suitable for offshore mariculture in Caribbean nations (Table 1). Both the Bahamas and Trinadad and Tobago have more than twice the suitable area than the country with the next largest amound of suitable area (Jamaica) 
+
+. 
+```{r table6, results='asis'}
+rownames(table6) <- NULL
+pander::pandoc.table(table6,
+                     big.mark = ',',
+                     round = 2,
+                     digits = 2,
                      caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
 ```
 
-The identified suitable areas are not distributed evenly across EEZs (Table 5). The `r country_suitable[which.max(country_suitable[,3]),1]` contains the largest amount of suitable area and `r country_suitable[1,1]` (`r country_suitable[1,4]` %) and `r country_suitable[2,1]` (`r country_suitable[2,4]` %) includ the highest percentages of suitable area (>10%), while no suitable areas are identified in the EEZ's of Guadeloupe, Saint Martin or Martinique. 
+## Production Scenarios
+
+ If economic constraints are ignored and all suitable farm sites are developed, the Caribbean's potential to produce cobia from mariculture is extremely large, XXX mt annually. 
+
+```{r fig 4}
+
+include_graphics(path = paste0(run_dir,'Figures/total_prod_map.png'))
+```
+
+Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend (Figure XX). There is also a higher degree of variability in the winter months, likely due to the large geographic range of represented.
+
+```{r}
+
+include_graphics(path = paste0(run_dir,'Figures/EEZ_avg_growth.png'))
+```
+
+As a result of the variability in growth rates acros the Caribbean, farms vary in the lenght of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure XX).
+
+```{r}
+
+include_graphics(path = paste0(run_dir,'Figures/harv_length_hist.png'))
+
+```
+
 
 ## Profitability
 
-```{r npv_map}
-include_graphics(path = paste0(run_dir,'Figures/carib_npv_map_zoom.png'))
+When evaluating cobia's mariculture potential in the Caribbean, we also considered economic constraints by using a bioeconomic model to project farm costs and revenue. For each farm, we calculate the projected net present value (NPV) from the discounted stream of costs and revenues. We then limited our discussion of results to only include farms (cells) with a positive NPV under the assumption that only profitable farm locations would be developed.
+
+```{r, fig.cap="Figure XX. Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
+knitr::include_graphics(path = paste0(figure_folder, '/npv_cntry_ridgeplot.png'))
 ```
 
+
+
+## Sensitivity Analyses
+
+```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
+knitr::include_graphics(path = paste0(figure_folder, '/carib_supply_curves.png'))
+
+```
 
 # Discussion 
 

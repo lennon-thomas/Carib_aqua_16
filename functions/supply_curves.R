@@ -19,12 +19,12 @@ supply_curves <- function(cashflow,
   # Add discount rates by joining cashflow with eezs
   cashflow <- cashflow %>% 
     left_join(eezs %>% 
-                select(eez, disc_rate) %>% 
+                dplyr::select(eez, disc_rate) %>% 
                 mutate(disc_scenario = 'cntry')) 
    
   # Calculate discounted profits for a range of prices and the baseline (country specific) discount rate
   supply <- cashflow %>%
-    select(cell, eez, month, harvest, disc_rate, disc_scenario) %>%
+    dplyr::select(cell, eez, month, harvest, disc_rate, disc_scenario) %>%
     filter(harvest > 0) %>%
     mutate(prices       = list(prices),
            profit       = map2(harvest, prices, `*`)) %>%
@@ -42,7 +42,7 @@ supply_curves <- function(cashflow,
     unnest() %>% 
     mutate(feed_cost           = feed_cost * feed_price_index,
            total_monthly_costs = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost) %>% 
-    select(cell, eez, month, feed_price_index, total_monthly_costs, disc_rate) %>%
+    dplyr::select(cell, eez, month, feed_price_index, total_monthly_costs, disc_rate) %>%
     group_by(eez) %>% 
     mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
            disc_scenario = list(c('cntry', as.character(discount_rates))),
@@ -59,11 +59,11 @@ supply_curves <- function(cashflow,
   cashflow_disc <- supply %>%
     left_join(supply_costs) %>%
     filter(!(cell %in% unique(no_costs$cell))) %>% # remove any cells missing costs
-    select(-total_monthly_costs, -profit, -disc_costs) %>%
+    dplyr::select(-total_monthly_costs, -profit, -disc_costs) %>%
     mutate(disc_profit = ifelse(is.na(disc_profit), 0, disc_profit))
   
   # Convert eez data to tibble for left join
-  eez_df <- select(eezs, eez, country) %>%  tbl_df()
+  eez_df <- dplyr::select(eezs, eez, country) %>%  tbl_df()
   
   eez_df <- eez_df %>%
     mutate(eez = as.numeric(levels(eez)[eez]),

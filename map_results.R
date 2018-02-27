@@ -31,7 +31,7 @@
   if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
   if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
   
-  run_name = 'est_Feb_21'
+  run_name = 'fixed_Feb_26'
 
 # Create figure folder
   fig_folder <- paste0(boxdir,'results/',run_name, "/Figures/")
@@ -47,13 +47,13 @@
   EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
   
   # Load suitablity results
-  s_areas<-gzfile(paste0(boxdir,"/results/Suitability/suitable_areas.rds"))
+  s_areas<-gzfile(paste0(boxdir,"results/Suitability/suitable_areas.rds"))
   
   suit_areas<-readRDS(s_areas)
   
   suit_df<-read_csv(paste0(boxdir,"/results/Suitability/suitable_area_df.csv"),
                     col_types = "iiddiic") %>%
-    select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
+    dplyr::select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
   
   suit_df_summary<- suit_df %>%
     group_by(country) %>%
@@ -227,12 +227,18 @@ base<- ggplot() +
     summarise(total_harvest_mt = sum(total_harvest * 0.001)) %>%
     mutate(disc_scenario = "all_suitable",
            feed_price_index = NA) %>%
-    select(eez,disc_scenario,feed_price_index,total_harvest_mt)
+    select(eez,disc_scenario,feed_price_index,total_harvest_mt,scenario_names)
 
   c_names<-as.data.frame(EEZ@data)%>%
     select(MRGID,Territory1)
 
   all_eez_prod<-bind_rows(econ_prod,t_prod) %>%
+    mutate(scenario_names = ifelse(disc_scenario == "all_suitable" & is.na(feed_price_index),"all_suitable",
+                                   ifelse(disc_scenario == "0" & feed_price_index == 1, "No discount, high feed",
+                                          ifelse (disc_scenario =="0" & feed_price_index == 0.9, "No discount, low feed",
+                                                  ifelse(disc_scenario =="cntry" & feed_price_index == 1, "Risk discount, high feed",
+                                                         "Risk discount, low feed"))))) 
+  
    
   final_prod<-left_join(all_eez_prod,c_names,by=c("eez"="MRGID")) %>%
     group_by(scenario_names) %>%
@@ -245,7 +251,7 @@ base<- ggplot() +
     xlab("Economic Scenario") 
   
  
-  ggsave(paste(fig_folder,"production.png",width=5, height=6))
+  ggsave(paste0(fig_folder,"production.png"),width=5, height=6)
   
    # scale_fill_brewer()
 # NPV maps/histograms for current price -----------------------------------------------------
@@ -357,16 +363,17 @@ base<- ggplot() +
     ggtitle("Farm Level 10 yr NPV ($)") +
     facet_wrap(~Territory1, scales = "free_y") +
     guides(fill=guide_legend(title="Scenario"))
-ggsave(paste0(figure_folder,'eez_npv_cell.png'), width = 12, height = 12)
+ggsave(paste0(fig_folder,'eez_npv_cell.png'), width = 12, height = 12)
 
 
 # Histograms of  avg harvest cycle length ---------------------------------
 
+jpeg(paste0(fig_folder,"harv_length_hist.png"))
 
 hist(harv_cycle_length[[1]], maxpixels = 1000000,
                                     main = "Distribution of harvest cycle lengths",xlab= "Harvest cycle length (months)")
 
-savePlot(paste0(figure_folder,"harv_length_hist.png"))
+dev.off()
 
 # Boxplot of average growth by month
 

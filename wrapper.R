@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'est_Feb_21'
+run_name = 'fixed_Feb_26'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -58,9 +58,9 @@ if (dir.exists(run_dir) == F) {
 
 
 econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock = FALSE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+fix_int_stock = TRUE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 run_sim = FALSE #run population simulation to calculate feed costs
-process_growth = TRUE #process growth data to get average growth and number of harvest cycles per cell
+process_growth = FALSE #process growth data to get average growth and number of harvest cycles per cell
 
 # Parameters --------------------------------------------------------------
 
