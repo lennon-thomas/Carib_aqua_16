@@ -1,0 +1,16 @@
+Cost Parameter,Value,Unit ,Reference
+Capital Costs,,,
+Cage ,269701,US$/cage,Bezerra et al. 2016
+Support vessel,158331,US$/vessel,Bezerra et al. 2016
+Farm site lease,3265,US$/km2,Bezerra et al. 2016
+Labor installation,52563,US$/farm,Bezerra et al. 2016
+Operating Cost Parameters,,,
+fingerlings,2.58,US$/fingerling,Bezerra et al. 2016
+feed price,1.64,US$/kg,Bezerra et al. 2016
+hourly wage,varies by EEZ see Table AX,US$/hour,
+fuel price,varies by EEZ see Table AX,,
+distance from port,varies by EEZ see Table AX,km,
+fuel efficiency,3219,m/gallon,
+farm workers,17,no. of employees operating farm/day,Bezerra et al. 2016
+farm days,30,work days at farm/month,
+farm hours,8,work hours/day,

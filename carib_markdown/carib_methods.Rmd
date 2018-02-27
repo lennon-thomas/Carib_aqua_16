@@ -1,7 +1,7 @@
 ---
 title: "Charting an Aquaculture Future for the Caribbean"
-author: 'null'
-date: "5/12/17"
+author: Lennon Thomas, Tyler Clavelle, Dane Klinger, and Sarah Lester
+date: "2/26/18"
 output:
   word_document:
     fig_caption: yes
@@ -28,7 +28,7 @@ library(raster)
 library(ggmap)
 library(maptools)
 library(maps)
-library(rworldmap)
+#library(rworldmap)
 library(pander)
 library(RefManageR)
 # data(World)
@@ -67,10 +67,10 @@ run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in data tables
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
-table3<-read.csv("table_3.csv",check.names=FALSE)
-table4<-read.csv("table4.csv",check.names=FALSE)
+table3<-read.csv("table2a.csv",check.names=FALSE)
+table4<-read.csv("costtable.csv",check.names=FALSE)
 #table5<-read.csv(paste0(boxdir,"results/Suitability/suit_by_variable.csv"),check.names=FALSE)
-table6<- read_csv(file = paste0(boxdir,filename = "results/Suitability/Suit_df_summary.csv"))
+table6<- read.csv(file = paste0(boxdir,filename = "results/Suitability/Suit_df_summary.csv"))
 
 
 # Load EEZ shapefile
@@ -114,14 +114,14 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
 
 ```
 
-
 # Abstract
 
-The development of marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize valuable habitats (e.g., mangroves, coral reefs, seagrass beds) and competition for coastal space can lead to conflicts with fisheries, tourism, and other uses. Farming further offshore is a possible option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore finfish aquaculture, parameterized based on cobia (*Rachycentron canadum*), and to estimate potential outcomes in terms of yields and profits under different market scenarios. We find that Caribbean nations contain XXXX hectares of marine space technically feasible and profitable for cobia aquaculture. Accounting for spatial differences in cobia growth and production costs, we estimate the offshore cobia aquaculture production potential of the Caribbean to be XXX (MT). Areas associated with the highest relative economic potential were X, X, and X. Offshore aquaculture is a capital intensive activity mediated by socioeconomic conditions, such as foreign investment risk and XX, which were found to be factors limiting production in our analysis. The results of this research can be used to help prioritize areas for offshore cobia aquaculture development and as a framework for identifying priority areas for offshore aquaculture of other species. Additionally, we discuss the future potential of the development of offshore aquaculture in the Caribbean.
+The development of marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize valuable habitats (e.g., mangroves, coral reefs, seagrass beds) and competition for coastal space can lead to conflicts with fisheries, tourism, and other uses. Farming further offshore is a possible option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore finfish aquaculture, parameterized based on cobia (*Rachycentron canadum*), and to estimate potential outcomes in terms of yields and profits under different market scenarios. We find that Caribbean nations contain XXXX km^2^ of marine space technically feasible and profitable for cobia aquaculture. Accounting for spatial differences in cobia growth and production costs, we estimate the offshore cobia aquaculture production potential of the Caribbean to be XXX (MT). Areas associated with the highest relative economic potential were X, X, and X. Offshore aquaculture is a capital intensive activity mediated by socioeconomic conditions, such as foreign investment risk and XX, which were found to be factors limiting production in our analysis. The results of this research can be used to help prioritize areas for offshore cobia aquaculture development and as a framework for identifying priority areas for offshore aquaculture of other species. Additionally, we discuss the future potential of the development of offshore aquaculture in the Caribbean.
+
 
 # Introduction 
 
-The global fish **supply** is expected to exceed 151 million tons by 2030 to meet  growing demands, a 10% increase over current levels [@Kobayashi2015; @FAO2016], and the vast majority of new production must come from aquaculture given only modest potential increases from capture fisheries [@Costello2016]. Aquaculture seems poised to meet this challenge as the fastest growing food production sector globally, surpassing wild fisheries production for the first time in 2014 [@FAO2016]. Marine aquaculture, or mariculture, is seen as having particularly strong growth potential [@Merino2012]. And as mariculture technology advances, production from offshore mariculture, generally defined as occurring more than three nautical miles offshore and/or in depths of greater than 30 m [@Froehlich2017], is expected to increase [@FAO2016].  By moving to deeper waters further from the coast, offshore aquaculture could be a viable strategy to minimize aquaculture's adverse environmental and socioeconomic consequences [@Holmer2009;@Froelich2017], and production potential in the offshore realm far exceeds seafood demand for the foreseeable future [@Kapetsky2013;@Gentry2017). Despite strong arguments for offshore aquaculture development, how this growth can and should be realized requires an understanding of the sustainable and economically-viable production potential at the regional level, along with an identification of hurdles impeding development.
+Global fish production is expected to exceed 151 million tons by 2030 to meet  growing demands, a 10% increase over current levels [@Kobayashi2015; @FAO2016], and the vast majority of new production must come from aquaculture given only modest potential increases from capture fisheries [@Costello2016]. Aquaculture seems poised to meet this challenge as the fastest growing food production sector globally, surpassing wild fisheries production for the first time in 2014 [@FAO2016]. Marine aquaculture, or mariculture, is seen as having particularly strong growth potential [@Merino2012]. And as mariculture technology advances, production from offshore mariculture, generally defined as occurring more than three nautical miles offshore and/or in depths of greater than 30 m [@Froehlich2017], is expected to increase [@FAO2016].  By moving to deeper waters further from the coast, offshore aquaculture could be a viable strategy to minimize aquaculture's adverse environmental and socioeconomic consequences [@Holmer2009;@Froelich2017], and production potential in the offshore realm far exceeds seafood demand for the foreseeable future [@Kapetsky2013;@Gentry2017). Despite strong arguments for offshore aquaculture development, how this growth can and should be realized requires an understanding of the sustainable and economically-viable production potential at the regional level, along with an identification of hurdles impeding development.
 
 In recent years, there has been a growing interest in aquaculture development in the Caribbean to increase food security and economic development [@VanWyk2006; @Creswell2007; @CRFM 2014; @Perez-Ramirez2017]. Currently, the Caribbean accounts for < 0.1 % of global aquaculture production, and over 88% of seafood consumed in the region is from wild capture fisheries [@FAO2016]. To meet seafood demand in the region, over 144,000 mt of seafood valued at XX $USD  is imported annually [@FAO2016]. Furthermore, seafood consumption per capita in the Caribbean is projected to increase rapidly (22%) over the next decade [@FAO2016]. Wild fisheries production in the region is unlikely to play a meaningful role in decreasing exports and/or meeting growth in demand because of overfishing, degradation of coral ecosystems, and climate change [@Burke2011;@Perez-Ramirez2017]. Aquaculture development could be an opportunity for Caribbean countries to diversify their economic activities, reduce reliance on foreign imports, provide jobs and economic security to local residents (**FAO 2002**), and to promote a seafood industry that is more resilient to the effects of climate change [@Perez-Ramirez2017]. 
 
@@ -184,7 +184,6 @@ pander::pandoc.table(tbl1,
              caption = "Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
 ```
 
-
 Our suitability assessment assumes the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@Loverich2010; Open Blue 2016]. The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis is set at 100 m because, in waters deeper than 100 m, cage installation and inspection of mooring and anchoring systems are more difficult and costly [@scott_offshore_2000; @Kapetsky2013]. Using spatial bathymetry data for our study region, areas within a 25 - 100 m depth are scored as suitable for offshore mariculture development. Additionally, SeaStation cages are not recommended in areas with current velocities over 1 m/s (Loverich 2010). To identify areas with unsuitably high current velocities, we use 10 years (2005-2015) of  5 day average zonal and meridional current velocity. The absolute maximum zonal and meridional average daily velocities that occurred over the 10-year time period are extracted for each cell, and any cell with a maximum zonal or meridional velocity greater than 1 m/s are scored as unsuitable. To minimize the ecological impact of offshore mariculture development, we also identify as unsustainable any cells with coral reef habitat.
 
 To identify areas currently designated or utilized for purposes that would preclude offshore mariculture development, we use spatial data on: shipping activity, existing benthic oil structures, areas permitted for deep sea bed mining, and areas that have been designated as Marine Protected Areas (MPAs) or conservation priority areas (Table 1). Areas that fell in the 10% of the highest relative shipping activity areas designated for conservation or deep sea bed mining purposes, and areas with existing benthic oil structures, are considered unsuitable for offshore mariculture development. 
@@ -240,7 +239,7 @@ The total cage volume per unit of total farm area for our hypothetical farm desi
 
 pander::pandoc.table(table3,
              digits = 2,
-             caption = 'Table 2: Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
+             caption = 'Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
              split.cells = c(80,20))
 ```
  
@@ -336,7 +335,8 @@ We then calculate the 10-year net present value (NPV) of farm $i$ using EEZ-spec
 
 $$ NPV_i = \displaystyle\sum_{t=0}^{T} \frac{\pi^i_t}{(1+\delta_{z})^t} $$
 
-#### Discount Rate (need to update and add methods used to convert to discount rate)
+#### Discount Rate 
+*(need to update and add methods used to convert to discount rate)*
 
 Individual discount rates are determined for each Caribbean country that incorporate the foreign investment risk associated with that country. We modify previously published methodologies to quantify a country’s relative investment risk in the Caribbean, where limited data on economic and political conditions are available. Bhalla [-@Bhalla1983] developed the Foreign Investment Risk Matrix (FIRM) to assist investors in classifying the political and economic risks associated with investing in different countries using discrete risk categories. An expanded version of FIRM was developed by McGowan and Moeller [-@McGowanJr2009] that utilizes three political and three economic continuous risk variables that are readily available for most countries. 
 
@@ -360,53 +360,57 @@ $$ H_{Z} = \displaystyle\sum_{z}^{Z} H_{z} $$
 
 $$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 
+## Model Scenarios 
+*(would be helpful to talk through how we want to define our base case and whether everything else should just fall under sensitivity)*
 
+First, we examine average annual production under a 'maximum production scenario', where the annual production cobia is estimated assuming all farms were developmed in all cells that were identified as suitable without economic considerations. 
 
-## Bioeconomic Scenarios (would be helpful to talk through how we want to define our base case and whether everything else should just fall under sensitivity)
+We also examine production and 10 year NPV under each of the following scenarios assuming only cells that are profitable after 10 years are developed:
 
-We examine average annual production under 2 scenarios: 1) a maximum production scenario, where the annual production cobia is estimated assuming all farms were developmed in all cells that were identified as suitable without economic considerations, and (2) total production of farms that only includes farms that are profitable after 10 years, assuming the current global price of cobia.he total production under both scenarios both production scenario is compared to current seafood production (wildfisheries capture + aquaculture) and current seafood consumption in the Caribbean region. Production both within and across EEZs are also compared.
+* High feed cost, country specific discount rates
+* High feed cost, discount rate fixed across all countries at 15%
+* Low feed cost, country spcific discount rates
+* Low feed cost, discount rate fixed across all countries at 15%
 
-The 10 year NPV under scenario #2 is examined for profitable all profitable cells at the level farms, EEZs and Caribbean region. The 10 year NPVs are also examined and compared for each of sensitivity scenarios described below. 
+High feed cost refers to the current cost of feed (1.65/kg), and low feed cost assumes that advances in feed technology have reduced feed costs by 10% of current feed costs (XX ). Country specific discout rates refer to the discount rates estimated based on the countries foreign investment risk. Price of cobia for the four scenarios is fixed at the current global price of $8.64/kg.  
 
-## Sensitivity analyses (maybe we just big one 'base run from Table xx and then the rest of the sccenarios fall under Sensitivity analyses?)
+Production and 10 year NPV are examined within EEZ, across EEZs, and at the regional level under each of the 4 scenarios. Estimated production under each scenario is also compared to current seafood production (wildfisheries capture + aquaculture) and current seafood consumption in the Caribbean region. 
 
-Due the uncertainty of future market conditions, economic status of countries,impacts new techonological developments, and to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we apply our bioeconomic model under several different scenarios to examine NPV of the region and each EEZ over a 10 year period by performing a suite of sensitivity analyses. using different assumptions about: feed costs, discount rates, intial stocking densities. 10 year NPV of different model runs are compared.
+## Sensitivity analyses 
+*(maybe we just big one 'base run from Table xx and then the rest of the sccenarios fall under Sensitivity analyses?)*
+
+Due the uncertainty of future market conditions, economic status of countries,impacts new techonological developments, and to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we perform a suite of sensitivity analyses by assuming different:
+
+* Suitable depth range
+* Demand curve/cobia price
+* Discount rates
+* Fixed stocking density (described below)
 
 ### Fixed Stocking Density
 The number of fingerlings stocked in each cage is fixed at the level that achieves the target harvest density of in 12 months. Given a cage volume of 6,400 m^3^, a total survival rate of 75%, and a target harvest density of $15 \frac{kg}{m^3}$, $n_0$ is set to 25,600.
-
-### Low Feed cost scenario
-
-We assume techonology of feed development of advances, reducing current feed costs by 10% of the current assumed value.
-
-### Discount rates
-
-We assume a fixed discount rate of 14% across all EEZs.
 
 # Results
 
 ## Suitability Assessment 
 
 Based on the factors and criteria described in Table 1, we find a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, round = 0) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
-
 ```{r fig.3}
 include_graphics(path = paste0(boxdir,'results/Suitabilty/all_suitable.png'))
-
 ```
-
-The suitable area based on each of the factors considered in our analysis are listed in Table 5. 
+The suitable area based on each of the factors considered in our analysis are listed in Table 5.
+*Add Table*
 
 Depth is the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
 
-There is considerable variability in the amount of area suitable for offshore mariculture in Caribbean nations (Table 1). Both the Bahamas and Trinadad and Tobago have more than twice the suitable area than the country with the next largest amound of suitable area (Jamaica) 
+There is considerable variability in the amount of area suitable for offshore mariculture in Caribbean nations (Table XX). Both the Bahamas and Trinadad and Tobago have more than twice the suitable area than the country with the next largest amound of suitable area (Jamaica) 
 
-. 
 ```{r table6, results='asis'}
 rownames(table6) <- NULL
 pander::pandoc.table(table6,
                      big.mark = ',',
                      round = 2,
                      digits = 2,
+                      split.tables = Inf,
                      caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
 ```
 
@@ -414,38 +418,35 @@ pander::pandoc.table(table6,
 
  If economic constraints are ignored and all suitable farm sites are developed, the Caribbean's potential to produce cobia from mariculture is extremely large, XXX mt annually. 
 
-```{r fig 4}
+```{r fig , fig.cap = "Estimated total production of cobia (mt) using if all suitable areas are developed as offshore mariculture farms "}
 
 include_graphics(path = paste0(run_dir,'Figures/total_prod_map.png'))
 ```
+*will add current seafood production and consumption to this figure*
+```{r, fig.cap = "Estimated total production of cobia (mt) for our study area under each of our 5 model scenarios"}
+include_graphics(path = paste0(run_dir,'Figures/production.png'))
+```
+Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend, which varies across EEZs (Figure XX). .
 
-Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend (Figure XX). There is also a higher degree of variability in the winter months, likely due to the large geographic range of represented.
+```{r fig.cap = "Average growth rate by month for each EEZ"}
 
-```{r}
-
-include_graphics(path = paste0(run_dir,'Figures/Caribbean_avg_growth.png'))
+include_graphics(path = paste0(run_dir,'Figures/EEZ_avg_growth.png'))
 ```
 
 As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure XX).
 
 ```{r}
-
 #include_graphics(path = paste0(run_dir,'Figures/harv_length_hist.png'))
-
 ```
 
-```{r}
-include_graphics(path = paste0(run_dir,'Figures/production.png'))
-```
-
-## Profitability
+## NPV
 
 When evaluating cobia's mariculture potential in the Caribbean, we also considered economic constraints by using a bioeconomic model to project farm costs and revenue. For each farm, we calculate the projected net present value (NPV) from the discounted stream of costs and revenues. We then limited our discussion of results to only include farms (cells) with a positive NPV under the assumption that only profitable farm locations would be developed.
 
 For our base case scenario (country specific risk, current global price, high feed cost), 17 EEZs were profitable after 10 years, and Trinidad and Tobago had the highest NPV, followed by Jamaica.
 
 ```{r}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/risk_high_feed_map.png'))
+knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
 ```
 
 ```{r}
@@ -472,7 +473,7 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_suitable.png'))
 
 knitr::include_graphics(path = paste0(run_dir, 'Figures/cost_cntry_barplot.png'))
 
-knitr::include_graphics(path = paste0(run_dir, 'Figures/EEZ_avg_growth.png'))
+knitr::include_graphics(path = paste0(run_dir, 'Figures/Caribbean_avg_growth.png'))
 
 
 knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_npv_cell.png'))
