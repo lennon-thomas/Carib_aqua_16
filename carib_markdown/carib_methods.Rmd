@@ -56,7 +56,7 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
@@ -183,7 +183,8 @@ tm_shape(EEZ) +
 We develop a spatial bioeconomic model to estimate the production potential (in terms of biomass (*t*) and Net Present Value (NPV)) for offshore cobia mariculture in the Caribbean region (Figure 1). The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that would be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a temperature performance curve (TPC) to predict temperature-dependent growth of cobia at each farm and we establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price and production costs. We also consider a scenario where Caribbean production affects the global price of cobia. Finally, we use our production model and estimated economic parameters to calculate Net Present Value (*NPV*) over a 10 year time horizon. We assume that only farms that have a positive NPV will be developed.
 
 ```{r,  fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
-knitr::include_graphics('modelflow/modelflow2/Slide1.png')
+
+#knitr::include_graphics('modelflow/modelflow2/Slide1.png')
 ```
 
 
@@ -389,7 +390,7 @@ $$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 
 ## Suitability Assessment 
 
-Based on the factors and criteria described in Table 1, we find a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, digits = 2) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
+Based on the factors and criteria described in Table 1, we find a total of  r prettyNum(total_suitable_area,big.mark=",") km^2^, or r prettyNum(percent_suitable, digits = 2)  % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
 
 ```{r}
 knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suit_area.png'))
@@ -413,31 +414,24 @@ pander::pandoc.table(table6,
                      caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
 ```
 
-## Aquaculture Production
+### Suitable Farm Production
 
-### Biomass
 If economic constraints are ignored and all suitable farm sites are developed, the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production of XXX MT (XXX% of total current seafood production in the region). 
 
 ```{r fig , fig.cap = "Estimated total production of cobia (mt) using if all suitable areas are developed as offshore mariculture farms "}
 include_graphics(path = paste0(run_dir,'Figures/total_prod_map.png'))
 ```
-*will add current seafood production and consumption to this figure*
 
+## Bioeconomic Model Results
 
-```{r, fig.height = 5, fig.width = 4, fig.cap = "Estimated total production of cobia (mt) for our study area under each of our 5 model scenarios"}
-include_graphics(path = paste0(run_dir,'Figures/production.png'))
+When only farms that are profitable over a 10 year period are developed, 17 countries develop farms and produce XX mt annually.
+```{r fig.height = 5, fig.width = 4, fig.cap = "Total production of farms that are profitable over a 10 year period"}
+include_graphics(path = paste0(run_dir,'Figures/econ_prod_map.png'))
 ```
 
-Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend, which varies across EEZs (Figure XX).
+```{r fig.height = 5, fig.width = 4, fig.cap = "10 year NPV of farms that are profitable over a 10 year period" }
 
-As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure SX).
-
-### Net present value
-
-Given the current global price of cobia, 19 EEZs contained farms that were profitable after 10 years. Trinidad and Tobago had the highest total NPV, followed by Jamaica.
-
-```{r}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
+include_graphics(path = paste0(run_dir,'Figures/econ_npv_map.png'))
 ```
 
 At the farm level, the median NPV of a cobia farm in the Caribbean was `r carib_supply$median_npv[84]`, driven by high NPV farms in several countries (Figure X) 
@@ -450,13 +444,43 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_cntry_ridgeplot.png'
 ```{r, fig.cap="Figure XX. Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
 ```
+### Costs
 
 Feed is currently the largest cost for aquaculture producers, and our findings support this conclusion (cite % and/or SI figure). Our results are based on the current cost of cobia feed (1.65/kg). However, given economic forces are driving promising advances in feed technology, we also explored results if feed costs are reduced by 10%.
+```{r, fig.cap="Break down of farm costs by EEZ"}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/cost_cntry_barplot.png'))
+```
+
+A reduction in feed costs by 10% would increase cobia production (supply) by XXX. No farms in the Caribbean would be profitable if price for cobia drops below $8/kg at current feed costs.
 
 ```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
 
 ```
+A reduction in feed costs would increase production and NPV
+
+```{r, fig.height = 5, fig.width = 4, fig.cap = "Estimated total production of cobia (mt) and 10 year NPV for our study area assuming current feed price, and a reduction in feed price by 10% "}
+include_graphics(path = paste0(run_dir,'Figures/feed_prod_map.png'))
+include_graphics(path = paste0(run_dir,'Figures/feed_npv_map.png'))
+```
+
+
+```{r, fig.height = 5, fig.width = 4, fig.cap = "Comparison of production when all suitable farms are developed, only profitable farms, and only profitable farms with lower feed costs"}
+include_graphics(path = paste0(run_dir,'Figures/production.png'))
+```
+
+
+```{r}
+```{r, fig.height = 5, fig.width = 4, fig.cap = "Estimated total production of cobia (mt) for our study area under each of our 5 model scenarios"}
+include_graphics(path = paste0(run_dir,'Figures/production.png'))
+```
+```
+
+```
+
+
+
+
 
 ## Sensitivity Analyses
 
@@ -471,13 +495,21 @@ Due the uncertainty of future market conditions, economic status of countries,im
 ```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
 
 knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_suitable.png'))
+```
+Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend, which varies across EEZs (Figure XX).
 
-knitr::include_graphics(path = paste0(run_dir, 'Figures/cost_cntry_barplot.png'))
+As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure SX).
 
+
+```{r}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/Caribbean_avg_growth.png'))
+```
+
+```{r}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_discount_scenarios.png'))
+```
 
 
-knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_npv_cell.png'))
 
 ```
 
