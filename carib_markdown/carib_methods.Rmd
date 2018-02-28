@@ -93,43 +93,43 @@ carib_fish_prod <- carib_production %>%
 carib_supply <- read_csv(file = paste0(run_dir,"Results/supply_summary.csv"))
 
 # Load EEZ shapefile
-EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
-
-# Load country suitability results
-
-
-carib_countries<-c("Anguilla Exclusive Economic Zone",
-                   "Antigua and Barbuda Exclusive Economic Zone",
-                   "Aruban Exclusive Economic Zone",
-                   "Bahamas Exclusive Economic Zone",
-                   "Barbados Exclusive Economic Zone",
-                   "Bonaire Exclusive Economic Zone",
-                   "British Virgin Islands Exclusive Economic Zone",
-                   "Cayman Islands Exclusive Economic Zone",
-                   "Curaçaoan Exclusive Economic Zone",
-                   "Cuban Exclusive Economic Zone",
-                   "Dominican Exclusive Economic Zone",
-                   "Dominican Republic Exclusive Economic Zone",
-                   "Grenadian Exclusive Economic Zone",
-                   "Guadeloupean Exclusive Economic Zone",
-                   "Haitian Exclusive Economic Zone",
-                   "Jamaican Exclusive Economic Zone",
-                   "Martinican Exclusive Economic Zone",
-                   "Montserrat Exclusive Economic Zone",
-                   "Puerto Rican Exclusive Economic Zone",
-                   "Saba Exclusive Economic Zone",
-                   "Saint-Barthélemy Exclusive Economic Zone",
-                   "Sint-Eustatius Exclusive Economic Zone",
-                   "Saint Kitts and Nevis Exclusive Economic Zone",
-                   "Saint Lucia Exclusive Economic Zone",
-                   "Saint-Martin Exclusive Economic Zone",
-                   "Saint Vincent and the Grenadines Exclusive Economic Zone",
-                   "Sint-Maarten Exclusive Economic Zone",
-                   "Trinidad and Tobago Exclusive Economic Zone",
-                   "Turks and Caicos Exclusive Economic Zone",
-                   "Virgin Islander Exclusive Economic Zone")
-
-  # load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
+# EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
+# 
+# # Load country suitability results
+# 
+# 
+# carib_countries<-c("Anguilla Exclusive Economic Zone",
+#                    "Antigua and Barbuda Exclusive Economic Zone",
+#                    "Aruban Exclusive Economic Zone",
+#                    "Bahamas Exclusive Economic Zone",
+#                    "Barbados Exclusive Economic Zone",
+#                    "Bonaire Exclusive Economic Zone",
+#                    "British Virgin Islands Exclusive Economic Zone",
+#                    "Cayman Islands Exclusive Economic Zone",
+#                    "Curaçaoan Exclusive Economic Zone",
+#                    "Cuban Exclusive Economic Zone",
+#                    "Dominican Exclusive Economic Zone",
+#                    "Dominican Republic Exclusive Economic Zone",
+#                    "Grenadian Exclusive Economic Zone",
+#                    "Guadeloupean Exclusive Economic Zone",
+#                    "Haitian Exclusive Economic Zone",
+#                    "Jamaican Exclusive Economic Zone",
+#                    "Martinican Exclusive Economic Zone",
+#                    "Montserrat Exclusive Economic Zone",
+#                    "Puerto Rican Exclusive Economic Zone",
+#                    "Saba Exclusive Economic Zone",
+#                    "Saint-Barthélemy Exclusive Economic Zone",
+#                    "Sint-Eustatius Exclusive Economic Zone",
+#                    "Saint Kitts and Nevis Exclusive Economic Zone",
+#                    "Saint Lucia Exclusive Economic Zone",
+#                    "Saint-Martin Exclusive Economic Zone",
+#                    "Saint Vincent and the Grenadines Exclusive Economic Zone",
+#                    "Sint-Maarten Exclusive Economic Zone",
+#                    "Trinidad and Tobago Exclusive Economic Zone",
+#                    "Turks and Caicos Exclusive Economic Zone",
+#                    "Virgin Islander Exclusive Economic Zone")
+# 
+#   # load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
 
 ```
 
@@ -163,18 +163,9 @@ Critical knowledge gaps that hinder the development of offshore aquaculture in t
 Our study domain includes the territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1). All analyses are performed at a 1 km^2^ spatial resolution. We do not consider the potential of offshore aquaculture development in the high seas or disputed waters. A shapefile from VLIZ [-@VLIZ2014] is used to define the maritime boundaries for all island countries. 
 
 ```{r fig1.tmap, fig.cap="The study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2016)."}
-# Fill in EEZs of Caribbean countries
-EEZ$countries <- ifelse (EEZ@data$GeoName %in% carib_countries,"lightblue","white")
 
-# Create map
-tm_shape(EEZ) +
-  tm_fill("countries",alpha=0.5) +
-  tm_borders() +
-  tm_legend() +
-  tm_grid(x = NA, y = NA, n.x =5, n.y = 5,
-    col = "grey", lwd = 1, alpha = .5, labels.size = 1, labels.col = NA,
-    labels.inside.frame = FALSE) +
-  tm_layout( inner.margins = rep(.09, 4))
+include_graphics(path = paste0(run_dir,'Figures/study_area.png'))
+
 ```
 
 
@@ -389,6 +380,15 @@ $$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 # Results
 
 ## Suitability Assessment 
+```{r summarise suitability totals}
+
+total_suitable_area<-sum(table6$Suitable.area)
+
+total_study_area<-sum(table6$Total.EEZ.area)
+
+percent_suitable<-total_suitable_area/total_study_area*100
+
+```
 
 Based on the factors and criteria described in Table 1, we find a total of  r prettyNum(total_suitable_area,big.mark=",") km^2^, or r prettyNum(percent_suitable, digits = 2)  % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
 
@@ -436,17 +436,13 @@ include_graphics(path = paste0(run_dir,'Figures/econ_npv_map.png'))
 
 At the farm level, the median NPV of a cobia farm in the Caribbean was `r carib_supply$median_npv[84]`, driven by high NPV farms in several countries (Figure X) 
 
-```{r}
+```{r fig.cap = "NPV of cobia aquaculture per farm by Caribbean EEZ"}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_cntry_ridgeplot.png'))
 ```
 
-
-```{r, fig.cap="Figure XX. Distribution of farm-level net present value (NPV) by EEZ. Fill color represents the total NPV for each country."}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
-```
 ### Costs
 
-Feed is currently the largest cost for aquaculture producers, and our findings support this conclusion (cite % and/or SI figure). Our results are based on the current cost of cobia feed (1.65/kg). However, given economic forces are driving promising advances in feed technology, we also explored results if feed costs are reduced by 10%.
+Feed is currently the largest cost for aquaculture producers, and our findings support this conclusion (cite % and/or SI figure). Our results are based on the current cost of cobia feed (1.65/kg). However, given economic forces are driving promising advances in feed technology, we also explored results if feed costs are reduced by 10 %. (will summarise average values here instead of figure)
 ```{r, fig.cap="Break down of farm costs by EEZ"}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/cost_cntry_barplot.png'))
 ```
@@ -470,18 +466,6 @@ include_graphics(path = paste0(run_dir,'Figures/production.png'))
 ```
 
 
-```{r}
-```{r, fig.height = 5, fig.width = 4, fig.cap = "Estimated total production of cobia (mt) for our study area under each of our 5 model scenarios"}
-include_graphics(path = paste0(run_dir,'Figures/production.png'))
-```
-```
-
-```
-
-
-
-
-
 ## Sensitivity Analyses
 
 Due the uncertainty of future market conditions, economic status of countries,impacts new techonological developments, and to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we perform a suite of sensitivity analyses by assuming different:
@@ -492,23 +476,28 @@ Due the uncertainty of future market conditions, economic status of countries,im
 
 ## Other Figures
 
-```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
-
-knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_suitable.png'))
-```
 Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend, which varies across EEZs (Figure XX).
 
 As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure SX).
 
 
-```{r}
+```{r fig.cap = "Average growth of cobia by month"}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/Caribbean_avg_growth.png'))
 ```
 
-```{r}
+```{r fig.cap = "Average harvest cycle length (months) by farm"}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/harv_length_hist.jpeg'))
+```
+
+
+```{r, fig.cap ="Distribution of farm level NPV for high and low cost scenarios"}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_discount_scenarios.png'))
 ```
 
+```{r, fig.cap="Suitability zoom by EEZ"}
+
+knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_suitable_area.png'))
+```
 
 
 ```

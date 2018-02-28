@@ -96,9 +96,9 @@
   
   eez_supply_df<-result_files[[2]]
   
-  npv_df<-result_files[[4]]
+  npv_df<-result_files[[3]]
   
-  supply_summary<-result_files[[6]]
+  supply_summary<-result_files[[5]]
   
   rm(result_files)
 
@@ -145,6 +145,8 @@ base<- ggplot() +
         ylab("Latitude") +
         coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
 
+ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
+
   base_facet<-  ggplot() + 
                   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
                   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
@@ -184,7 +186,7 @@ base<- ggplot() +
     group_by(eez) %>%
     summarise(eez_harvest_mt = sum(total_harvest)* 0.001) %>%
     mutate(annual_eez_harvest = eez_harvest_mt/10, 
-            scenario_names = "all suitable") %>%
+            scenario_names = "All suitable") %>%
     ungroup() %>%
     dplyr::select(eez,scenario_names,eez_harvest_mt,annual_eez_harvest) 
   
@@ -198,8 +200,8 @@ base<- ggplot() +
     ungroup() %>%
        mutate(scenario_names =  ifelse(disc_scenario == "0.14" & feed_price_index == 1, "14 % discount \n High feed",
                                     ifelse (disc_scenario =="0.14" & feed_price_index == 0.9, "14 % discount \n Low feed",
-                                            ifelse(disc_scenario =="cntry" & feed_price_index == 1, "Country specific discount \n High feed",
-                                                   "Country specific discount \n Low feed")))) 
+                                            ifelse(disc_scenario =="cntry" & feed_price_index == 1, "High feed",
+                                                   "Low feed")))) 
   
   econ_prod_cntry_disc<- econ_prod %>%
     filter(disc_scenario == "cntry") %>%
@@ -218,11 +220,11 @@ base<- ggplot() +
     group_by(scenario_names) %>%
     summarize(total_annual_eez_harvest = sum(annual_eez_harvest))
   
-  ggplot(final_prod,aes(x=fct_relevel(scenario_names,c("all suitable", "Country specific discount \n Low feed","Country specific discount \n High feed")),y=total_annual_eez_harvest))+
+  ggplot(final_prod,aes(x=fct_relevel(scenario_names,c("All suitable", "Low feed","High feed")),y=total_annual_eez_harvest))+
     geom_bar(stat="identity") +
     theme_minimal() +
     ylab("Average Annual Harvest (mt)") +
-    xlab("Economic Scenario") 
+    xlab("Scenario") 
   
   
   ggsave(paste0(fig_folder,"production.png"),width=5, height=6)
@@ -308,107 +310,38 @@ base<- ggplot() +
 
 # NPV maps/histograms for cntry specific discouont -----------------------------------------------------
 
-
-  
-  npv_map<-  ggplot() + 
-    geom_polygon(data = econ_prod_cntry_disc,aes(x = long,y = lat,group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
-    geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-    scale_fill_viridis("10 year NPV ($)") +
-    theme_minimal() + 
-    xlab("Longitude") +
-    ylab("Latitude") +
-    coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-    facet_wrap(Discount_scenario~feed_price_index,labeller = "label_both") +
-    ggtitle("EEZ level 10 yr NPV")
-  #  facet_grid_paginate(~Discount_rate,labeller = "label_both", page=3, ncol = 3)
-  ggsave(paste0(fig_folder,'npv__map.png'), width = 6, height = 5)
-  
- #Zoom in on just one of the above plots
-  
-  risk_high_feed<-npv_eez %>%
-    filter(Discount_scenario =="Country risk score" & feed_price_index =="High feed cost")
-  
- risk_high_feed_map<-  ggplot() + 
-    geom_polygon(data = risk_high_feed,aes(x = long,y = lat,group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
-    geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-    scale_fill_viridis("10 year NPV ($)") +
-    theme_minimal() + 
-    xlab("Longitude") +
-    ylab("Latitude") +
-    coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-   ggtitle("EEZ level 10 yr NPV \n Discount scenario: Country risk score \n feed_price_index: High feed cost")
-     
-  ggsave(paste0(fig_folder,'risk_high_feed_map.png'), width = 6, height = 5)
-  
-### Playing around with raster plotting for farm levels maps (not done)
-  
-  farm_npv<-all_df %>%
-    filter( npv>0) %>%
-    left_join(eez.water)  %>%
-    rename(Discount_scenario = disc_scenario)
-  
-  farm_npv$feed_price_index<-ifelse(farm_npv$feed_price_index==0.9,"Low feed cost","High feed cost")
-  farm_npv$Discount_scenario<-ifelse(farm_npv$Discount_scenario==0, "0 %", "Country risk score")
-  
-  base_raster<-raster(paste0(boxdir,"Suitability/tmp/carib_eez_raster.tif"))
-  
-  farm_data<-farm_npv %>%
-    filter(Discount_scenario == "0 %" & feed_price_index =="High feed cost")
-    
-  points<-farm_data%>%
-    select(long,lat)
-  
-   npv_sp<-SpatialPointsDataFrame(coords = points, data = farm_data)
-   
-   npv_raster<-rasterize(npv_sp,base_raster, "npv")
-   
-   gplot(npv_raster)+geom_tile(aes(fill=value))
-  
- farm_example_map<-  gplot(npv_raster) + 
-    geom_tile(aes(fill = value)) +
-    geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-    scale_fill_viridis("10 year NPV ($)") +
-    theme_minimal() + 
-    xlab("Longitude") +
-    ylab("Latitude") +
-    coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
-  
-
-   
-
-
   # Histogram of NPV by cell
  
-   npv_cell<-all_df %>%
-     filter(npv>0)
-   
-  ggplot(data = npv_cell, aes(x=npv, fill=scenario_names))+
-    geom_histogram(position = "identity", bins=50) +
-    theme_minimal() +
-    xlab("NPV ($)") +
-    ylab("Frequency") +
-    facet_wrap(~scenario_names) +
-    ggtitle("Farm Level 10 yr NPV ($)") +
-    theme(strip.text.x = element_blank()) +
-    guides(fill=guide_legend(title="Scenario"))
-  ggsave(paste0(fig_folder,'Caribbean_npv_cell.png'), width = 6, height = 5)
-
-   # # Histogram of NPV by cell for each Territory
-  ggplot(data = npv_cell, aes(x=npv, fill=scenario_names))+
-    geom_histogram(position = "identity") +
-    theme_minimal() +
-    xlab("NPV ($)") +
-    ylab("Frequency") +
-    facet_wrap(~scenario_names) +
-    ggtitle("Farm Level 10 yr NPV ($)") +
-    facet_wrap(~Territory1, scales = "free_y") +
-    guides(fill=guide_legend(title="Scenario"))
-ggsave(paste0(fig_folder,'eez_npv_cell.png'), width = 12, height = 12)
+#    npv_cell<-all_df %>%
+#      filter(npv>0)
+#    
+#   ggplot(data = npv_cell, aes(x=npv, fill=scenario_names))+
+#     geom_histogram(position = "identity", bins=50) +
+#     theme_minimal() +
+#     xlab("NPV ($)") +
+#     ylab("Frequency") +
+#     facet_wrap(~scenario_names) +
+#     ggtitle("Farm Level 10 yr NPV ($)") +
+#     theme(strip.text.x = element_blank()) +
+#     guides(fill=guide_legend(title="Scenario"))
+#   ggsave(paste0(fig_folder,'Caribbean_npv_cell.png'), width = 6, height = 5)
+# 
+#    # # Histogram of NPV by cell for each Territory
+#   ggplot(data = npv_cell, aes(x=npv, fill=scenario_names))+
+#     geom_histogram(position = "identity") +
+#     theme_minimal() +
+#     xlab("NPV ($)") +
+#     ylab("Frequency") +
+#     facet_wrap(~scenario_names) +
+#     ggtitle("Farm Level 10 yr NPV ($)") +
+#     facet_wrap(~Territory1, scales = "free_y") +
+#     guides(fill=guide_legend(title="Scenario"))
+# ggsave(paste0(fig_folder,'eez_npv_cell.png'), width = 12, height = 12)
 
 
 # Histograms of  avg harvest cycle length ---------------------------------
 
-jpeg(paste0(fig_folder,"harv_length_hist.png"))
+jpeg(paste0(fig_folder,"harv_length_hist.jpeg"))
 
 hist(harv_cycle_length[[1]], maxpixels = 1000000,
                                     main = "Distribution of harvest cycle lengths",xlab= "Harvest cycle length (months)")
