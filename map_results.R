@@ -31,7 +31,7 @@
   if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
   if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
   
-  run_name = 'est_Feb_21'
+  run_name = '2018-02-27_est'
 
 # Create figure folder
   fig_folder <- paste0(boxdir,'results/',run_name, "/Figures/")
@@ -173,27 +173,73 @@ base<- ggplot() +
 
   ggsave(filename = paste0(fig_folder,'eez_suitable_area.png'), width = 12, height = 12)
 
-# Production maps ---------------------------------------------------------
+# Production by EEZ calculations ---------------------------------------------------------
 
 # Production if don't consider economics
+  
   all_df$eez<-as.factor(all_df$eez)
   
   total_prod<- all_df %>%
-    filter(feed_price_index == 1 & disc_scenario == 'cntry') %>%
+    filter(feed_price_index == '1' & disc_scenario == 'cntry' ) %>%
     group_by(eez) %>%
     summarise(eez_harvest_mt = sum(total_harvest)* 0.001) %>%
-    mutate(annual_eez_harvest = eez_harvest_mt/10) %>%
+    mutate(annual_eez_harvest = eez_harvest_mt/10, 
+            scenario_names = "all suitable") %>%
     ungroup() %>%
-    left_join(eez.water, by = c('eez' = 'MRGID'))
+    dplyr::select(eez,scenario_names,eez_harvest_mt,annual_eez_harvest) 
+  
+  
+  econ_prod<- all_df %>%
+    filter(npv > 0) %>%
+    dplyr::group_by(eez,disc_scenario,feed_price_index) %>%
+    summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
+              annual_eez_harvest = eez_harvest_mt/10,
+              total_npv = sum(npv)) %>%
+    ungroup() %>%
+       mutate(scenario_names =  ifelse(disc_scenario == "0.14" & feed_price_index == 1, "14 % discount \n High feed",
+                                    ifelse (disc_scenario =="0.14" & feed_price_index == 0.9, "14 % discount \n Low feed",
+                                            ifelse(disc_scenario =="cntry" & feed_price_index == 1, "Country specific discount \n High feed",
+                                                   "Country specific discount \n Low feed")))) 
+  
+  econ_prod_cntry_disc<- econ_prod %>%
+    filter(disc_scenario == "cntry") %>%
+    filter(feed_price_index == "1") 
+    
+  
+  econ_prod_feed<- econ_prod %>%
+    filter(disc_scenario == "cntry")
+  
 
+# Bar plot of total production --------------------------------------------
+
+  all_eez_prod<-bind_rows(econ_prod_feed,total_prod)  
+  
+  final_prod<-all_eez_prod %>%
+    group_by(scenario_names) %>%
+    summarize(total_annual_eez_harvest = sum(annual_eez_harvest))
+  
+  ggplot(final_prod,aes(x=fct_relevel(scenario_names,c("all suitable", "Country specific discount \n Low feed","Country specific discount \n High feed")),y=total_annual_eez_harvest))+
+    geom_bar(stat="identity") +
+    theme_minimal() +
+    ylab("Average Annual Harvest (mt)") +
+    xlab("Economic Scenario") 
   
   
-   # with no economic consideration 
-    total_prod_map<-  ggplot() + 
-      geom_polygon(data = total_prod,aes(x = long,y = lat, group = group, fill= eez_harvest_mt), colour = "black", size = 0.1 , alpha = 0.8) +
+  ggsave(paste0(fig_folder,"production.png"),width=5, height=6)
+  
+
+# Production maps and bar plots -------------------------------------------
+
+  total_prod_sp<-left_join(total_prod,eez.water,by=c("eez"="MRGID"))
+  econ_prod_feed_sp<-left_join(econ_prod_feed,eez.water, by=c("eez"="MRGID"))  
+  econ_prod_cntry_disc_sp<- left_join(econ_prod_cntry_disc,eez.water, by=c("eez"="MRGID"))    
+  
+  
+   ggplot() + 
+      geom_polygon(data = total_prod_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
       geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
       scale_fill_viridis("Average Annual Production (mt)") +
-      ggtitle("(all suitable cells)") +
+     # ggtitle("(all suitable cells)") +
       theme_minimal() + 
       xlab("Longitude") +
       ylab("Latitude") +
@@ -201,77 +247,71 @@ base<- ggplot() +
     
     ggsave(paste0(fig_folder,'total_prod_map.png'), width = 6, height = 5)
     
-    #Bar stacked bar plot of total production by EEZ for profitable cells
-   
-    all_df$disc_scenario<-as.factor(all_df$disc_scenario) 
-    all_df$feed_price_index<-as.factor(all_df$feed_price_index)
-    
-    all_df<-all_df %>%
-      mutate(scenario_names = ifelse(disc_scenario == "all_suitable" & is.na(feed_price_index),"all_suitable",
-                                     ifelse(disc_scenario == "0" & feed_price_index == 1, "No discount, high feed",
-                                            ifelse (disc_scenario =="0" & feed_price_index == 0.9, "No discount, low feed",
-                                                    ifelse(disc_scenario =="cntry" & feed_price_index == 1, "Risk discount, high feed",
-                                                           "Risk discount, low feed"))))) 
  
-    # Can now change these to group by scenarios names instead 
+      ggplot() +
+      geom_polygon(data = econ_prod_cntry_disc_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
+      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+      scale_fill_viridis("Average Annual Production (mt)") +
+   #   ggtitle("(Country specific discount, High Feed Cost)") +
+      theme_minimal() + 
+      xlab("Longitude") +
+      ylab("Latitude") +
+      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
     
-   econ_prod<- all_df %>%
-      filter(npv > 0) %>%
-      dplyr::group_by(eez,disc_scenario,feed_price_index) %>%
-      summarise(total_harvest_mt = sum(total_harvest * 0.001)) 
+    ggsave(paste0(fig_folder,'econ_prod_map.png'), width = 6, height = 5)
+    
+    
   
-  
-  t_prod<-all_df%>%
-    filter(feed_price_index == 1 & disc_scenario ==0) %>%
-    group_by(eez) %>%
-    summarise(total_harvest_mt = sum(total_harvest * 0.001)) %>%
-    mutate(disc_scenario = "all_suitable",
-           feed_price_index = NA) %>%
-    select(eez,disc_scenario,feed_price_index,total_harvest_mt)
-
-  c_names<-as.data.frame(EEZ@data)%>%
-    select(MRGID,Territory1)
-
-  all_eez_prod<-bind_rows(econ_prod,t_prod) %>%
-    mutate(scenario_names = ifelse(disc_scenario == "all_suitable" & is.na(feed_price_index),"all_suitable",
-                                   ifelse(disc_scenario == "0" & feed_price_index == 1, "No discount, high feed",
-                                          ifelse (disc_scenario =="0" & feed_price_index == 0.9, "No discount, low feed",
-                                                  ifelse(disc_scenario =="cntry" & feed_price_index == 1, "Risk discount, high feed",
-                                                         "Risk discount, low feed"))))) 
-  
+    
+  ggplot() +
+      geom_polygon(data = econ_prod_feed_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
+      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+      scale_fill_viridis("Average Annual Production (mt)") +
+    #  ggtitle("(Country specific discount)") +
+      theme_minimal() + 
+      xlab("Longitude") +
+      ylab("Latitude") +
+      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+      facet_wrap(~feed_price_index,nrow =2, ncol =1, labeller = label_both)
+    
+    ggsave(paste0(fig_folder,'feed_prod_map.png'), width = 6, height = 5 )
+    
    
-  final_prod<-left_join(all_eez_prod,c_names,by=c("eez"="MRGID")) %>%
-    group_by(scenario_names) %>%
-    summarize(total_production = sum(total_harvest_mt)/10)
-  
-  ggplot(final_prod,aes(x=fct_relevel(scenario_names,c("all_suitable","No discount, low feed","Risk discount, low feed","No discount, high feed","Risk discount, high feed")),y=total_production))+
-    geom_bar(stat="identity") +
-    theme_minimal() +
-    ylab("Average Annual Harvest (mt)") +
-    xlab("Economic Scenario") 
-  
- 
-  ggsave(paste0(fig_folder,"production.png"),width=5, height=6)
-  
-   # scale_fill_brewer()
-# NPV maps/histograms for current price -----------------------------------------------------
 
-  # Current price and only profitable farms by EEZ
-  npv_eez<-all_df %>%
-    filter( npv>0) %>%
-    group_by(Territory1,disc_scenario,feed_price_index) %>%
-    summarise(total_npv = sum(npv),
-              total_production = sum(total_harvest * 0.001)) %>%
-    left_join(eez.water)  %>%
-    rename(Discount_scenario = disc_scenario)
+# NPV maps ----------------------------------------------------------------
 
-  npv_eez$feed_price_index<-ifelse(npv_eez$feed_price_index==0.9,"Low feed cost","High feed cost")
-  npv_eez$Discount_scenario<-ifelse(npv_eez$Discount_scenario==0, "0 %", "Country risk score")
+    ggplot() +
+      geom_polygon(data = econ_prod_cntry_disc_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+      scale_fill_viridis("10 yr NPV") +
+    #  ggtitle("(Country specific discount, High Feed Cost)") +
+      theme_minimal() + 
+      xlab("Longitude") +
+      ylab("Latitude") +
+      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
+    
+    ggsave(paste0(fig_folder,'econ_npv_map.png'), width = 6, height = 5)
+    
+    ggplot() +
+      geom_polygon(data = econ_prod_feed_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+      scale_fill_viridis("Average Annual Production (mt)") +
+     # ggtitle("(Country specific discount)") +
+      theme_minimal() + 
+      xlab("Longitude") +
+      ylab("Latitude") +
+      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+      facet_wrap(~feed_price_index,nrow =2, ncol =1, labeller = label_both)
+    
+    ggsave(paste0(fig_folder,'feed_npv_map.png'), width = 6, height = 5)
+    
+
+# NPV maps/histograms for cntry specific discouont -----------------------------------------------------
+
+
   
-  # Map of NPV by discount rate (need to plot on separate pages)
-  
-  npv_discount_map<-  ggplot() + 
-    geom_polygon(data = npv_eez,aes(x = long,y = lat,group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+  npv_map<-  ggplot() + 
+    geom_polygon(data = econ_prod_cntry_disc,aes(x = long,y = lat,group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
     geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
     scale_fill_viridis("10 year NPV ($)") +
     theme_minimal() + 
@@ -281,7 +321,7 @@ base<- ggplot() +
     facet_wrap(Discount_scenario~feed_price_index,labeller = "label_both") +
     ggtitle("EEZ level 10 yr NPV")
   #  facet_grid_paginate(~Discount_rate,labeller = "label_both", page=3, ncol = 3)
-  ggsave(paste0(fig_folder,'npv_scenarios_map.png'), width = 6, height = 5)
+  ggsave(paste0(fig_folder,'npv__map.png'), width = 6, height = 5)
   
  #Zoom in on just one of the above plots
   
