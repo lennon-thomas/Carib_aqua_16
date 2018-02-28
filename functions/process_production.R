@@ -8,7 +8,7 @@ library(rts)
 ann_prod<-function(growth,start_weight=0.15) {                  
 
 # Calculate cumulative growth in each month
-all_growth<-calc(growth,fun = function(x) cumsum(x))
+all_growth <- raster::calc(growth,fun = function(x) cumsum(x))
 
 # Calculate average number of harvest cycles by dividing cumulative growth in last month by harvest weight (5 kg)
 avg_harvest_cycles <- all_growth[[120]] / 5
@@ -39,7 +39,7 @@ avg_growth<- function(growth){
   month_dex<-rep(1:12,10)
 
   #take average for each month
-  monthly_growth<- stackApply(growth, month_dex, fun = mean)
+  monthly_growth<- raster::stackApply(growth, month_dex, fun = mean)
 
   return(monthly_growth)
 }

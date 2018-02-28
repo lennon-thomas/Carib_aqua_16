@@ -25,7 +25,7 @@ library(readr)
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -37,13 +37,14 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = 'fixed_Feb_26'
+run_name = '2018-02-27_est'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 figure_folder <- paste0(run_dir,'Figures/')
 result_folder <- paste0(run_dir,'Results/')
 data_folder <-paste0(run_dir,'Data/')
+
 if (dir.exists(run_dir) == F) {
   # Create directories if not already existing
   dir.create(run_dir, recursive = T)
@@ -57,10 +58,10 @@ if (dir.exists(run_dir) == F) {
 }
 
 
-econ_prep_data = FALSE #Prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock = TRUE #should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-run_sim = FALSE #run population simulation to calculate feed costs
-process_growth = FALSE #process growth data to get average growth and number of harvest cycles per cell
+econ_prep_data = FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
+fix_int_stock = FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+run_sim = TRUE # run population simulation to calculate feed costs
+process_growth = TRUE # process growth data to get average growth and number of harvest cycles per cell
 
 # Parameters --------------------------------------------------------------
 
@@ -89,6 +90,7 @@ no_trips <- 2 #number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
 avg_boat_spd <- 48.28    
 site_days <- 30
+disc_rate <- 0.14 # discount rate to use in addition to country specific rates. can be a vector.
 #feed_rate <- 0.02 # feed rate is 2% body wweight Benetti et al. 2010
 
 # Load Data ---------------------------------------------------------------
@@ -170,7 +172,20 @@ if (econ_prep_data == TRUE){
   
   # Calculate monthly costs and revenue costs by cell ---------------------------------------------------------
   
-  monthly_cashflow <- monthly_cost_est(sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days)
+  monthly_cashflow <- monthly_cost_est(sim_results,
+                                       econ_stack,
+                                       stocking_n,
+                                       site_lease,
+                                       no_cage,
+                                       labor_installation,
+                                       support_vessel,
+                                       site_hours,
+                                       site_workers,
+                                       avg_boat_spd,
+                                       feed_price,
+                                       price_fingerlings,
+                                       cage_cost,
+                                       site_days)
   
   monthly_cashflow[is.na(monthly_cashflow)] <- 0
   
@@ -212,7 +227,7 @@ if (econ_prep_data == TRUE){
                                          cobia_price = cobia_price, 
                                          prices = c(5:12),
                                          feed_price_index = c(1, 0.9),
-                                         discount_rates = c(0),
+                                         discount_rates = disc_rate,
                                          eezs = countries, 
                                          figure_folder = figure_folder, 
                                          result_folder = result_folder)
@@ -224,22 +239,31 @@ if (econ_prep_data == TRUE){
   carib_supply <- supply_curves_results[['carib_supply']]
 
 # Select on the last month of simulation for every cell
-    final_npv <- npv_df %>%
-      group_by(cell) %>%
-      filter(month == max(month))
+  final_npv <- npv_df %>%
+    group_by(cell) %>%
+    filter(month == max(month))
       
 # Save supply curve results 
   write.csv(final_npv,paste0(run_dir,"Results/npv_df.csv"))
   write.csv(eez_supply,paste0(run_dir,"Results/eez_supply_df.csv"))
   write.csv(carib_supply,paste0(run_dir,"Results/carib_supply.csv"))
 
+# Produce figures for paper -----------------------------------------------
+
+# Econ figures
+
+# Maps  
+  
+# Save text file documenting run settings ---------------------------------
+
 # Write text file that includes run info- may want to add more to this (like price) later
-date<- Sys.Date() 
+date <- Sys.Date() 
 
 cat(paste0("Date: ", date),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n")
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 cat(paste0("Fix_int_stock? ",fix_int_stock),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)   
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 cat(paste0("FCR: ",fcr),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
+cat(paste0("Discount rate (additional): ",disc_rate),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 
   

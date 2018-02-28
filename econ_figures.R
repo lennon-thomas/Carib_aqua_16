@@ -7,10 +7,8 @@
 
 # Load packages and functions -----------------------------------------------------------
 
-library(broom)
+
 library(tidyverse)
-library(parallel)
-library(pander)
 library(ggridges)
 library(skimr)
 library(viridis)
@@ -30,12 +28,12 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
 
-run_name = 'est_Feb_21'  
+run_name = '2018-02-27_est'  
 
 # Load run results 
 result_folder <- paste0(boxdir,'results/',run_name,"/Results")
@@ -163,7 +161,7 @@ ggsave(filename = paste0(figure_folder, '/npv_discount_scenarios.png'), width = 
 supply_plot_df <- npv_df %>%
   group_by(cell) %>%
   filter(month == max(month) & disc_scenario == 'cntry') %>%
-  mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e4 / 10)) %>%  # supply = 0 if NPV is negative
+  mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e3 / 10)) %>%  # supply = 0 if NPV is negative
   group_by(prices, disc_scenario, feed_price_index) %>%
   summarize(total_supply  = sum(supply, na.rm = T)) %>%  # supply
   ungroup()
@@ -173,7 +171,7 @@ intercepts <- supply_plot_df %>%
   filter(prices == 8.62)
 
 supply_plot_df %>%
-  ggplot(aes(x = prices, y = total_supply / 1e6, color = factor(feed_price_index))) +
+  ggplot(aes(y = prices, x = total_supply / 1e6, color = factor(feed_price_index))) +
   geom_line() +
   geom_vline(xintercept = 8.62, linetype = 2, color = 'grey50') +
   geom_segment(aes(x = 0, xend = 8.62,

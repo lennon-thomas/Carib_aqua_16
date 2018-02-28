@@ -56,13 +56,13 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 
 # Specify run directory to source results from
-run_name = "est_Feb_21"
+run_name = "2018-02-27_est"
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in data tables
@@ -72,6 +72,25 @@ table4<-read.csv("costtable.csv",check.names=FALSE)
 #table5<-read.csv(paste0(boxdir,"results/Suitability/suit_by_variable.csv"),check.names=FALSE)
 table6<- read.csv(file = paste0(boxdir,filename = "results/Suitability/Suit_df_summary.csv"))
 
+# Caribbean seafood production
+carib_production <- read_csv(file = paste0(boxdir, 'data/carib_seafood_2014.csv'))
+
+# 2014 total production
+carib_prod <- carib_production %>% 
+  summarize(prod = sum(Production_MT, na.rm = T)) %>% .$prod
+
+# 2014 aquaculture production
+carib_aqua_prod <- carib_production %>% 
+  filter(Type != 'Fisheries') %>% 
+  summarize(aqua_prod = sum(Production_MT, na.rm = T)) %>% .$aqua_prod
+
+# 2014 fishery production
+carib_fish_prod <- carib_production %>% 
+  filter(Type == 'Fisheries') %>% 
+  summarize(fish_prod = sum(Production_MT, na.rm = T)) %>% .$fish_prod
+
+# NPV results
+carib_supply <- read_csv(file = paste0(run_dir,"Results/supply_summary.csv"))
 
 # Load EEZ shapefile
 EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
@@ -110,7 +129,7 @@ carib_countries<-c("Anguilla Exclusive Economic Zone",
                    "Turks and Caicos Exclusive Economic Zone",
                    "Virgin Islander Exclusive Economic Zone")
 
-  load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
+  # load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
 
 ```
 
@@ -123,9 +142,16 @@ The development of marine aquaculture in the Caribbean has been identified as an
 
 Global fish production is expected to exceed 151 million tons by 2030 to meet  growing demands, a 10% increase over current levels [@Kobayashi2015; @FAO2016], and the vast majority of new production must come from aquaculture given only modest potential increases from capture fisheries [@Costello2016]. Aquaculture seems poised to meet this challenge as the fastest growing food production sector globally, surpassing wild fisheries production for the first time in 2014 [@FAO2016]. Marine aquaculture, or mariculture, is seen as having particularly strong growth potential [@Merino2012]. And as mariculture technology advances, production from offshore mariculture, generally defined as occurring more than three nautical miles offshore and/or in depths of greater than 30 m [@Froehlich2017], is expected to increase [@FAO2016].  By moving to deeper waters further from the coast, offshore aquaculture could be a viable strategy to minimize aquaculture's adverse environmental and socioeconomic consequences [@Holmer2009;@Froelich2017], and production potential in the offshore realm far exceeds seafood demand for the foreseeable future [@Kapetsky2013;@Gentry2017). Despite strong arguments for offshore aquaculture development, how this growth can and should be realized requires an understanding of the sustainable and economically-viable production potential at the regional level, along with an identification of hurdles impeding development.
 
-In recent years, there has been a growing interest in aquaculture development in the Caribbean to increase food security and economic development [@VanWyk2006; @Creswell2007; @CRFM 2014; @Perez-Ramirez2017]. Currently, the Caribbean accounts for < 0.1 % of global aquaculture production, and over 88% of seafood consumed in the region is from wild capture fisheries [@FAO2016]. To meet seafood demand in the region, over 144,000 mt of seafood valued at XX $USD  is imported annually [@FAO2016]. Furthermore, seafood consumption per capita in the Caribbean is projected to increase rapidly (22%) over the next decade [@FAO2016]. Wild fisheries production in the region is unlikely to play a meaningful role in decreasing exports and/or meeting growth in demand because of overfishing, degradation of coral ecosystems, and climate change [@Burke2011;@Perez-Ramirez2017]. Aquaculture development could be an opportunity for Caribbean countries to diversify their economic activities, reduce reliance on foreign imports, provide jobs and economic security to local residents (**FAO 2002**), and to promote a seafood industry that is more resilient to the effects of climate change [@Perez-Ramirez2017]. 
+In recent years, there has been a growing interest in aquaculture development in the Caribbean to increase food security and economic development [@VanWyk2006; @Creswell2007; @CRFM 2014; @Perez-Ramirez2017]. In 2014, the Caribbean produced `r prettyNum(carib_prod, big.mark = ',')` MT of seafood, `r 100 * (carib_fish_prod / carib_prod)`% of which came from capture fisheries.  from aquaculture, accounting for < 0.1 % of the global total.  
 
-Most aquaculture efforts in the Caribbean have been directed towards land-based aquaculture of tilapia (*Oreochromis sp.*) and coastal pond aquaculture of white-legged shrimp (*Litopenaeus vannamei*) [@Lovatelli2013). However, the potential for increased production of land-based aquaculture in the Caribbean is extremely limited due to the requirements of land space, freshwater, and energy resources [@Alaverz-Lajonchere2013]. Similarly, expanded development of coastal aquaculture in the region is likely not sustainable and difficult due to conflicts over space in highly utilized and ecologically sensitive coastal areas [@Gentry2017a]. For example, coastal aquaculture can harm mangroves and coral reefs by increasing nutrient loads and causing physical damage to the habitat from farm infrastructure [@Benetti2006;@Gentry2017a], with cascading effects on marine-based tourism, the backbone of many Caribbean island economies [@Bennetti2006]. Offshore aquaculture could be a promising alternative [@Benetti2010a; @Gentry2017], and recently developed submersible cages will allow aquaculture to be developed in areas that were previously considered unsuitable due to waves, depth and/or high risk of damage from large storms and hurricanes (@Benetti2010a). Environmental conditions in the Caribbean such as relatively small seasonal fluctuations in ocean temperature and a stable water column provide ideal conditions for the offshore culture of a number of species (REF).  Small-scale trials raising cobia (*Rachycentron canadum*), pompano (*Carangidae sp*), and red drum (*Sciaenops ocellatus*) in offshore environments were successful in the Bahamas and Puerto Rico (Benetti et al. 2010). Cobia in particular has been identified as an ideal candidate species for aquaculture in tropical and subtropical regions because of its relatively fast growth rates, high market value, and tolerance for variations in salinity and temperature [@Alvares-Lajonchere2013; @Benetti2010; @Estrada2016]. The largest open ocean mariculture farm in the world, Open Blue, has been successfully culturing cobia off the Caribbean coast of Panama since xxxx.
+```{r}
+knitr::include_graphics(path = paste0(boxdir,'results/carib_seafood_production.png'))
+```
+
+
+Currently, over 88% of seafood consumed in the Caribbean is from wild capture fisheries [@FAO2016]. To meet seafood demand in the region, over 144,000 mt of seafood, valued at XX $USD, is imported annually [@FAO2016]. Furthermore, seafood consumption per capita in the Caribbean is projected to increase rapidly (22%) over the next decade [@FAO2016]. Wild fisheries production in the region is unlikely to play a meaningful role in decreasing exports and/or meeting growth in demand because of overfishing, degradation of coral ecosystems, and climate change [@Burke2011;@Perez-Ramirez2017]. Aquaculture development could be an opportunity for Caribbean countries to diversify their economic activities, reduce reliance on foreign imports, provide jobs and economic security to local residents (**FAO 2002**), and to promote a seafood industry that is more resilient to the effects of climate change [@Perez-Ramirez2017]. 
+
+Most aquaculture efforts in the Caribbean have been directed towards land-based aquaculture of tilapia (*Oreochromis sp.*) and coastal pond aquaculture of white-legged shrimp (*Litopenaeus vannamei*) [@Lovatelli2013]. However, the potential for increased production of land-based aquaculture in the Caribbean is extremely limited due to the requirements of land space, freshwater, and energy resources [@Alaverz-Lajonchere2013]. Similarly, expanded development of coastal aquaculture in the region is likely not sustainable and difficult due to conflicts over space in highly utilized and ecologically sensitive coastal areas [@Gentry2017a]. For example, coastal aquaculture can harm mangroves and coral reefs by increasing nutrient loads and causing physical damage to the habitat from farm infrastructure [@Benetti2006;@Gentry2017a], with cascading effects on marine-based tourism, the backbone of many Caribbean island economies [@Bennetti2006]. Offshore aquaculture could be a promising alternative [@Benetti2010a; @Gentry2017], and recently developed submersible cages will allow aquaculture to be developed in areas that were previously considered unsuitable due to waves, depth and/or high risk of damage from large storms and hurricanes (@Benetti2010a). Environmental conditions in the Caribbean such as relatively small seasonal fluctuations in ocean temperature and a stable water column provide ideal conditions for the offshore culture of a number of species (REF).  Small-scale trials raising cobia (*Rachycentron canadum*), pompano (*Carangidae sp*), and red drum (*Sciaenops ocellatus*) in offshore environments were successful in the Bahamas and Puerto Rico (Benetti et al. 2010). Cobia in particular has been identified as an ideal candidate species for aquaculture in tropical and subtropical regions because of its relatively fast growth rates, high market value, and tolerance for variations in salinity and temperature [@Alvares-Lajonchere2013; @Benetti2010; @Estrada2016]. The largest open ocean mariculture farm in the world, Open Blue, has been successfully culturing cobia off the Caribbean coast of Panama since xxxx.
 
 Critical knowledge gaps that hinder the development of offshore aquaculture in the Caribbean include: 1) the bioeconomic production capacity of the region (CRFM 2015), 2) how that potential varies across EEZs, and 3) what factors are currently most likely to be limiting development (e.g., biophysical conditions, regulatory environment, capital investment, expertise, etc.). Using high resolution spatial data, we develop a bioeconomic model to estimate the total production potential (in terms of weight and revenue) of offshore cobia aquaculture in the Caribbean. We examine the spatial distribution of offshore aquaculture potential to identify ‘hotspot’ locations for future development. We examine the variation of individual farm profitability between and across EEZs to determine the importance of site selection in aquaculture development and to quantify the potential benefits of strategic spatial planning.  We explore these results under several scenarios of cobia production using a supply and demand curve to set cobia market price. Our approach could be applied to other farmed species or applied to other regions, and our results can help to chart a course for a sustainable and economically prosperous offshore mariculture industry in the Caribbean.
 
@@ -157,8 +183,7 @@ tm_shape(EEZ) +
 We develop a spatial bioeconomic model to estimate the production potential (in terms of biomass (*t*) and Net Present Value (NPV)) for offshore cobia mariculture in the Caribbean region (Figure 1). The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that would be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a temperature performance curve (TPC) to predict temperature-dependent growth of cobia at each farm and we establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price and production costs. We also consider a scenario where Caribbean production affects the global price of cobia. Finally, we use our production model and estimated economic parameters to calculate Net Present Value (*NPV*) over a 10 year time horizon. We assume that only farms that have a positive NPV will be developed.
 
 ```{r,  fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
-
-#knitr::include_graphics('modelflow/modelflow2/Slide1.png')
+knitr::include_graphics('modelflow/modelflow2/Slide1.png')
 ```
 
 
@@ -210,7 +235,7 @@ where $T$ is sea surface temperature in $^\circ$C, $T_o$ is the optimal temperat
 temp_params <- data_frame(Parameter = c('Tmin',
                                         'Topt',
                                         'Tmax',
-                                        'Monthly growth rate (grams per month)',
+                                        'Monthly growth rate (g/month)',
                                         'a1','a2','b1','b2'),
                           Value = c(22,29,32,0.5,0.0714,-0.1667,-1.5714,5.3333))
 
@@ -228,7 +253,7 @@ Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is estimated using
 $$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} $$
 
 ## Bioeconomic Model
-We model future offshore aquaculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth with a detailed farm design and economic model parameterized with values from the literature and technical reports.
+We model future offshore aquaculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth with a detailed farm design and economic model parameterized with values from the literature and technical reports. For each site, we calculate the projected net present value (NPV) from the discounted stream of costs and revenues. We then limit our discussion of results to only include farms (cells) with a positive NPV under the assumption that only profitable farm locations would be developed.
 
 ### Farm Design 
 To estimate production, we assume a fixed farm design, per 1 km^2^ site, across our study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson_2004; @Xu2015].We develop a hypothetical farm design for a 1 km^2^ cell that has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell grid mooring systems that occupy a total space of approximately ~ 0.48 km^2^ and provide a total cage capacity of 102,400 m^3^ (Figure 2). The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010]. This cage configuration is similar to a 0.4 km^2^ offshore mariculture farm located off the coast of Kona, Hawaii that has an eight-cage SeaStation array with a total cage volume of 64,000 m^3^ [@Sims]. 
@@ -261,7 +286,7 @@ $$g_i = \frac{\sum_{t=1}^{120} G_{i,t}}{5~kg} $$
 The average number of months per grow out cycle ($\bar{t}_i$) is then calculated as $\bar{t}_i = \frac{120}{g_i}$. Given $\bar{t}_i$ and the target harvest of 19,200 5 kg fish, the optimal number of fingerlings ($n^*_i$) to stock can be estimated for each site $i$ as follows:
 
 $$ n^*_i = \frac{19,200}{1-(1-e)^{0.024~\bar{t}_{i}}} $$
-For a farm site with a 12 month average harvest cycle ($\bar{t}_i=12$), $n^*$ is 25,600 and equivalent to the number of fingerlings stocked at all sites in the fixed stocking scenario.
+For a farm site with a 12 month average harvest cycle ($\bar{t}_i=12$), $n^*$ is 25,600.
 
 #### Total Biomass
 Total site biomass in each month ($B_{t,i}$) is a function of the number of stocked cages $C$, initial stocking number $n_0$, and the instantenous mortality rate [@Benetti2008c]. 
@@ -316,7 +341,7 @@ pander::pandoc.table(table4,
                      caption = "Table XX: Cost parameters used in the bioeconomic model for cobia offshore aquaculture")
 ```
 
-#### Revenues
+#### Revenue
 Farms earn revenue by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w$) reaches 5 kg. In these harvest months, farm revenue is simply a function of harvest weight (kg) and cobia price ($p$), $R_{i,t} = B_{i,t}p_t$, otherwise $R_{i,t} = 0$:
 
 $$ R_{i,t} = \begin{cases} 
@@ -360,43 +385,16 @@ $$ H_{Z} = \displaystyle\sum_{z}^{Z} H_{z} $$
 
 $$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 
-## Model Scenarios 
-*(would be helpful to talk through how we want to define our base case and whether everything else should just fall under sensitivity)*
-
-First, we examine average annual production under a 'maximum production scenario', where the annual production cobia is estimated assuming all farms were developmed in all cells that were identified as suitable without economic considerations. 
-
-We also examine production and 10 year NPV under each of the following scenarios assuming only cells that are profitable after 10 years are developed:
-
-* High feed cost, country specific discount rates
-* High feed cost, discount rate fixed across all countries at 15%
-* Low feed cost, country spcific discount rates
-* Low feed cost, discount rate fixed across all countries at 15%
-
-High feed cost refers to the current cost of feed (1.65/kg), and low feed cost assumes that advances in feed technology have reduced feed costs by 10% of current feed costs (XX ). Country specific discout rates refer to the discount rates estimated based on the countries foreign investment risk. Price of cobia for the four scenarios is fixed at the current global price of $8.64/kg.  
-
-Production and 10 year NPV are examined within EEZ, across EEZs, and at the regional level under each of the 4 scenarios. Estimated production under each scenario is also compared to current seafood production (wildfisheries capture + aquaculture) and current seafood consumption in the Caribbean region. 
-
-## Sensitivity analyses 
-*(maybe we just big one 'base run from Table xx and then the rest of the sccenarios fall under Sensitivity analyses?)*
-
-Due the uncertainty of future market conditions, economic status of countries,impacts new techonological developments, and to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we perform a suite of sensitivity analyses by assuming different:
-
-* Suitable depth range
-* Demand curve/cobia price
-* Discount rates
-* Fixed stocking density (described below)
-
-### Fixed Stocking Density
-The number of fingerlings stocked in each cage is fixed at the level that achieves the target harvest density of in 12 months. Given a cage volume of 6,400 m^3^, a total survival rate of 75%, and a target harvest density of $15 \frac{kg}{m^3}$, $n_0$ is set to 25,600.
-
 # Results
 
 ## Suitability Assessment 
 
-Based on the factors and criteria described in Table 1, we find a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, round = 0) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
-```{r fig.3}
-include_graphics(path = paste0(boxdir,'results/Suitabilty/all_suitable.png'))
+Based on the factors and criteria described in Table 1, we find a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r prettyNum(percent_suitable, digits = 2) ` % of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
+
+```{r}
+knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suit_area.png'))
 ```
+
 The suitable area based on each of the factors considered in our analysis are listed in Table 5.
 *Add Table*
 
@@ -408,49 +406,44 @@ There is considerable variability in the amount of area suitable for offshore ma
 rownames(table6) <- NULL
 pander::pandoc.table(table6,
                      big.mark = ',',
+                     col.names = c('Country','Suitable area (km^2)', 'Total EEZ area (km^2)', '% suitable'),
                      round = 2,
                      digits = 2,
                       split.tables = Inf,
                      caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
 ```
 
-## Production Scenarios
+## Aquaculture Production
 
- If economic constraints are ignored and all suitable farm sites are developed, the Caribbean's potential to produce cobia from mariculture is extremely large, XXX mt annually. 
+### Biomass
+If economic constraints are ignored and all suitable farm sites are developed, the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production of XXX MT (XXX% of total current seafood production in the region). 
 
 ```{r fig , fig.cap = "Estimated total production of cobia (mt) using if all suitable areas are developed as offshore mariculture farms "}
-
 include_graphics(path = paste0(run_dir,'Figures/total_prod_map.png'))
 ```
 *will add current seafood production and consumption to this figure*
-```{r, fig.cap = "Estimated total production of cobia (mt) for our study area under each of our 5 model scenarios"}
+
+
+```{r, fig.height = 5, fig.width = 4, fig.cap = "Estimated total production of cobia (mt) for our study area under each of our 5 model scenarios"}
 include_graphics(path = paste0(run_dir,'Figures/production.png'))
 ```
-Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend, which varies across EEZs (Figure XX). .
 
-```{r fig.cap = "Average growth rate by month for each EEZ"}
+Cobia growth is a function of temperature and, in addition to the amount of suitable area avaialable, is a major factor for cobia production. Not surprisingly then, average cobia growth (kg/month/farm) shows a clear seasonal trend, which varies across EEZs (Figure XX).
 
-include_graphics(path = paste0(run_dir,'Figures/EEZ_avg_growth.png'))
-```
+As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure SX).
 
-As a result of the variability in growth rates acros the Caribbean, farms vary in the length of time require to raise cobia to a market size of 5 kg, with the median farm requiring X months to complete a harvest cycle (Figure XX).
+### Net present value
 
-```{r}
-#include_graphics(path = paste0(run_dir,'Figures/harv_length_hist.png'))
-```
-
-## NPV
-
-When evaluating cobia's mariculture potential in the Caribbean, we also considered economic constraints by using a bioeconomic model to project farm costs and revenue. For each farm, we calculate the projected net present value (NPV) from the discounted stream of costs and revenues. We then limited our discussion of results to only include farms (cells) with a positive NPV under the assumption that only profitable farm locations would be developed.
-
-For our base case scenario (country specific risk, current global price, high feed cost), 17 EEZs were profitable after 10 years, and Trinidad and Tobago had the highest NPV, followed by Jamaica.
+Given the current global price of cobia, 19 EEZs contained farms that were profitable after 10 years. Trinidad and Tobago had the highest total NPV, followed by Jamaica.
 
 ```{r}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
 ```
 
+At the farm level, the median NPV of a cobia farm in the Caribbean was `r carib_supply$median_npv[84]`, driven by high NPV farms in several countries (Figure X) 
+
 ```{r}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/Caribbean_npv_cell.png'))
+knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_cntry_ridgeplot.png'))
 ```
 
 
@@ -458,12 +451,20 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/Caribbean_npv_cell.png')
 knitr::include_graphics(path = paste0(run_dir, 'Figures/npv_scenarios_map.png'))
 ```
 
+Feed is currently the largest cost for aquaculture producers, and our findings support this conclusion (cite % and/or SI figure). Our results are based on the current cost of cobia feed (1.65/kg). However, given economic forces are driving promising advances in feed technology, we also explored results if feed costs are reduced by 10%.
+
 ```{r, fig.cap="Figure XX. Cobia supply curves under current feed cost (feed price index = 1) and a 10% reduction in feed cost (feed price index = 0.9)."}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
 
 ```
 
 ## Sensitivity Analyses
+
+Due the uncertainty of future market conditions, economic status of countries,impacts new techonological developments, and to identify the current major hurdles to the development of offshore aquaculture in the Caribbean, we perform a suite of sensitivity analyses by assuming different:
+
+* Suitable depth range
+* Discount rates
+* Lower price
 
 ## Other Figures
 
