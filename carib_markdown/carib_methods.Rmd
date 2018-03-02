@@ -14,6 +14,35 @@ bibliography: carib_aqua_16.bib
 
 ```{r setup, warning=FALSE , echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.width = 6.5)
+
+figRef <- local({
+    tag <- numeric()
+    created <- logical()
+    used <- logical()
+    function(label, caption, prefix = options("figcap.prefix"), 
+        sep = options("figcap.sep"), prefix.highlight = options("figcap.prefix.highlight")) {
+        i <- which(names(tag) == label)
+        if (length(i) == 0) {
+            i <- length(tag) + 1
+            tag <<- c(tag, i)
+            names(tag)[length(tag)] <<- label
+            used <<- c(used, FALSE)
+            names(used)[length(used)] <<- label
+            created <<- c(created, FALSE)
+            names(created)[length(created)] <<- label
+        }
+        if (!missing(caption)) {
+            created[label] <<- TRUE
+            paste0(prefix.highlight, prefix, " ", i, sep, prefix.highlight, 
+                " ", caption)
+        } else {
+            used[label] <<- TRUE
+            paste(prefix, tag[label])
+        }
+    }
+})
+
+options(figcap.prefix = "Figure", figcap.sep = ":", figcap.prefix.highlight = "**")
 ```
 
 ```{r load_run, echo=FALSE}
@@ -54,7 +83,7 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
@@ -67,13 +96,12 @@ run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
 table3<-read.csv("table2a.csv",check.names=FALSE)
 table4<-read.csv("costtable.csv",check.names=FALSE)
-#table5<-read.csv(paste0(boxdir,"results/Suitability/suit_by_variable.csv"),check.names=FALSE)
-table6<- read.csv(file = paste0(boxdir,filename = "results/Suitability/Suit_df_summary.csv"))
+suit_var_table<-read_csv(paste0(boxdir,"results/suitability/suit_by_variable.csv"))
 
-# Suitable area summary calcs
-total_suitable_area<-sum(table6$Suitable.area)
-total_study_area<-sum(table6$Total.EEZ.area)
-percent_suitable<-total_suitable_area/total_study_area*100
+suit_eez_table<- read_csv(file = paste0(boxdir,filename = "results/suitability/suit_df_summary.csv")) %>%
+  select(c(2,3,4,5))
+
+colnames(suit_eez_table)<-c("Country", "Total EEZ Area (km^2^)", "Suitable area (km^2^)","Suitable area (% of EEZ)" )
 
 # Caribbean seafood production
 carib_production <- read_csv(file = paste0(boxdir, 'data/carib_seafood_2014.csv'))
@@ -95,50 +123,11 @@ carib_fish_prod <- carib_production %>%
 # NPV results
 carib_supply <- read_csv(file = paste0(run_dir,"Results/supply_summary.csv"))
 
-# Load EEZ shapefile
-# EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
-# 
-# # Load country suitability results
-# 
-# 
-# carib_countries<-c("Anguilla Exclusive Economic Zone",
-#                    "Antigua and Barbuda Exclusive Economic Zone",
-#                    "Aruban Exclusive Economic Zone",
-#                    "Bahamas Exclusive Economic Zone",
-#                    "Barbados Exclusive Economic Zone",
-#                    "Bonaire Exclusive Economic Zone",
-#                    "British Virgin Islands Exclusive Economic Zone",
-#                    "Cayman Islands Exclusive Economic Zone",
-#                    "Curaçaoan Exclusive Economic Zone",
-#                    "Cuban Exclusive Economic Zone",
-#                    "Dominican Exclusive Economic Zone",
-#                    "Dominican Republic Exclusive Economic Zone",
-#                    "Grenadian Exclusive Economic Zone",
-#                    "Guadeloupean Exclusive Economic Zone",
-#                    "Haitian Exclusive Economic Zone",
-#                    "Jamaican Exclusive Economic Zone",
-#                    "Martinican Exclusive Economic Zone",
-#                    "Montserrat Exclusive Economic Zone",
-#                    "Puerto Rican Exclusive Economic Zone",
-#                    "Saba Exclusive Economic Zone",
-#                    "Saint-Barthélemy Exclusive Economic Zone",
-#                    "Sint-Eustatius Exclusive Economic Zone",
-#                    "Saint Kitts and Nevis Exclusive Economic Zone",
-#                    "Saint Lucia Exclusive Economic Zone",
-#                    "Saint-Martin Exclusive Economic Zone",
-#                    "Saint Vincent and the Grenadines Exclusive Economic Zone",
-#                    "Sint-Maarten Exclusive Economic Zone",
-#                    "Trinidad and Tobago Exclusive Economic Zone",
-#                    "Turks and Caicos Exclusive Economic Zone",
-#                    "Virgin Islander Exclusive Economic Zone")
-# 
-#   # load(paste(boxdir,'Suitability/results/suitability_results.Rdata',sep=""))
-
 ```
 
 # Abstract
 
-The development of marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize valuable habitats (e.g., mangroves, coral reefs, seagrass beds) and competition for coastal space can lead to conflicts with fisheries, tourism, and other uses. Farming further offshore is a possible option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore finfish aquaculture, parameterized based on cobia (*Rachycentron canadum*), and to estimate potential outcomes in terms of yields and profits under different market scenarios. We find that Caribbean nations contain `r prettyNum(total_suitable_area,big.mark=",")` km^2^ (`r round(percent_suitable, digits = 2)`%) of marine space technically feasible for cobia aquaculture and capabale of producing XX MMT of seafood, an amount roughly comparable to the total global production from capture fisheries. Accounting for spatial differences in cobia growth and production costs, we estimate the offshore cobia aquaculture production potential of the Caribbean to be `r round(carib_supply$total_supply[84] / 1e6, digits = 0)` million MT. Areas associated with the highest relative economic potential were X, X, and X. Offshore aquaculture is a capital intensive activity mediated by socioeconomic conditions, such as foreign investment risk and XX, which were found to be factors limiting production in our analysis. The results of this research can be used to help prioritize areas for offshore cobia aquaculture development and as a framework for identifying priority areas for offshore aquaculture of other species. Additionally, we discuss the future potential of the development of offshore aquaculture in the Caribbean.
+The development of marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize valuable habitats (e.g., mangroves, coral reefs, seagrass beds) and competition for coastal space can lead to conflicts with fisheries, tourism, and other uses. Farming further offshore is a possible option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore finfish aquaculture, parameterized based on cobia (*Rachycentron canadum*), and to estimate potential outcomes in terms of yields and profits under different market scenarios. We find that Caribbean nations contain r prettyNum(total_suitable_area,big.mark=",") km^2^ (r round(percent_suitable, digits = 2)%) of marine space technically feasible for cobia aquaculture and capabale of producing XX MMT of seafood, an amount roughly comparable to the total global production from capture fisheries. Accounting for spatial differences in cobia growth and production costs, we estimate the offshore cobia aquaculture production potential of the Caribbean to be `r round(carib_supply$total_supply[84] / 1e6, digits = 0)` million MT. Areas associated with the highest relative economic potential were X, X, and X. Offshore aquaculture is a capital intensive activity mediated by socioeconomic conditions, such as foreign investment risk and XX, which were found to be factors limiting production in our analysis. The results of this research can be used to help prioritize areas for offshore cobia aquaculture development and as a framework for identifying priority areas for offshore aquaculture of other species. Additionally, we discuss the future potential of the development of offshore aquaculture in the Caribbean.
 
 
 # Introduction 
@@ -147,9 +136,7 @@ Global fish production is expected to exceed 151 million tons by 2030 to meet  g
 
 In recent years, there has been a growing interest in aquaculture development in the Caribbean to increase food security and economic development [@VanWyk2006; @Creswell2007; @CRFM2014; @Perez-Ramirez2017]. In 2014, the Caribbean produced `r prettyNum(carib_prod, big.mark = ',')` MT of seafood, `r round(100 * (carib_fish_prod / carib_prod), digits = 2)`% of which came from capture fisheries. In contrast, only `r prettyNum(carib_aqua_prod, big.mark = ',', digits = 0)` MT was produced from aquaculture, accounting for < 0.1 % of the global total.  
 
-```{r}
-knitr::include_graphics(path = paste0(boxdir,'results/carib_seafood_production.png'))
-```
+
 
 
 Currently, over 88% of seafood consumed in the Caribbean is from wild capture fisheries [@FAO2016]. To meet seafood demand in the region, over 144,000 mt of seafood, valued at XX $USD, is imported annually [@FAO2016]. Furthermore, seafood consumption per capita in the Caribbean is projected to increase rapidly (22%) over the next decade [@FAO2016]. Wild fisheries production in the region is unlikely to play a meaningful role in decreasing exports and/or meeting growth in demand because of overfishing, degradation of coral ecosystems, and climate change [@Burke2011;@Perez-Ramirez2017]. Aquaculture development could be an opportunity for Caribbean countries to diversify their economic activities, reduce reliance on foreign imports, provide jobs and economic security to local residents (**FAO 2002**), and to promote a seafood industry that is more resilient to the effects of climate change [@Perez-Ramirez2017]. 
@@ -166,42 +153,13 @@ Critical knowledge gaps that hinder the development of offshore aquaculture in t
 
 Our study domain includes the territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries that comprise the Greater and Lesser Antilles of the Caribbean Sea (Figure 1). All analyses are performed at a 1 km^2^ spatial resolution. We do not consider the potential of offshore aquaculture development in the high seas or disputed waters. A shapefile from VLIZ [-@VLIZ2014] is used to define the maritime boundaries for all island countries. 
 
-```{r fig1.tmap, fig.cap="The study area for this project is indicated in blue. EEZ boundary data were obtained from VLIZ (2016)."}
-include_graphics(path = paste0(run_dir,'Figures/study_area.png'))
-```
-
-
 ## Overview
 
 We develop a spatial bioeconomic model to estimate the production potential (in terms of biomass (*t*) and Net Present Value (NPV)) for offshore cobia mariculture in the Caribbean region (Figure 1). The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that would be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a temperature performance curve (TPC) to predict temperature-dependent growth of cobia at each farm and we establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price and production costs. We also consider a scenario where Caribbean production affects the global price of cobia. Finally, we use our production model and estimated economic parameters to calculate NPV over a 10 year time horizon. We assume that only farms that have a positive NPV will be developed.
 
-```{r,  fig.cap="Model schematic for estimating cobia aquaculture production potential. Green squares indicate model inputs, blue squares indicate model components, and orange squares indicate model outputs."}
-
-#knitr::include_graphics('modelflow/modelflow2/Slide1.png')
-```
-
-
 ## Suitability Assessment 
 
 The first step in our analysis identifies areas that are potentially suitable for the development of offshore mariculture. To determine what areas are suitable, we consider six factors: depth, current speed, coral reef presence, shipping activity, oil structures, and areas designated for conservation (Table 1). 
-
-```{r table1, results='asis'}
-# Make table of suitability data layers
-tbl1 <- table1 %>%
-  rename(
-    Layer       = Spatial.Data.Layer,
-    Source      = Data.Source,
-    Description = Data.and.Analysis.Description,
-    Criteria    = Suitability.Criteria) %>%
-  dplyr::select(-Description)
-
-pander::pandoc.table(tbl1, 
-             digits = 2,
-             split.tables = Inf,
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
-```
 
 Our suitability assessment assumes the use of SeaStation cages, which are submersible, self-tensioned, single rim cages and are the most widely used offshore aquaculture cages in the U.S. [@Loverich2010]; Open Blue 2016. The minimum site depth for installation of a SeaStation cage, listed by the original manufacturer, is 25 m (OceanSpar 2013). The maximum suitable depth for cage installation for this analysis is set at 100 m because, in waters deeper than 100 m, cage installation and inspection of mooring and anchoring systems are more difficult and costly **scott_offshore_2000**; [@Kapetsky2013]. Using spatial bathymetry data for our study region, areas within a 25 - 100 m depth are scored as suitable for offshore mariculture development. Additionally, SeaStation cages are not recommended in areas with current velocities over 1 m/s (Loverich 2010). To identify areas with unsuitably high current velocities, we use 10 years (2005-2015) of  5 day average zonal and meridional current velocity. The absolute maximum zonal and meridional average daily velocities that occurred over the 10-year time period are extracted for each cell, and any cell with a maximum zonal or meridional velocity greater than 1 m/s are scored as unsuitable. To minimize the ecological impact of offshore mariculture development, we also identify as unsustainable any cells with coral reef habitat.
 
@@ -225,22 +183,7 @@ $$
 
 where $T$ is sea surface temperature in degrees C, $T_o$ is the optimal temperature for cobia growth in $^\circ$C, and $a_1$ and $a_2$ are slope parameters (kg per month per degree C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. The following values and references for temperature-growth components of cobia were adopted from Klinger, Levin, and Watson (2017), who also used a TPC to model cobia growth.
 
-```{r table2, results = 'asis'}
-temp_params <- data_frame(Parameter = c('Tmin',
-                                        'Topt',
-                                        'Tmax',
-                                        'Growth rate (g/month)',
-                                        'a1','a2','b1','b2'),
-                          Value = c(22,29,32,0.5,0.0714,-0.1667,-1.5714,5.3333))
 
-
-pander::pandoc.table(temp_params, 
-             digits = 2,
-             split.tables = Inf,
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = 'Temperature-growth parameters and linear function constants for cobia')
-```
 
 Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is estimated using the TPC for all 120 months in the SST timeseries. The 10 year ($y$) average individual growth ($\bar{G}_{i,t} $) at site $i$ is then calculated for each calendar month $t$:
 
@@ -325,15 +268,7 @@ Where 2,720 is the total monthly labor hours required at site $i$ (17 full time 
 Fingerling and feed costs ($F$) at site $i$ in month $t$ include the cost of an individual fingerling (\$2.58) times the number of fingerlings stocked in month $t$ ($n_{0,i,t}$). Feed costs are calculated based on a constant feeding strategy of 2% of total biomass and a feed price of \$1.68 per kg. Because our model operates at monthly, not daily, timesteps, we calculate total feed based on the average total biomass during month $t$  $\frac{B_{i,t} + B_{i,t-1}}{2}$.
 
 $$ F_{i,t} = 2.58n_{0,i,t} + 1.64 * 0.02(\frac{B_{i,t} + B_{i,t-1}}{2})   $$
-```{r,results='asis'}
-rownames(table4) <- NULL
-pander::pandoc.table(table4,
-                     big.mark = ',',
-                     split.tables = Inf,
-                     round = 2,
-                     digits = 2,
-                     caption = "Table XX: Cost parameters used in the bioeconomic model for cobia offshore aquaculture")
-```
+
 
 #### Revenue
 
@@ -384,8 +319,33 @@ $$ NPV_{Z} = \displaystyle\sum_{z}^{Z} NPV_{z} $$
 
 ## Suitability Assessment 
 
-Based on the factors and criteria described in Table 1, we find a total of  `r prettyNum(total_suitable_area,big.mark=",")` km^2^, or `r round(percent_suitable, digits = 2)`% of EEZ area in the Caribbean, suitable for offshore aquaculture development (Figure 3).
+```{r sum total suitable area}
 
+total_s_area<-sum(suit_eez_table$`Suitable area (km^2^)`,na.rm = TRUE)
+
+perc_total_area<-total_s_area/(sum(suit_eez_table$`Total EEZ Area (km^2^)`))*100
+
+```
+
+
+Based on the 7 factors and constraints we defined for identifying area feasible for offshore mariculture development, we find  `r prettynum(total_s_area,big.mark = "", digits = 2)`  km^2^, of area, or `r prettynum(perc_total_area, big.mark = ",", digits =2)` % our study area, suitable for the development of offshore mariculture. Depth was the most constraining factor, `r prettynum(suit_var_table$"% of Study Area"[suit_var_table$Layer=='Depth'],big.mark = "", digits = 2) % of our study area fell within a depth range suitable for maricutlure development. `r prettynum(100 - suit_var_table$"% of Study Area"[suit_var_table$Layer=='Depth'],big.mark = "", digits = 2)% of our study area was found unsuitable for mariculture development based on relative shipping activity, which was our second largest constraining factor. 
+
+ Suitable area  found in the EEZs for all countries except Martinque, St. Martin, and Guadeloupe because of there EEZ wide protected status. The Bahamas EEZ contained the largest area of ocean suitable for mariculture culture development, which can largely be attributed to it's large EEZ area ('r prettynum(suit_eez_table[1,3]/total_s_area * 100), big.mark = "", digits = 2)` % of the our total area was found in the Bahamas EEZ.
+
+
+```{r table6, results='asis'}
+rownames(suit_eez_table) <- NULL
+#suit_eez_table <- suit_eez_table %>%
+ # dplyr::select(-X)
+pander::pandoc.table(suit_eez_table,
+                     big.mark = ',',
+                     col.names = c('Country', 'Total EEZ area (km^2)', 'Suitable area (km^2)','% suitable'),
+                     round = c(0,0,0,2),
+                     digits = c(0,6,0,2),
+                      split.tables = Inf,
+                     keep.trailing.zeros = TRUE,
+                     caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
+```
 ```{r}
 knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suit_area.png'))
 ```
@@ -393,20 +353,14 @@ knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suit_area.png'))
 The suitable area based on each of the factors considered in our analysis are listed in Table 5.
 *Add Table*
 
+
+
+
 Depth is the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
 
 There is considerable variability in the amount of area suitable for offshore mariculture in Caribbean nations (Table XX). Both the Bahamas and Trinadad and Tobago have more than twice the suitable area than the country with the next largest amound of suitable area (Jamaica) 
 
-```{r table6, results='asis'}
-rownames(table6) <- NULL
-pander::pandoc.table(table6,
-                     big.mark = ',',
-                     col.names = c('Country','Suitable area (km^2)', 'Total EEZ area (km^2)', '% suitable'),
-                     round = 2,
-                     digits = 2,
-                      split.tables = Inf,
-                     caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
-```
+
 
 ### Suitable Farm Production
 
@@ -505,7 +459,67 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/eez_suitable_area.png'))
 # References 
 
 
-# Appendix
+# Supplementary Information
 
+```{r table1, results='asis'}
+# Make table of suitability data layers
+tbl1 <- table1 %>%
+  rename(
+    Layer       = Spatial.Data.Layer,
+    Source      = Data.Source,
+    Description = Data.and.Analysis.Description,
+    Criteria    = Suitability.Criteria) %>%
+  dplyr::select(-Description)
+
+pander::pandoc.table(tbl1, 
+             digits = 2,
+             split.tables = Inf,
+             # split.cells = c(15,5,120,15,10),
+             # justify = c("center","center","center","center","center"),
+             caption = "Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
+```{r table2, results = 'asis'}
+temp_params <- data_frame(Parameter = c('Tmin',
+                                        'Topt',
+                                        'Tmax',
+                                        'Growth rate (g/month)',
+                                        'a1','a2','b1','b2'),
+                          Value = c(22,29,32,0.5,0.0714,-0.1667,-1.5714,5.3333))
+
+
+pander::pandoc.table(temp_params, 
+             digits = 2,
+             split.tables = Inf,
+             # split.cells = c(15,5,120,15,10),
+             # justify = c("center","center","center","center","center"),
+             caption = 'Temperature-growth parameters and linear function constants for cobia')
+```{r  results='asis'}
+suit_var_table<-suit_var_table %>%
+  dplyr::select(-1)
+
+pander::pandoc.table(suit_var_table,
+                     big.mark = ',',
+                     col.names = c('Layer',"Suitable area (km^2)","% of Study Area"),
+                     round = 2,
+                     digits = 2,
+                      split.tables = Inf,
+                     caption = "Table XX: Estimated suitable area (km^2^ by EEZ)")
+
+```{r,results='asis'}
+rownames(table4) <- NULL
+pander::pandoc.table(table4,
+                     big.mark = ',',
+                     split.tables = Inf,
+                     round = 2,
+                     digits = 2,
+                     caption = "Table XX: Cost parameters used in the bioeconomic model for cobia offshore aquaculture")
+```
+```
+```
+```
+
+
+```{r}
+knitr::include_graphics(path = paste0(boxdir,'results/carib_seafood_production.png'))
+```
 ##removed text (just in case we need later)
 Guidelines for aquaculture development in U.S. waters of the Gulf of Mexico listed in a recent Fishery Management Plan stated that all aquaculture farms should be a minimum of 3 km apart and set a production limit of r prettyNum(Totalproduction, big.mark=",") mt for a total area of prettyNum(Totalarea,big.mark=",") km^2^ identified for aquaculture development, or r prettyNum(Productionrate,big.mark=",") mt/ km^2^. This production limit was identified as precautionary and based on historical wild fisheries capture for the region, due to lack of better methods or information on the ecological capacity of the region. To determine how this specified limit on production per unit area compared to production levels in other regions, we conducted a global assessment of production per unit of EEZ area in depths of 0 to 90 m for all EEZs. We obtained total marine aquaculture production by country, including finfish, invertebrate, and algae aquaculture production, for 2014 from FAO and calculated the total area in a depth range of 0-90 m for aquaculture by EEZ using global 1 km^2^ resolution bathymetry data from Becker *et al* [-@becker_global_2009a]. Total marine aquaculture production included finfish, invertebrates, and algae, thus we did not apply a minimum depth limit, because some these species are farmed in shallower water than is required for finfish cage culture. Although this does not allow for a direct comparison to production as modeled in our study, it provides another regional production level benchmark for comparison.
