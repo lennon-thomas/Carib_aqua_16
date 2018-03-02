@@ -90,12 +90,16 @@ no_trips <- 2 #number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
 avg_boat_spd <- 48.28    
 site_days <- 30
-disc_rate <- 0.14 # discount rate to use in addition to country specific rates. can be a vector.
+disc_rate <- 0.1 # discount rate to use in addition to country specific rates. can be a vector.
 #feed_rate <- 0.02 # feed rate is 2% body wweight Benetti et al. 2010
 
 # Load Data ---------------------------------------------------------------
-#need to break up economic data prep and sim function
 
+# load cell area data
+cell_area <- read_csv(file = paste0(boxdir, 'data/cell_area_df.csv')) %>% 
+  select(cell_no, study_area_km, suit_index)
+
+# need to break up economic data prep and sim function 
 if (econ_prep_data == TRUE){
   # Run econ data prep function
   econ <- econ_data_prep()
@@ -219,9 +223,12 @@ if (econ_prep_data == TRUE){
     countries <- countries %>% 
       left_join(risk_scores) %>% 
       mutate(risk_score  = ifelse(country == "Saint-Barthélemy", 2.2, risk_score),
+             carib_min   = min(risk_score, na.rm = T),
              brazil_diff = (2.94 - risk_score) / 2.94,
-             disc_rate   = 0.14 * (1-brazil_diff))
-      
+             disc_rate   = pmax(pmin(0.1 * (1-(1.5 - risk_score)), 0.25), 0.1)) # Using USVI as baseline for now
+
+    
+          
 # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
                                          cobia_price = cobia_price, 
@@ -229,6 +236,7 @@ if (econ_prep_data == TRUE){
                                          feed_price_index = c(1, 0.9),
                                          discount_rates = disc_rate,
                                          eezs = countries, 
+                                         area = cell_area,
                                          figure_folder = figure_folder, 
                                          result_folder = result_folder)
   
