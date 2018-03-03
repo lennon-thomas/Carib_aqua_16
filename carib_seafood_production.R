@@ -10,6 +10,8 @@
 
 # Packages
 library(tidyverse)
+library(scales)
+library(viridis)
 
 # Plot theme
 carib_theme <- function() {
@@ -74,7 +76,7 @@ aqua <- aqua %>%
          Catch = as.numeric(gsub(pattern = ' F', replacement = '',Catch)),
          Type  = 'Aquaculture') %>%
   filter(!`Country..Country.` %in% c('Totals - Quantity (tonnes)', 'Totals - Quantity (number)')) %>% 
-  mutate(Type = ifelse(Environment..Environment. == "Freshwater", "Freshwater Aquaculture", Type))
+  mutate(Type = ifelse(Environment..Environment. == "Freshwater", "Freshwater Aquaculture", "Mariculture"))
   
 # Filter out Caribbean seafood production
 carib_seafood <- fish %>% 
@@ -106,7 +108,7 @@ carib_fao_summary <- carib_seafood %>%
 
 ggplot(carib_fao_summary, aes(x = Year, 
                               y = Production_MT, 
-                              fill = fct_relevel(Type, "Aquaculture", "Freshwater Aquaculture","Fisheries"))) +
+                              fill = fct_relevel(Type, "Mariculture", "Freshwater Aquaculture","Fisheries"))) +
   geom_area() +
   scale_y_continuous(labels = comma) +
   scale_fill_viridis(discrete = T) +
