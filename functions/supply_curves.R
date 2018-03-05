@@ -10,11 +10,12 @@ supply_curves <- function(cashflow,
                           feed_price_index = c(1, 0.75),
                           discount_rates = seq(0, 0.15, by = 0.05),
                           eezs,
+                          area,
                           result_folder,
                           figure_folder) {
   
   # insert current price into vector of prices
-  prices <- c(prices, cobia_price)   
+  prices <- c(prices, cobia_price)    
   
   # Add discount rates by joining cashflow with eezs
   cashflow <- cashflow %>% 
@@ -86,7 +87,9 @@ supply_curves <- function(cashflow,
            npv               = total_disc_profit - total_disc_costs,
            eez               = as.numeric(eez)) %>%
     left_join(eez_df) %>% 
-    left_join(feed_cost_percs)
+    left_join(feed_cost_percs) %>% 
+    left_join(area %>% 
+                rename(cell = cell_no))
   
   ### Only profitable farms ###  
   
@@ -110,7 +113,9 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
-              farms         = n_distinct(cell)) %>%  # npv from all farms 
+              feed_perc     = median(feed_cost_perc, na.rm = T), 
+              farms         = n_distinct(cell),
+              area          = sum(study_area_km, na.rm = T)) %>%  # npv from all farms 
     mutate(supply_scenario = 'Profitable farms')  
   
   # Country level supply
@@ -133,7 +138,9 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
-              farms         = n_distinct(cell)) %>%  # npv from all farms
+              feed_perc     = median(feed_cost_perc, na.rm = T),
+              farms         = n_distinct(cell),
+              area          = sum(study_area_km, na.rm = T)) %>%
     mutate(supply_scenario = 'Profitable farms')
   
   ### All suitable farms ###  
@@ -155,7 +162,9 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
-              farms         = n_distinct(cell)) %>%  # npv from all farms
+              feed_perc     = median(feed_cost_perc, na.rm = T),
+              farms         = n_distinct(cell),
+              area          = sum(study_area_km, na.rm = T)) %>%  
     mutate(supply_scenario = 'All farms') 
   
   # Country level supply
@@ -176,7 +185,9 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
-              farms         = n_distinct(cell)) %>%  # npv from all farms
+              feed_perc     = median(feed_cost_perc, na.rm = T),
+              farms         = n_distinct(cell),
+              area          = sum(study_area_km, na.rm = T)) %>%  
     mutate(supply_scenario = 'All farms')
   
   # Summary Table
