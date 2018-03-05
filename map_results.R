@@ -47,23 +47,23 @@
   EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
   
   # Load suitablity results
-  s_areas<-gzfile(paste0(boxdir,"results/Suitability/suitable_areas.rds"))
+ # s_areas<-gzfile(paste0(boxdir,"results/Suitability/suitable_areas.rds"))
   
-  suit_areas<-readRDS(s_areas)
-  
-  suit_df<-read_csv(paste0(boxdir,"/results/Suitability/suitable_area_df.csv"),
-                    col_types = "iiddiic") %>%
-    dplyr::select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
-  
-  suit_df_summary<- suit_df %>%
-    group_by(country) %>%
-    summarise(suitable_area_km = round(sum(suit_area_km,na.rm = TRUE),2),
-              total_area_km = round(sum(study_area_km,na.rm =TRUE),2)) %>%
-    mutate(suitable_perc = round(suitable_area_km / total_area_km * 100,2)) %>%
-    arrange(desc(suitable_perc)) %>%
-    set_names(c("Country","Suitable area (km^2)","Total EEZ area (km^2)","Suitable area (% of EEZ)"))
+  # suit_areas<-readRDS(s_areas)
+  # 
+  # suit_df<-read_csv(paste0(boxdir,"/results/Suitability/suitable_area_df.csv"),
+  #                   col_types = "iiddiic") %>%
+  #   dplyr::select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
+  # 
+  # suit_df_summary<- suit_df %>%
+  #   group_by(country) %>%
+  #   summarise(suitable_area_km = round(sum(suit_area_km,na.rm = TRUE),2),
+  #             total_area_km = round(sum(study_area_km,na.rm =TRUE),2)) %>%
+  #   mutate(suitable_perc = round(suitable_area_km / total_area_km * 100,2)) %>%
+  #   arrange(desc(suitable_perc)) %>%
+  #   set_names(c("Country","Suitable area (km^2)","Total EEZ area (km^2)","Suitable area (% of EEZ)"))
     
-  write.csv(suit_df_summary,paste0(boxdir,"results/Suitability/suit_df_summary.csv"))       
+  suit_df_summary<-read_csv(paste0(boxdir,"results/Suitability/suit_df_summary.csv"))       
   
 # Load sim data
   
@@ -285,7 +285,7 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
     ggplot() +
       geom_polygon(data = econ_prod_cntry_disc_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
       geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-      scale_fill_viridis("10 yr NPV") +
+      scale_fill_viridis("10 yr NPV ($)") +
     #  ggtitle("(Country specific discount, High Feed Cost)") +
       theme_minimal() + 
       xlab("Longitude") +
@@ -297,7 +297,7 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
     ggplot() +
       geom_polygon(data = econ_prod_feed_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
       geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-      scale_fill_viridis("Average Annual Production (mt)") +
+      scale_fill_viridis("10 yr NPV ($)") +
      # ggtitle("(Country specific discount)") +
       theme_minimal() + 
       xlab("Longitude") +

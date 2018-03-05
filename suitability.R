@@ -286,21 +286,15 @@ country_area<-area(all_suitable,na.rm=TRUE)
 
 country_suitable<-zonal(country_area,country,fun='sum')
 
-country_suitable<-as.data.frame(country_suitable)
+country_suitable.df<-as_data_frame(country_suitable) %>%
+  mutate( names =names,
+          c_area = c_area) %>%
+  mutate(percent_eez_suitable = sum/c_area*100) %>%
+  arrange(desc(sum)) %>%
+  select(names,c_area,sum,percent_eez_suitable)
 
-percent_eez_suitable = country_suitable$sum/c_area*100
 
-country_suitable<-cbind(names,c_area,country_suitable,percent_eez_suitable) 
-
-country_suitable<-country_suitable[,-3]
-
-country_suitable<- country_suitable[order(-percent_eez_suitable),]
-
-colnames(country_suitable)<-c("EEZ","Total Area","Suitable Area","Percent Suitable")
-
-country_suitable$EEZ<-as.character(country_suitable$EEZ)
-
-write.csv(country_suitable,paste(boxdir,filename = "Suitability/results/suitable area by eez.csv",sep = ""))
+write.csv(country_suitable.df, paste0( boxdir,"results/suitability/suit_df_summary.csv"))
 
 
 #-----------------------------------------------------------------
@@ -317,7 +311,7 @@ suit_layer_df <- tibble(Layers = layer,
 
 
 
-suit_layer_df$suit_area[suit_layer_df$Layers== "Study area"]<-cellStats(study_area, stat = sum, na.rm = TRUE)
+suit_layer_df$suit_area[suit_layer_df$Layers== "Study area"]<-sum(study_area, na.rm = TRUE)
 
 
 all_suitable[all_suitable==0]<-NA
@@ -333,7 +327,8 @@ MPA<-area(MPA,na.rm =TRUE)
 suit_layer_df$suit_area[suit_layer_df$Layers== "MPA presence"]<-cellStats(MPA, stat = sum, na.rm = TRUE)
 
 
-current[current==0]<-NA
+current[current==0]<-NA)
+
 current<-area(current,na.rm = TRUE)
 suit_layer_df$suit_area[suit_layer_df$Layers== "Current speed"]<-cellStats(current, stat = sum, na.rm = TRUE)
 
@@ -353,9 +348,11 @@ final_study_area<-suit_layer_df$suit_area[1]
 
 suit_layer_df<-suit_layer_df %>%
   mutate(perc_area = suit_area[]/final_study_area*100) %>%
-  arrange(desc(perc_area))
+  arrange(desc(perc_area)) 
+ 
+   colnames(suit_layer_df)<-c("Layer","Suitable Area (km^2)","% of Study Area")
 
-write_csv(suit_layer_df,paste0(boxdir,filename = "Suitability/results/suit_by_variable.csv")
+write.csv(suit_layer_df,paste0(boxdir, "results/suitability/suit_by_variable.csv")
 
 ##Script should end here and the rest will be proceesed in results
 #-----------------------------------------------------------------
