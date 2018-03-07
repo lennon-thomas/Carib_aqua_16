@@ -50,15 +50,13 @@ library (hrbrthemes)
 library(tidyverse)
 library(knitr)
 #library(Cairo)
-library(tmap)
+#library(tmap)
 library(rgdal)
 library(pander)
 library(raster)
-library(ggmap)
-library(maptools)
-library(maps)
-#library(rworldmap)
-library(pander)
+#library(ggmap)
+#library(maptools)
+#library(maps)
 library(RefManageR)
 # data(World)
 
@@ -83,7 +81,7 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
@@ -96,7 +94,7 @@ run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
 table3<-read.csv("table2a.csv",check.names=FALSE)
 table4<-read.csv("costtable.csv",check.names=FALSE)
-suit_var_table<-read_csv(paste0(boxdir,"results/suitability/suit_by_variable.csv"))
+
 
 suit_eez_table<- read_csv(file = paste0(boxdir,filename = "results/suitability/suit_df_summary.csv")) %>%
   dplyr::select(c(2,3,4,5))
@@ -206,13 +204,7 @@ To estimate production, we assume a fixed farm design, per 1 km^2^ site, across 
 
 The total cage volume per unit of total farm area for our hypothetical farm design falls within the range of total cage volume per unit farm area for the Kona farm [@Sims] and another offshore farm using SeaStation cages in the Gulf of Maine [@Fredriksson2004]; [@DeCew2010]. Additionally, the total space occupied by the farm's infrastructure (0.48 km^2^) follows the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure.
 
-```{r table3, results='asis'}
 
-pander::pandoc.table(table3,
-             digits = 2,
-             caption = 'Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
-             split.cells = c(80,20))
-```
  
 
 ### Growth Model
@@ -330,7 +322,7 @@ Based on the 7 factors and constraints we defined for identifying area feasible 
 
 Suitable area  found in the EEZs for all countries except Martinque, St. Martin, and Guadeloupe because of there EEZ wide protected status. The Bahamas EEZ contains the largest area of ocean suitable for mariculture development (`r round(suit_eez_table[9,3]/total_s_area * 100, digits = 2)`% of all suitable area), which can largely be attributed to the large size of its EEZ.
 
-```{r table6, results='asis'}
+```{r table1, results='asis'}
 rownames(suit_eez_table) <- NULL
 #suit_eez_table <- suit_eez_table %>%
  # dplyr::select(-X)
@@ -345,12 +337,9 @@ pander::pandoc.table(suit_eez_table,
 ```
 
 
-```{r}
+```{r fig.cap = "Areas suitable for offshore mariculutre in the Caribbean"}
 knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suit_area.png'))
 ```
-
-The suitable area based on each of the factors considered in our analysis are listed in Table 5.
-*Add Table*
 
 Depth is the largest constraining factor, with less than 2% of the total study area within the suitable depth range required for deployment of offshore SeaStation cages. Deep sea mining did not eliminate any areas because currently no deep sea bed mining permits have been issued in the region. However, this may be an important factor to consider in other regions or in the future in the Caribbean. 
 
@@ -366,16 +355,13 @@ include_graphics(path = paste0(run_dir,'Figures/total_prod_map.png'))
 
 ## Bioeconomic Model Results
 
-When only farms that are profitable over a 10 year period are developed, 17 countries develop farms and produce XX mt annually.
 
-```{r fig.height = 5, fig.width = 4, fig.cap = "Total production of farms that are profitable over a 10 year period"}
-include_graphics(path = paste0(run_dir,'Figures/econ_prod_map.png'))
+
+```
 ```
 
 
-```{r fig.height = 5, fig.width = 4, fig.cap = "10 year NPV of farms that are profitable over a 10 year period" }
-include_graphics(path = paste0(run_dir,'Figures/econ_npv_map.png'))
-```
+
 
 At the farm level, the median NPV of a cobia farm in the Caribbean was `r prettyNum(main_results[6,3], big.mark = ",")`, driven by high NPV farms in several countries (Figure X) 
 
@@ -393,9 +379,8 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'
 
 A reduction in feed costs would increase production and NPV
 
-```{r, fig.height = 5, fig.width = 4, fig.cap = "Estimated total production of cobia (mt) and 10 year NPV for our study area assuming current feed price, and a reduction in feed price by 10% "}
-include_graphics(path = paste0(run_dir,'Figures/feed_prod_map.png'))
-include_graphics(path = paste0(run_dir,'Figures/feed_npv_map.png'))
+```{r fig.height = 5, fig.width = 4, fig.cap = "Total production (mt) (top) and 10 year NPV ($) (bottom) of farms that are profitable over a 10 year period at current feed prices and when cost of feed is reduced by 10%"}
+include_graphics(path = paste0(run_dir,'Figures/econ_npv_prod_map.png'))
 ```
 
 
@@ -516,7 +501,13 @@ pander::pandoc.table(table4,
                      caption = "Table XX: Cost parameters used in the bioeconomic model for cobia offshore aquaculture")
 ```
 
+```{r table3, results='asis'}
 
+pander::pandoc.table(table3,
+             digits = 2,
+             caption = 'Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
+             split.cells = c(80,20))
+```
 ```{r}
 knitr::include_graphics(path = paste0(boxdir,'results/carib_seafood_production.png'))
 ```
