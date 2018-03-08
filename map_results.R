@@ -152,7 +152,7 @@ base<- ggplot() +
         geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
         geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
         theme(legend.position="none") +
-        theme_minimal() +
+        carib_theme() +
         xlab("Longitude") +
         ylab("Latitude") +
         coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
@@ -163,7 +163,7 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
                   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
                   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
                   theme(legend.position="none") +
-                  theme_minimal() +
+                  carib_theme() +
                #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
                   xlab("Longitude") +
                   ylab("Latitude") +
@@ -188,6 +188,38 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
 
   ggsave(filename = paste0(fig_folder,'eez_suitable_area.png'), width = 12, height = 12)
 
+## Plot EEZ level suitability for just a couple of countries
+  
+  ggplot() + 
+    geom_polygon(data = subset(eez.water,Territory1 %in% c("Bahamas","Jamaica","Trinidad and Tobago")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
+    geom_polygon(data = subset(eez.land,Territory1 %in% c("Bahamas","Jamaica", "Trinidad and Tobago")),aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
+    geom_raster(data = subset(all_df,Territory1 %in% c("Bahamas","Jamaica","Trinidad and Tobago")), aes(x=long,y=lat,fill=suitable),fill="orange") +
+     #theme(legend.position="none") +
+    carib_theme() +
+    theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
+    #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+    xlab("Longitude") +
+    ylab("Latitude") +
+    facet_wrap(~Territory1,scales = "free") +
+    theme(strip.text.x = element_text(size = 12))
+  
+  ggsave(filename = paste0(fig_folder,'eez_suitable_map_zoom.png'), width = 9, height = 3)
+  
+  
+  ggplot() +
+    geom_polygon(data = subset(eez.water,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.1 , alpha = 0.5) +
+    geom_polygon(data = subset(eez.land,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+    geom_raster(data = subset(all_df,Territory1 %in% c("Haiti") & npv > 0), aes(x=long,y=lat,fill=npv)) +
+    scale_fill_viridis() +
+    #theme(legend.position="none") +
+    carib_theme() +
+    theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
+    #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+    xlab("Longitude") +
+    ylab("Latitude") +
+   
+  ggsave(filename = paste0(fig_folder,'Haiti_npv_map.png'), width = 6, height = 6)
+  
 # Production and NPV by EEZ maps  ---------------------------------------------------------
 
 # Production if don't consider economics
@@ -278,97 +310,64 @@ ggsave(paste0(fig_folder,'econ_npv_prod_map.png'), width = 12, height = 10)
 
 invest_scenario<-all_df %>%
   filter(npv>0) %>%
-  mutate(scenario_names =  ifelse(disc_scenario == "0.1" & feed_price_index == "1", "10 % discount \n Current feed cost",
-                                         ifelse (disc_scenario =="0.1" & feed_price_index == "0.9", "10 % discount \n Low feed cost",
-                                                 ifelse(disc_scenario =="cntry" & feed_price_index == "1", "Country specific discount /n High feed",
-                                                        "Country specific discount /nLow feed")))) 
+  dplyr::group_by(eez,feed_price_index, disc_scenario) %>%
+  summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
+            annual_eez_harvest = eez_harvest_mt/10,
+            total_npv = sum(npv)) %>%
+  ungroup() %>%
+  mutate(scenario_names =  ifelse(disc_scenario == "0.1" & feed_price_index == "1", "10 % discount \n Current feed price",
+                                         ifelse (disc_scenario =="0.1" & feed_price_index == "0.9", "10 % discount \n Reduced feed price",
+                                                 ifelse(disc_scenario =="cntry" & feed_price_index == "1", "Country specific discount \n Current feed price",
+                                                        "Country specific discount \n Reduced feed price")))) 
 
-ggplot(invest_scenario) +
-  geom_boxplot(aes(x = scenario_names, y= npv))
-    
-    
-  all_eez_prod<-bind_rows(econ_prod_feed,total_prod)  
-  
-  final_prod<-all_eez_prod %>%
-    group_by(scenario_names) %>%
-    summarize(total_annual_eez_harvest = sum(annual_eez_harvest))
-  
-  ggplot(final_prod,aes(x=fct_relevel(scenario_names,c("All suitable", "Low feed","High feed")),y=total_annual_eez_harvest))+
-    geom_bar(stat="identity") +
-    theme_minimal() +
-    ylab("Average Annual Harvest (mt)") +
-    xlab("Scenario") 
-  
-  
-  ggsave(paste0(fig_folder,"production.png"),width=5, height=6)
-  
+invest_scenario_sp<-left_join(invest_scenario,eez.water, by=c("eez"="MRGID")) 
 
-# Production maps and bar plots -------------------------------------------
-
-
-
-  econ_prod_cntry_disc_sp<- left_join(econ_prod_cntry_disc,eez.water, by=c("eez"="MRGID"))    
-  
-  
-  
+disc_scen_npv_map<- ggplot() + 
+  geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
+  geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+  scale_fill_viridis("10 Year NPV ($)") +
+  carib_theme() + 
+  xlab("Longitude") +
+  ylab("Latitude") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  facet_wrap(~scenario_names) +
+  theme(strip.text.x = element_text(size = 12))
  
-      ggplot() +
-      geom_polygon(data = econ_prod_cntry_disc_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
-      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-      scale_fill_viridis("Average Annual Production (mt)") +
+ggsave(paste0(fig_folder,'disc_scenario_npv_map.png'), width = 12, height = 10)    
+    
 
-      theme_minimal() + 
-      xlab("Longitude") +
-      ylab("Latitude") +
-      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
-    
-    ggsave(paste0(fig_folder,'econ_prod_map.png'), width = 6, height = 5)
-    
-    
-  
-    
-  ggplot() +
-      geom_polygon(data = econ_prod_feed_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
-      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-      scale_fill_viridis("Average Annual Production (mt)") +
 
-      theme_minimal() + 
-      xlab("Longitude") +
-      ylab("Latitude") +
-      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-      facet_wrap(~feed_price_index,nrow =2, ncol =1, labeller = label_both)
-    
-    ggsave(paste0(fig_folder,'feed_prod_map.png'), width = 6, height = 5 )
-    
-   
 
-# NPV maps ----------------------------------------------------------------
+# Map for SFG Presentaton
 
-    ggplot() +
-      geom_polygon(data = econ_prod_cntry_disc_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
-      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-      scale_fill_viridis("10 yr NPV ($)") +
-    #  ggtitle("(Country specific discount, High Feed Cost)") +
-      theme_minimal() + 
-      xlab("Longitude") +
-      ylab("Latitude") +
-      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
-    
-    ggsave(paste0(fig_folder,'econ_npv_map.png'), width = 6, height = 5)
-    
-    ggplot() +
-      geom_polygon(data = econ_prod_feed_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
-      geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-      scale_fill_viridis("10 yr NPV ($)") +
-     # ggtitle("(Country specific discount)") +
-      theme_minimal() + 
-      xlab("Longitude") +
-      ylab("Latitude") +
-      coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-      facet_wrap(~feed_price_index,nrow =2, ncol =1, labeller = label_both)
-    
-    ggsave(paste0(fig_folder,'feed_npv_map.png'), width = 6, height = 5)
-    
+disc_only<-all_df %>%
+  filter(npv>0 & feed_price_index =="1") %>%
+  group_by(eez,disc_scenario) %>%
+  summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
+            annual_eez_harvest = eez_harvest_mt/10,
+            total_npv = sum(npv)) %>%
+  ungroup() %>%
+mutate(scenario_name = ifelse( disc_scenario =="0.1", "10% discount rate","Country specific discount rate"))
+
+
+disc_only_sp<-left_join(disc_only,eez.water, by=c("eez"="MRGID"))
+
+presentation_disc_map<- ggplot() + 
+  geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
+  geom_polygon(data = disc_only_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+  scale_fill_viridis("10 Year NPV ($)") +
+  carib_theme() + 
+  xlab("Longitude") +
+  ylab("Latitude") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  facet_wrap(~scenario_name) +
+  theme(strip.text.x = element_text(size = 12))
+
+ggsave(paste0(fig_folder,'presesntation_disc_scenario_npv_map.png'), width = 12, height = 10)    
+
+
 
 # NPV maps/histograms for cntry specific discouont -----------------------------------------------------
 

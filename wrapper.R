@@ -227,7 +227,7 @@ if (econ_prep_data == TRUE){
              brazil_diff = (2.94 - risk_score) / 2.94,
              disc_rate   = pmax(pmin(0.1 * (1-(1.5 - risk_score)), 0.25), 0.1)) # Using USVI as baseline for now
 
-    
+   # write.csv(countries, paste0(boxdir,"data/country_risk_and_discount.csv"))
           
 # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
