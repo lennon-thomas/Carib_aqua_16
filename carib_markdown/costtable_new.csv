@@ -1,0 +1,27 @@
+Description,Input,Parameter,Value,Source
+Cost model parameter,Initial capital expenditures,Ei,"$4,473,547.00",Calculated based on average farm depth and capital expentiture costs in Lipton and Kim 2007 and Bezerra et al. 2016 
+Cost model parameter,Installation costs,Ii,"$52,563 ",Calculated based on average farm depth and installation costs from Bezerra et al. 2016 
+Cost model parameter,Permit/Least price,P,"$3,265.00/km2",Bezerra et al. 2016
+Cost model parameter,fuel efficiency,,3.219 km/g,Lester et al. 2018
+Cost model parameter, Fingerling price,F,$2.58/fingerling,Bezerra et al. 2016
+Cost model parameter,Feed price,F,$1.68/kg,Bezerra et al. 2016
+Cost model parameter,EEZ specific hourly wage of farm workers ,sz,Variable,See Table S3b
+Cost model parameter,EEZ specific fuel price,gz,Variable,See Table S3b
+Cost model parameter,Total costs for each farm ,Ti,Variable,Calculated in study
+Cost model parameter,Start up costs for each farm,SCi,Variable,Calculated in study
+Cost model parameter,Initial capital expenditures for each farm,Ei,Variable,Calculated in study
+Cost model parameter,Monthly operating cost for each farm,"Oci,t",Variable,Calculated in study
+Cost model parameter,Monthly labor and maintenance costs for each farm,"Li,t",Variable,Calculated in study
+Cost model parameter,Farm distance from shore ,di,Variable,Calculated in study
+Economic model parameter,Cobia price,p,$8.64/kg,Bezerra et al. 2016
+Economic model parameter,Fixed discount rate,d,10.60%,Ruiz-Campo et al. 2018
+Economic model parameter,EEZ specific disount rate,dEEZ,Variable,See Table S3b
+Farm model parameter,Number of fingerlings stocked in each farm,"noi,t",Variable,Calculated in study
+Farm model parameter,Number of stocked cages at each farm,Ci,16,Based on farm design
+Farm model parameter,Number of growout cycles per farm,Gi,Variable,Calculated in study
+Farm model parameter,Instanteous natural mortality rate,M,-0.024,Benetti et al. 2008
+Farm model parameter,Weight of indiviudal fish in  each cage each month,"wc,t,i",Variable,Calculated in study
+Economic model parameter,Monthly farm revenue,"Ri,t",Variable,Calculated in study
+Farm model parameter,Monthly biomass of cobia at each farm,"Bi,t",Variable,Calculated in study
+Economic model parameter,Total farm profit, i,Variable,Calculated in study
+Economic model parameter,Net Present Value ,NPVi,Variable,Calculated in study
