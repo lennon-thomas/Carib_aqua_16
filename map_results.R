@@ -322,11 +322,11 @@ invest_scenario<-all_df %>%
 
 invest_scenario_sp<-left_join(invest_scenario,eez.water, by=c("eez"="MRGID")) 
 
-disc_scen_npv_map<- ggplot() + 
+disc_scen_prod_map<- ggplot() + 
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-  geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("10 Year NPV ($)") +
+  scale_fill_viridis("Average Annual Production (mt)") +
   carib_theme() + 
   xlab("Longitude") +
   ylab("Latitude") +
@@ -334,12 +334,12 @@ disc_scen_npv_map<- ggplot() +
   facet_wrap(~scenario_names) +
   theme(strip.text.x = element_text(size = 12))
  
-ggsave(paste0(fig_folder,'disc_scenario_npv_map.png'), width = 12, height = 10)    
+ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
     
 
 
 
-# Map for SFG Presentaton
+# Discount scenario production map
 
 disc_only<-all_df %>%
   filter(npv>0 & feed_price_index =="1") %>%
@@ -355,9 +355,9 @@ disc_only_sp<-left_join(disc_only,eez.water, by=c("eez"="MRGID"))
 
 presentation_disc_map<- ggplot() + 
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-  geom_polygon(data = disc_only_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = disc_only_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("10 Year NPV ($)") +
+  scale_fill_viridis("Avg. Annual Production (mt)") +
   carib_theme() + 
   xlab("Longitude") +
   ylab("Latitude") +
@@ -365,7 +365,7 @@ presentation_disc_map<- ggplot() +
   facet_wrap(~scenario_name) +
   theme(strip.text.x = element_text(size = 12))
 
-ggsave(paste0(fig_folder,'presesntation_disc_scenario_npv_map.png'), width = 12, height = 10)    
+ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
 
 
 
