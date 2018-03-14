@@ -64,7 +64,7 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
@@ -190,13 +190,13 @@ The global potential for aquaculutre is large in terms of suitable area [@Gentry
 
 ## Study Region and Overview 
 
-Our study domain includes the territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries of the Caribbean Sea. We do not consider the potential for offshore aquaculture development in the high seas or disputed waters. A shapefile from VLIZ [-@VLIZ2016] is used to define the EEZ boundaries and all analyses are performed at a 1 km^2^ spatial resolution. We develop a spatial bioeconomic model to estimate the production potential, in terms of biomass (*t*) and Net Present Value (NPV), for offshore cobia mariculture in the Caribbean region. The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that may be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a thermal performance curve (TPC) to predict temperature-dependent growth and thus production of cobia at each farm. We establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price, production costs, and investment risk. Finally, we use our production model and estimated economic parameters to calculate NPV over a 10 year time horizon and examine production and revenue outcomes under the assumption that only farms that have a positive NPV will be developed.
+Our study domain includes the territorial waters and Exclusive Economic Zones (EEZs) surrounding the 28 island countries of the Caribbean Sea. We do not consider the potential for offshore aquaculture development in the high seas or disputed waters. EEZ boundaries for the 28 island countries in our study are are defined using data from Flanders Marine Institute [-@FlandersMarineInstitute2018] and all analyses are performed at a 1 km^2^ spatial resolution. We develop a spatial bioeconomic model to estimate the production potential, in terms of biomass (*t*) and Net Present Value (NPV), for offshore cobia mariculture in the Caribbean region. The first steps of our analysis are to identify 1 km^2^ sites throughout the study region that may be suitable for mariculture development and create a hypothetical farm design to apply to all suitable sites. Next, we apply a thermal performance curve (TPC) to predict temperature-dependent growth and thus production of cobia at each farm. We establish supply curves to determine national and Caribbean-wide cobia production that would be achieved under several scenarios of cobia price, production costs, and investment risk. Finally, we use our production model and estimated economic parameters to calculate NPV over a 10 year time horizon and examine production and revenue outcomes under the assumption that only farms that have a positive NPV will be developed.
 
 ## Suitability Assessment 
 
 We identified areas that are potentially suitable for the development of offshore mariculture in the Caribbean by considering factors related to technical feasibility, environmental impacts, and current ocean uses (Table S1). We defined suitable thresholds for each factor and used high resolution spatial data in a Boolean overlay to identify 1 km^2^ areas in our study region that are potentially suitable for offshore mariculture development given the defined thresholds.
 
-We use physical specifications listed by the manufacture of SeaStation cages to define our thresholds for areas that are technically feasible for offshore maricuture. SeaStation cages are submersible, self-tensioned, single rim cages and are currently the most widely used offshore mariculture cages in the U.S.  [@Loverich2010]; Open Blue 2016). The minimum site depth for installation of a SeaStation cage is 25 m and the cages are not recommended for areas that experience current velocities exceeding 1 m/s [@OceanSpar2013]. We assume the maximum depth threshold for suitable areas is 100 m because cage installation and inspection of mooring and anchoring systems becomes more difficult and costly in depths > 100 **scott_offshore_2000**; [@Kapetsky2013]. We use spatial bathymetry data from XX and determine the absolute maximum zonal and meridional current velcocities using data on daily averages over a 10-year period (2005 - 2015) from XX  to identify areas that are technically feasible for offshore maricuture development. 
+We use physical specifications listed by the original manufacture of SeaStation cages to define our thresholds for areas that are technically feasible for offshore maricuture. SeaStation cages are submersible, self-tensioned, single rim cages and are currently the most widely used offshore mariculture cages in the U.S.  [@Loverich2010]. The minimum site depth for installation of a SeaStation cage is 25 m and the cages are not recommended for areas that experience current velocities exceeding 1 m/s [@OceanSpar2013]. We assume the maximum depth threshold for suitable areas is 100 m because cage installation and inspection of mooring and anchoring systems becomes more difficult and costly in depths > 100 [@Kapetsky2013]. We use spatial bathymetry data from  Becker et al [-@Becker2009] to identify areas within a suitable depth range and determine the absolute maximum zonal and meridional current velcocities using data on daily averages over a 10-year period (2005 - 2015) from ESR [-@ESR2009] 15to identify areas that are technically feasible for offshore maricuture development. 
 
 Offshore mariculture farms can be associated with increased nutrient levels in the water column and along the benthos from fish waste in the vicinity of the cages (REF). Nutrient pollution from fish farms can be associated with algal blooms, reduced water quality and clarity, and low oxygen conditions, all of which can be damaging to coral reef ecosystems (Ref). Using data from [-@UNEP-WCMC2010] on locations of coral reef habitat, we excluded these areas from offshore mariculture development. Additionally, we excluded areas within designated marine protected areas (MPAs) and conservation priority areas [@IUCN2017]. 
 
@@ -222,8 +222,6 @@ Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is estimated using
 
 $$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} $$
 
-## Bioeconomic Model
-
 We model offshore aquaculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth from the TPC model with a detailed farm design and economic model parameterized with values from the literature and technical reports. For each site, we calculate the projected net present value (NPV) over a 10 year period from the discounted stream of costs and revenues. We then limit our discussion of results to only include farms (1 km^2^ sites) with a positive NPV under the assumption that only profitable farm locations would be developed.
 
 To estimate production, we assume a fixed farm design, per 1 km^2^ site, that we apply across the study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson_2004; @Xu2015]. The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010]. We develop a farm design for a 1 km^2^ area using the total cage volume to farm area ratio of offshore mariculture farms currently operating off the coast of Kona, Hawaii [@Sims] and the Gulf of Maine [@Fredrisson2004]. Our hypothetical farm has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell grid mooring systems, for a total cage volume of 102,400 m^3^ per individual farm. The infrastructure of the farm has a footprint of  ~0.48 km^2^, which meets the guidelines issued in NOAA's Fishery Management Plan (FMP) for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
@@ -246,7 +244,7 @@ The average number of months per grow out cycle ($\bar{t}_i$) is then calculated
 
 $$ n^*_i = \frac{19,200}{1-(1-e)^{0.024~\bar{t}_{i}}} $$
 
-Total site biomass in each month ($B_{t,i}$) is a function of the number of stocked cages $C$, initial stocking number $n_0$, and the instantaneous mortality rate [@Benetti2008c]. 
+Total site biomass in each month ($B_{t,i}$) is a function of the number of stocked cages $C$, initial stocking number $n_0$, and the instantaneous mortality rate: 
 
 $$ B_{i,t} =  \displaystyle\sum_{c = 1}^{C} w_{c,t,i} n_{0,i} - n_{0,i} (1-e)^{-0.024~t} $$
 
@@ -260,7 +258,7 @@ Some parameters were fixed across our study region (Table S3a) while others are 
 
 $$ SC_i =  E_i(m_i) + I_i(m_i) + P_{z} $$
 
-Initial capital expenditures ($E$) include the cost of 16 SeaStation fish cages (\$269,701 each) plus the cost of one 16-m-long support vessel and two 7-m-long motorboats. Installation costs ($I$) include the labor costs for installing the culture system. A 10% increase in cage and installation costs are assigned to sites with depths greater than 50 m to account for a more complex and time consuming installation procedure in deeper water [@Lester2017]. Operating costs are organized in two main categories: farm labor and maintenance costs as a function of site depth, EEZ-specific hourly salary, and fuel costs ($L_{i,t}(s_z,d_i,g_z)$), and costs associated with purchasing and feeding stocked fish $F_{i,t}$ 
+Initial capital expenditures ($E$) include the cost of 16 SeaStation fish cages (\$269,701 each) plus the cost of one 16-m-long support vessel and two 7-m-long motorboats. Installation costs ($I$) include the labor costs and equitment required for installing the culture system. A 10% increase in cage and installation costs are assigned to sites with depths greater than 50 m to account for a more complex and time consuming installation procedure in deeper water [@Lester2018]. Operating costs are organized in two main categories: farm labor and maintenance costs as a function of site depth, EEZ-specific hourly salary, and fuel costs ($L_{i,t}(s_z,d_i,g_z)$), and costs associated with purchasing and feeding stocked fish $F_{i,t}$ 
 
 $$ OC_{i,t} = L_{i,t}(s_z,d_i,g_z) + F_{i,t}(n_{0,i,t}) $$
 
@@ -372,11 +370,42 @@ Feed is well known to account for the largest portion of operating costs in aqua
 knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
 ```
 
-**INSERT SUMMARY TABLE OF ALL THREE SCENARIO RESULTS**
+```{r}
+results_summary<-carib_supply %>%
+  filter(supply_scenario == "Profitable farms") %>%
+  select(country, disc_scenario, feed_price_index,total_supply,total_npv) %>%
+  mutate(scenario = ifelse (disc_scenario == "0.1" & feed_price_index == 1, "Scenario 1 ",
+                         ifelse(disc_scenario == "0.1" & feed_price_index == 0.9, "Scenario 2 ",
+                            ifelse(disc_scenario == "cntry" & feed_price_index == 1, "Scenario 3 ",
+                               "Scenario 4 ")))) %>%
+  select(country,total_supply,total_npv,scenario) %>%
+  gather(variable,value,(2:3)) %>%
+  unite(temp,scenario,variable) %>%
+  spread(temp,value) %>%
+  select(1,3,5,7,2,4,6) #removing country discount and reduced feed scenario
+
+# 
+# kable(results_summary) %>%
+#  # kable_styling(c("striped", "bordered")) %>%
+#   add_header_above(c( "Current Feed Cost" = 1, "Reduced Feed Cost" = 1, "Current Feed Cost" =1)) %>%
+#   add_header_above(c(" ", "10 % Discount rate" = 2, "Country Specific Discount Rate" = 1, "10 % Discount rate" = 2,"Country Specific Discount Rate" = 1)) %>%
+#   add_header_above(c(" ", "Total Supply (mt)" = 3, "Total NPV (mt)"))
+
+
+
+
+```
 
 # Discussion 
 
 The total annual production of `r round(main_results[15,2] / 1e6 / 10, digits = 1)` MMT possible from all suitable areas in the Caribbean is two orders of magnitude larger than total current seafood production in the region (~300,000 MT) and approximately equal to the total annual harvest from the world's capture fisheries (~80 MMT). Impressively, this output requires just `r round(main_results[2,2], digits = 2)`% of the Caribbean's marine space, a result similar to that of [-@Gentry2017] who estimated that current total landings could be produced from 0.015% of global ocean area. In fact, the Caribbean could match its current seafood production using just `r round(sum(supply_replace$area), digits = 1)` km^2^ (`r round(100* sum(supply_replace$area) / 2966271, digits = 3)`%) of its marine space. 
+
+-	We should then return to the three questions posed at the end of the intro and maybe spend a paragraph talking about each, particularly in the context of “charting an aquaculture future for the Caribbean.”  The last question is about barriers to development, which is where we could spend some time talking about Bess results.  We still may want to consider integrating her work into the methods and results as well, unless you think the paper is better and tighter as is. 
+-	Other topics we could cover:
+o	Model/analysis caveats: things we could have done better; where we are most uncertain about assumptions or parameter values
+o	Applicability of model to other species or other locations
+o	How our results could be used to guide policy and investment in the region
+
 
 # References 
 
