@@ -65,6 +65,24 @@ dense_df1 <- pos_npv %>%
          carib_supply = median(total_harvest, na.rm = T)) %>% 
   ungroup()
 
+# Find how many farms are required to match current annual Caribbean production (330,000 MT) and imports (144,000 MT)
+# Use only profitable farms and divide total production by 10 for annual estimate
+supply_replace <- main_npv %>% 
+  ungroup() %>% 
+  select(cell, country, total_harvest, study_area_km) %>% 
+  arrange(desc(total_harvest)) %>% 
+  mutate(harvest_per_yr_mt = total_harvest / 1e3 / 10,
+         all_supply = cumsum(harvest_per_yr_mt)) %>% 
+  filter(all_supply <= 331000) %>% 
+  mutate(replace_domestic = TRUE,
+         replace_imports  = ifelse(all_supply <= 144000, TRUE, FALSE)) %>% 
+  group_by(country, replace_domestic, replace_imports) %>% 
+  summarize(area   = sum(study_area_km, na.rm = T),
+            supply = sum(harvest_per_yr_mt, na.rm = T))
+
+# save results of caribbean supply/import replacement 
+write_csv(supply_replace, path = paste0(result_folder, '/supply_replace_results.csv'))
+
 # NPV Plots ---------------------------------------------------------------
 
 # boxplot of farm NPV by EEZ
@@ -133,6 +151,7 @@ supply_plot_df <- npv_df %>%
 intercepts <- supply_plot_df %>% 
   filter(prices == 8.62)
 
+# Plot supply curves
 supply_plot_df %>%
   filter(total_supply > 0 & disc_scenario == "0.1") %>% 
   ggplot(aes(y = prices, x = total_supply, color = factor(feed_price_index))) +

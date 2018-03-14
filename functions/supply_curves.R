@@ -171,7 +171,7 @@ supply_curves <- function(cashflow,
   eez_supply_all_suit <- npv_df %>%
     group_by(cell) %>%
     filter(month == max(month)) %>%
-    mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e3)) %>% # supply converted from kg to MT
+    mutate(supply = total_harvest / 1e3) %>% # supply converted from kg to MT
     group_by(country, prices, disc_scenario, feed_price_index) %>%
     summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
               min_supply    = min(supply, na.rm = T),
