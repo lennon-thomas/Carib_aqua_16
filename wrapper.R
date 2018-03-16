@@ -37,7 +37,7 @@ source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 
-run_name = '2018-02-27_est'
+run_name = '2018-03-15_est'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -97,7 +97,7 @@ disc_rate <- 0.1 # discount rate to use in addition to country specific rates. c
 
 # load cell area data
 cell_area <- read_csv(file = paste0(boxdir, 'data/cell_area_df.csv')) %>% 
-  select(cell_no, study_area_km, suit_index)
+  dplyr::select(cell_no, study_area_km, suit_index)
 
 # need to break up economic data prep and sim function 
 if (econ_prep_data == TRUE){
@@ -230,7 +230,7 @@ if (econ_prep_data == TRUE){
 # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
                                          cobia_price = cobia_price, 
-                                         prices = c(5:12),
+                                         prices = c(6, 6.5, 7, 7.5, 8, 9, 9.5, 10),
                                          feed_price_index = c(1, 0.9),
                                          discount_rates = disc_rate,
                                          eezs = countries, 
@@ -263,9 +263,7 @@ if (econ_prep_data == TRUE){
 # Save text file documenting run settings ---------------------------------
 
 # Write text file that includes run info- may want to add more to this (like price) later
-date <- Sys.Date() 
-
-cat(paste0("Date: ", date),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n")
+cat(paste0("Date: ", Sys.Date()),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n")
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 cat(paste0("Fix_int_stock? ",fix_int_stock),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)   
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)

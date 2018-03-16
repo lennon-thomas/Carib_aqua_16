@@ -85,11 +85,12 @@ supply_curves <- function(cashflow,
     mutate(total_disc_profit = cumsum(disc_profit),
            total_harvest     = sum(harvest, na.rm = T),
            npv               = total_disc_profit - total_disc_costs,
+           annuity = (disc_rate * npv) / (1 - (1 + disc_rate)^-10),
            eez               = as.numeric(eez)) %>%
     left_join(eez_df) %>% 
     left_join(feed_cost_percs) %>% 
     left_join(area %>% 
-                rename(cell = cell_no))
+                rename(cell = cell_no)) 
   
   ### Only profitable farms ###  
   
@@ -97,25 +98,32 @@ supply_curves <- function(cashflow,
   carib_supply <- npv_df %>%
     group_by(cell) %>%
     filter(month == max(month)) %>%
-    mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e3), # supply = 0 if NPV is negative, otherwise convert from kg to MT
-           npv    = ifelse(npv < 0, 0, npv)) %>% # npv set to 0 for non profitable farms
+    mutate(supply  = ifelse(npv < 0, 0, total_harvest / 1e3), # supply = 0 if NPV is negative, otherwise convert from kg to MT
+           npv     = ifelse(npv < 0, 0, npv), # npv set to 0 for non profitable farms
+           annuity = ifelse(annuity < 0 , 0, annuity)) %>% # set annuity to zero for non profitable farms
     filter(npv > 0) %>%
     group_by(prices, disc_scenario, feed_price_index) %>%
-    summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
-              min_supply    = min(supply, na.rm = T),
-              max_supply    = max(supply, na.rm = T),
-              top95_supply  = quantile(supply, probs = 0.95, na.rm = T),
-              median_supply = median(supply, na.rm = T),
-              var_supply    = var(supply, na.rm = T),
-              total_npv     = sum(npv, na.rm = T),
-              min_npv       = min(npv, na.rm = T),
-              max_npv       = max(npv, na.rm = T),
-              top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
-              median_npv    = median(npv, na.rm = T),
-              var_npv       = var(npv, na.rm = T),
-              feed_perc     = median(feed_cost_perc, na.rm = T), 
-              farms         = n_distinct(cell),
-              area          = sum(study_area_km, na.rm = T)) %>%  # npv from all farms 
+    summarize(total_supply   = sum(supply, na.rm = T), # supply only from profitable farms
+              min_supply     = min(supply, na.rm = T),
+              max_supply     = max(supply, na.rm = T),
+              top95_supply   = quantile(supply, probs = 0.95, na.rm = T),
+              median_supply  = median(supply, na.rm = T),
+              var_supply     = var(supply, na.rm = T),
+              total_npv      = sum(npv, na.rm = T),
+              min_npv        = min(npv, na.rm = T),
+              max_npv        = max(npv, na.rm = T),
+              top95_npv      = quantile(npv, probs = 0.95, na.rm = T),
+              median_npv     = median(npv, na.rm = T),
+              var_npv        = var(npv, na.rm = T),
+              total_annuity  = sum(annuity, na.rm = T),
+              min_annuity    = min(annuity, na.rm = T),
+              max_annuity    = max(annuity, na.rm = T),
+              top95_annuity  = quantile(annuity, probs = 0.95, na.rm = T),
+              median_annuity = median(annuity, na.rm = T),
+              var_annuity    = var(annuity, na.rm = T),
+              feed_perc      = median(feed_cost_perc, na.rm = T), 
+              farms          = n_distinct(cell),
+              area           = sum(study_area_km, na.rm = T)) %>%  # npv from all farms 
     mutate(supply_scenario = 'Profitable farms')  
   
   # Country level supply
@@ -123,7 +131,8 @@ supply_curves <- function(cashflow,
     group_by(cell) %>%
     filter(month == max(month)) %>%
     mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e3), # supply = 0 if NPV is negative, otherwise convert from kg to MT
-           npv    = ifelse(npv < 0, 0, npv)) %>% # npv set to 0 for non profitable farms
+           npv    = ifelse(npv < 0, 0, npv),  # npv set to 0 for non profitable farms
+           annuity = ifelse(annuity < 0 , 0, annuity)) %>% # set annuity to zero for non profitable farms
     group_by(country, prices, disc_scenario, feed_price_index) %>%
     filter(npv > 0) %>%
     summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
@@ -138,6 +147,12 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
+              total_annuity  = sum(annuity, na.rm = T),
+              min_annuity    = min(annuity, na.rm = T),
+              max_annuity    = max(annuity, na.rm = T),
+              top95_annuity  = quantile(annuity, probs = 0.95, na.rm = T),
+              median_annuity = median(annuity, na.rm = T),
+              var_annuity    = var(annuity, na.rm = T),
               feed_perc     = median(feed_cost_perc, na.rm = T),
               farms         = n_distinct(cell),
               area          = sum(study_area_km, na.rm = T)) %>%
@@ -148,7 +163,7 @@ supply_curves <- function(cashflow,
   carib_supply_allsuit <- npv_df %>%
     group_by(cell) %>%
     filter(month == max(month)) %>%
-    mutate(supply = total_harvest / 1e3) %>% # supply converted from kg to MT
+    mutate(supply  = total_harvest / 1e3) %>%  # supply converted from kg to MT
     group_by(prices, disc_scenario, feed_price_index) %>%
     summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
               min_supply    = min(supply, na.rm = T),
@@ -162,6 +177,12 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
+              total_annuity  = sum(annuity, na.rm = T),
+              min_annuity    = min(annuity, na.rm = T),
+              max_annuity    = max(annuity, na.rm = T),
+              top95_annuity  = quantile(annuity, probs = 0.95, na.rm = T),
+              median_annuity = median(annuity, na.rm = T),
+              var_annuity    = var(annuity, na.rm = T),
               feed_perc     = median(feed_cost_perc, na.rm = T),
               farms         = n_distinct(cell),
               area          = sum(study_area_km, na.rm = T)) %>%  
@@ -171,7 +192,7 @@ supply_curves <- function(cashflow,
   eez_supply_all_suit <- npv_df %>%
     group_by(cell) %>%
     filter(month == max(month)) %>%
-    mutate(supply = total_harvest / 1e3) %>% # supply converted from kg to MT
+    mutate(supply  = total_harvest / 1e3) %>%  # supply converted from kg to MT 
     group_by(country, prices, disc_scenario, feed_price_index) %>%
     summarize(total_supply  = sum(supply, na.rm = T), # supply only from profitable farms
               min_supply    = min(supply, na.rm = T),
@@ -185,6 +206,12 @@ supply_curves <- function(cashflow,
               top95_npv     = quantile(npv, probs = 0.95, na.rm = T),
               median_npv    = median(npv, na.rm = T),
               var_npv       = var(npv, na.rm = T),
+              total_annuity  = sum(annuity, na.rm = T),
+              min_annuity    = min(annuity, na.rm = T),
+              max_annuity    = max(annuity, na.rm = T),
+              top95_annuity  = quantile(annuity, probs = 0.95, na.rm = T),
+              median_annuity = median(annuity, na.rm = T),
+              var_annuity    = var(annuity, na.rm = T),
               feed_perc     = median(feed_cost_perc, na.rm = T),
               farms         = n_distinct(cell),
               area          = sum(study_area_km, na.rm = T)) %>%  

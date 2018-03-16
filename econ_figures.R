@@ -33,7 +33,7 @@ user <- 'tyler'
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
 
-run_name = '2018-02-27_est'  
+run_name = '2018-03-15_est'  
 
 # Load run results 
 result_folder <- paste0(boxdir,'results/',run_name,"/Results")
@@ -56,13 +56,17 @@ main_npv <- filter(pos_npv, prices == 8.62 & disc_scenario == 0.1 & feed_price_i
 # Country total NPV and farms 
 dense_df1 <- pos_npv %>%
   group_by(country, prices, disc_scenario, feed_price_index) %>% 
-  mutate(total_npv = sum(npv, na.rm = T),
-         farms     = length(unique(cell)),
-         npv_cv    = raster::cv(npv, na.rm = T),
-         npv_cv    = ifelse(npv_cv > 60, 60, npv_cv)) %>% 
+  mutate(total_npv     = sum(npv, na.rm = T),
+         total_annuity = sum(annuity, na.rm = T),
+         farms         = length(unique(cell)),
+         npv_cv        = raster::cv(npv, na.rm = T),
+         npv_cv        = ifelse(npv_cv > 60, 60, npv_cv),
+         annuity_cv    = raster::cv(annuity, na.rm = T),
+         annuity_cv    = ifelse(annuity_cv > 60, 60, annuity_cv)) %>% 
   group_by(prices, disc_scenario, feed_price_index) %>% 
-  mutate(carib_npv    = median(npv, na.rm = T),
-         carib_supply = median(total_harvest, na.rm = T)) %>% 
+  mutate(carib_npv     = median(npv, na.rm = T),
+         carib_annuity = median(annuity, na.rm = T),
+         carib_supply  = median(total_harvest, na.rm = T)) %>% 
   ungroup()
 
 # Find how many farms are required to match current annual Caribbean production (330,000 MT) and imports (144,000 MT)
@@ -88,16 +92,17 @@ write_csv(supply_replace, path = paste0(result_folder, '/supply_replace_results.
 # boxplot of farm NPV by EEZ
 bpA <- dense_df1 %>%
   filter(prices == 8.62 & disc_scenario == 0.1 & feed_price_index == 1) %>% 
-  ggplot(aes(x = fct_reorder(country, npv, fun = 'median'), y = npv / 1e6, color = farms)) +
+  ggplot(aes(x = fct_reorder(country, annuity, fun = 'median'), y = annuity, color = farms)) +
   geom_boxplot() +
   scale_color_gradientn(name = 'Farms', trans = 'log10',
                        breaks = c(10, 100, 1000, 10000), labels = c(10, 100, 1000, 10000),
                        colors = viridis(100)) +
-  geom_hline(aes(yintercept = carib_npv / 1e6), linetype = 2, color = 'red') +
+  scale_y_continuous(labels = comma) +
+  geom_hline(aes(yintercept = carib_annuity), linetype = 2, color = 'red') +
   coord_flip() +
   guides(color = F) +
   labs(x = 'Country',
-       y = 'NPV ($USD, millions)') +
+       y = 'Annuity ($USD)') +
   carib_theme() 
 
 ggsave(filename = paste0(figure_folder, '/npv_cntry_boxplot.png'), width = 6, height = 8)
@@ -105,12 +110,13 @@ ggsave(filename = paste0(figure_folder, '/npv_cntry_boxplot.png'), width = 6, he
 # boxplot of farm supply by EEZ
 bpB <- dense_df1 %>% 
   filter(prices == 8.62 & disc_scenario == 0.1 & feed_price_index == 1) %>% 
-  ggplot(aes(x = fct_reorder(country, npv, fun = 'median'), y = total_harvest / 1e3, color = farms)) +
+  ggplot(aes(x = fct_reorder(country, annuity, fun = 'median'), y = total_harvest / 1e3, color = farms)) +
   geom_boxplot() +
   scale_color_gradientn(name = 'Farms', trans = 'log10', 
                         breaks = c(10, 100, 1000, 10000), labels = c(10, 100, 1000, 10000),
                         colors = viridis(100)) +
   geom_hline(aes(yintercept = carib_supply / 1e3), linetype = 2, color = 'red') +
+  scale_y_continuous(labels = comma) +
   coord_flip() +
   labs(x = 'Country',
        y = 'Annual supply (MT)') +
@@ -145,59 +151,74 @@ supply_plot_df <- npv_df %>%
   mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e3 / 10)) %>%  # supply = 0 if NPV is negative
   group_by(prices, disc_scenario, feed_price_index) %>%
   summarize(total_supply  = sum(supply, na.rm = T)) %>%  # supply
-  ungroup()
+  ungroup() %>% 
+  filter(total_supply > 0 & disc_scenario == "0.1") %>% 
+  mutate(scenario = ifelse(feed_price_index == 1, "Current", "10% feed price\nreduction")) %>% 
+  bind_rows(supply_plot_df %>%
+              filter(total_supply > 0 & disc_scenario == "cntry" & feed_price_index == 1) %>% 
+              mutate(scenario = 'Investment risk'))
 
 # Find supply curve intercepts
 intercepts <- supply_plot_df %>% 
-  filter(prices == 8.62)
+  filter(prices == 8.62) %>% 
+  mutate(total_supply = total_supply / 1e6) # convert to millions of metric tons
 
 # Plot supply curves
 supply_plot_df %>%
-  filter(total_supply > 0 & disc_scenario == "0.1") %>% 
-  ggplot(aes(y = prices, x = total_supply, color = factor(feed_price_index))) +
+  ggplot(aes(y = prices, x = total_supply / 1e6, color = scenario)) +
   geom_line() +
   geom_hline(yintercept = 8.62, linetype = 2, color = 'grey50') +
   geom_segment(aes(y = 0, yend = 8.62,
-                   x = total_supply[prices == 8.62 & feed_price_index == 1],
-                   xend = total_supply[prices == 8.62 & feed_price_index == 1]),
+                   x = total_supply[prices == 8.62 & scenario == 'Current'] / 1e6,
+                   xend = total_supply[prices == 8.62 & scenario == 'Current'] / 1e6),
                linetype = 2, color = 'grey50') +
   geom_segment(aes(y = 0, yend = 8.62,
-                   x = total_supply[prices == 8.62 & feed_price_index == 0.9],
-                   xend = total_supply[prices == 8.62 & feed_price_index == 0.9]),
+                   x = total_supply[prices == 8.62 & scenario == 'Investment risk'] / 1e6,
+                   xend = total_supply[prices == 8.62 & scenario == 'Investment risk'] / 1e6),
                linetype = 2, color = 'grey50') +
-  coord_cartesian(ylim = c(5,12)) +
+  geom_segment(aes(y = 0, yend = 8.62,
+                   x = total_supply[prices == 8.62 & scenario == '10% feed price\nreduction'] / 1e6,
+                   xend = total_supply[prices == 8.62 & scenario == '10% feed price\nreduction'] / 1e6),
+               linetype = 2, color = 'grey50') +
+  coord_cartesian(ylim = c(min(supply_plot_df$prices),max(supply_plot_df$prices))) +
   scale_y_continuous(breaks = unique(supply_plot_df$prices),
                      labels = unique(supply_plot_df$prices)) +
-  scale_color_brewer(palette = 'Set1', labels = c('10% reduction', 'Current')) +
+  scale_color_manual(values = c("#4DAF4A", "#377EB8", "#E41A1C")) +
   labs(y     = 'Cobia price ($US/kg)',
-       x     = 'Caribbean Supply (MT)',
-       color = 'Feed price') +
+       x     = 'Caribbean Supply (MMT)',
+       color = 'Scenario') +
   carib_theme() +
   theme(panel.grid.minor = element_blank())
 
 ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 4)
 
-supply_plot_df %>%
-  filter(total_supply > 0 & feed_price_index == 1) %>% 
-  ggplot(aes(y = prices, x = total_supply, color = disc_scenario)) +
-  geom_line() +
-  geom_hline(yintercept = 8.62, linetype = 2, color = 'grey50') +
-  # geom_segment(aes(y = 0, yend = 8.62,
-  #                  x = total_supply[prices == 8.62 & feed_price_index == 1],
-  #                  xend = total_supply[prices == 8.62 & feed_price_index == 1]),
-  #              linetype = 2, color = 'grey50') +
-  # geom_segment(aes(y = 0, yend = 8.62,
-  #                  x = total_supply[prices == 8.62 & feed_price_index == 0.9],
-  #                  xend = total_supply[prices == 8.62 & feed_price_index == 0.9]),
-  #              linetype = 2, color = 'grey50') +
-  coord_cartesian(ylim = c(5,12)) +
-  scale_y_continuous(breaks = unique(supply_plot_df$prices),
-                     labels = unique(supply_plot_df$prices)) +
-  scale_color_brewer(palette = 'Set1', labels = c('10% discount\nrate','Investment risk')) +
-  labs(y     = 'Price ($US/kg)',
-       x     = 'Caribbean Supply (MT)',
-       color = 'Investment\nscenario') +
-  carib_theme() +
-  theme(panel.grid.minor = element_blank())
-
-ggsave(filename = paste0(figure_folder,'/carib_supply_curves_invest.png'), width = 5, height = 4)
+# supplyB <- supply_plot_df %>%
+#   filter(total_supply > 0 & feed_price_index == 1) %>% 
+#   ggplot(aes(y = prices, x = total_supply / 1e6, color = disc_scenario)) +
+#   geom_line() +
+#   geom_hline(yintercept = 8.62, linetype = 2, color = 'grey50') +
+#   geom_segment(aes(y = 0, yend = 8.62,
+#                    x = total_supply[prices == 8.62 & disc_scenario == "0.1"] / 1e6,
+#                    xend = total_supply[prices == 8.62 & disc_scenario == "0.1"] / 1e6),
+#                linetype = 2, color = 'grey50') +
+#   geom_segment(aes(y = 0, yend = 8.62,
+#                    x = total_supply[prices == 8.62 & disc_scenario == "cntry"] / 1e6,
+#                    xend = total_supply[prices == 8.62 & disc_scenario == "cntry"] / 1e6),
+#                linetype = 2, color = 'grey50') +
+#   coord_cartesian(ylim = c(6,10)) +
+#   scale_y_continuous(breaks = unique(supply_plot_df$prices),
+#                      labels = unique(supply_plot_df$prices)) +
+#   scale_color_brewer(palette = 'Set1', labels = c('10% discount\nrate','Investment risk')) +
+#   labs(y     = 'Cobia price ($US/kg)',
+#        x     = 'Caribbean Supply (MT)',
+#        color = 'Investment\nscenario',
+#        subtitle = "B") +
+#   carib_theme() +
+#   theme(panel.grid.minor = element_blank())
+# 
+# ggsave(filename = paste0(figure_folder,'/carib_supply_curves_invest.png'), width = 5, height = 4)
+# 
+# # Combine supply plots
+# supply <- supplyA + supplyB + plot_layout(nrow = 2)
+# 
+# ggsave(filename = paste0(figure_folder,'/carib_supply_curves_both.png'), width = 7, height = 4)
