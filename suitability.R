@@ -251,7 +251,8 @@ suit_no<-rasterFromCells(all_suitable, 1:length(all_suitable), values=TRUE)
 cell_no<-as.data.frame(suit_no)
 
 suit_index<-as.data.frame(all_suitable)
-suit_index$suitable_areas<-is.na(suit_index$suitable_areas)<-0
+
+suit_index$suitable_areas[is.na(suit_index$suitable_areas)]<-0
 
 eez<-as.data.frame(eez_raster)
 
@@ -284,7 +285,7 @@ c_area<-EEZ.df$Area_km2
 
 country_area<-area(all_suitable,na.rm=TRUE)
 
-country_suitable<-zonal(country_area,country,fun='sum')
+country_suitable<-zonal(country_area,country,fun='sum',digits=1)
 
 country_suitable.df<-as_data_frame(country_suitable) %>%
   mutate( names =names,
