@@ -191,34 +191,3 @@ supply_plot_df %>%
   theme(panel.grid.minor = element_blank())
 
 ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 4)
-
-# supplyB <- supply_plot_df %>%
-#   filter(total_supply > 0 & feed_price_index == 1) %>% 
-#   ggplot(aes(y = prices, x = total_supply / 1e6, color = disc_scenario)) +
-#   geom_line() +
-#   geom_hline(yintercept = 8.62, linetype = 2, color = 'grey50') +
-#   geom_segment(aes(y = 0, yend = 8.62,
-#                    x = total_supply[prices == 8.62 & disc_scenario == "0.1"] / 1e6,
-#                    xend = total_supply[prices == 8.62 & disc_scenario == "0.1"] / 1e6),
-#                linetype = 2, color = 'grey50') +
-#   geom_segment(aes(y = 0, yend = 8.62,
-#                    x = total_supply[prices == 8.62 & disc_scenario == "cntry"] / 1e6,
-#                    xend = total_supply[prices == 8.62 & disc_scenario == "cntry"] / 1e6),
-#                linetype = 2, color = 'grey50') +
-#   coord_cartesian(ylim = c(6,10)) +
-#   scale_y_continuous(breaks = unique(supply_plot_df$prices),
-#                      labels = unique(supply_plot_df$prices)) +
-#   scale_color_brewer(palette = 'Set1', labels = c('10% discount\nrate','Investment risk')) +
-#   labs(y     = 'Cobia price ($US/kg)',
-#        x     = 'Caribbean Supply (MT)',
-#        color = 'Investment\nscenario',
-#        subtitle = "B") +
-#   carib_theme() +
-#   theme(panel.grid.minor = element_blank())
-# 
-# ggsave(filename = paste0(figure_folder,'/carib_supply_curves_invest.png'), width = 5, height = 4)
-# 
-# # Combine supply plots
-# supply <- supplyA + supplyB + plot_layout(nrow = 2)
-# 
-# ggsave(filename = paste0(figure_folder,'/carib_supply_curves_both.png'), width = 7, height = 4)
