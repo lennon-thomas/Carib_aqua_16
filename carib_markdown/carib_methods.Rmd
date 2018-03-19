@@ -70,13 +70,13 @@ if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/B
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 
 # Specify run directory to source results from
-run_name = "2018-02-27_est"
+run_name = "2018-03-16_est"
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in data tables
 table1<-read.csv("table_1.csv",stringsAsFactors = FALSE,fileEncoding="latin1")
 table3<-read.csv("table2a.csv",check.names=FALSE)
-table4<-read.csv("costtable.csv",check.names=FALSE)
+#table4<-read.csv("costtable.csv",check.names=FALSE)
 
 
 suit_eez_table<- read_csv(file = paste0(boxdir,filename = "results/suitability/suit_df_summary.csv")) %>%
@@ -102,7 +102,7 @@ carib_fish_prod <- carib_production %>%
   summarize(fish_prod = sum(Production_MT, na.rm = T)) %>% .$fish_prod
 
 # Results of supply analysis examining how much space required to replace Caribbean production and imports
-supply_replace <- read_csv(file = paste0(run_dir,'Results/supply_replace_results.csv'))
+#supply_replace <- read_csv(file = paste0(run_dir,'Results/supply_replace_results.csv'))
 
 # NPV results
 carib_supply <- read_csv(file = paste0(run_dir,"Results/supply_summary.csv"))
@@ -140,29 +140,29 @@ main_eez_results <- carib_supply %>%
 scenario_compare <- carib_supply %>%
   # Investment risk scenario
   filter(prices == 8.62 & disc_scenario == "cntry" & feed_price_index == 1 & supply_scenario == 'Profitable farms') %>% 
-  dplyr::select(country, total_supply, total_npv) %>% 
+  dplyr::select(country, total_supply, total_annuity) %>% 
   rename(supply_cntry = total_supply,
-         npv_cntry    = total_npv) %>% 
+         annuity_cntry    = total_annuity) %>% 
   # Main scenario
   right_join(main_eez_results %>% 
               filter(supply_scenario == 'Profitable farms') %>% 
-              dplyr::select(country, total_supply, total_npv) %>% 
+              dplyr::select(country, total_supply, total_annuity) %>% 
               rename(supply_main = total_supply,
-                     npv_main    = total_npv)) %>% 
+                     annuity_main    = total_annuity)) %>% 
     # Main scenario
   right_join(main_eez_results %>% 
               filter(supply_scenario == 'All farms') %>% 
-              dplyr::select(country, area, total_supply, total_npv) %>% 
+              dplyr::select(country, area, total_supply, total_annuity) %>% 
               rename(suit_area  = area,
                      supply_all = total_supply,
-                     npv_all    = total_npv)) %>% 
+                     annuity_all    = total_annuity)) %>% 
   # Feed price scenario
   left_join(carib_supply %>%
               filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 0.9 & supply_scenario == 'Profitable farms') %>%
-              dplyr::select(country, total_supply, total_npv) %>% 
+              dplyr::select(country, total_supply, total_annuity) %>% 
               rename(supply_feed = total_supply,
-                     npv_feed    = total_npv)) %>% 
-  dplyr::select(country, suit_area, supply_all, npv_all, supply_main, npv_main, everything()) %>% 
+                     annuity_feed    = total_annuity)) %>% 
+  dplyr::select(country, suit_area, supply_all, annuity_all, supply_main,annuity_main, everything()) %>% 
   arrange(desc(supply_all))
   
 ```
@@ -170,7 +170,7 @@ scenario_compare <- carib_supply %>%
 
 # Abstract
 
-The development of marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize valuable habitats (e.g., mangroves, coral reefs, seagrass beds) and competition for coastal space can lead to conflicts with fisheries, tourism, and other uses. Farming further offshore is a possible option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore finfish aquaculture, parameterized based on a species with considerable market potential, cobia (*Rachycentron canadum*). We estimate potential outcomes in terms of yields and profits under different market scenarios. We find that `r prettyNum(main_results[1,2],big.mark=",", digits = 2)` km^2^ (`r round(main_results[2,2], digits = 2)`%) of marine space in the Caribbean is technically feasible for cobia aquaculture, with the potential to produce a total of `r round(main_results[15,2] / 1e6 / 10, digits = 1)` million metric tons (MMT) of seafood annually, an amount roughly equal to the total global production from capture fisheries (~80 MMT). Of this area, `r prettyNum(main_results[1,3],big.mark=",", digits = 5)` km^2^ (`r round(main_results[2,3], digits = 2)`%) is economically viable given our estimates of current production costs, with the potential to produce `r round(main_results[15,3] / 1e6 / 10, digits = 1)` MMT of cobia annually. Areas associated with the highest relative economic potential were Jamaica, Trinidad and Tobago, and Haiti. The variability of farm-scale production and value, and thus the importance of site selection, differed across countries. Offshore aquaculture is a capital-intensive activity mediated by socioeconomic conditions, such as foreign investment risk and market dynamics. Accounting for these risk factors considerably lowered production in our analysis and may help explain the current lack of commercial offshore aquaculture in the Caribbean despite favorable conditions. The results of this research can be used to help prioritize areas in the Caribbean for offshore cobia aquaculture development and serve as a framework for identifying priority areas for offshore aquaculture of other species.
+The development of marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize valuable habitats (e.g., mangroves, coral reefs, seagrass beds) and competition for coastal space can lead to conflicts with fisheries, tourism, and other uses. Farming further offshore is a possible option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore finfish aquaculture, parameterized based on a species with considerable market potential, cobia (*Rachycentron canadum*). We estimate potential outcomes in terms of yields and profits under different market scenarios. We find that `r prettyNum(main_results[1,2],big.mark=",", digits = 2)` km^2^ (`r round(main_results[2,2], digits = 2)`%) of marine space in the Caribbean is technically feasible for cobia aquaculture, with the potential to produce a total of `r round(main_results[20,2] / 1e6 / 10, digits = 1)` million metric tons (MMT) of seafood annually, an amount roughly equal to the total global production from capture fisheries (~80 MMT). Of this area, `r prettyNum(main_results[1,3],big.mark=",", digits = 5)` km^2^ (`r round(main_results[2,3], digits = 2)`%) is economically viable given our estimates of current production costs, with the potential to produce `r round(main_results[15,3] / 1e6 / 10, digits = 1)` MMT of cobia annually. Areas associated with the highest relative economic potential were Jamaica, Trinidad and Tobago, and Haiti. The variability of farm-scale production and value, and thus the importance of site selection, differed across countries. Offshore aquaculture is a capital-intensive activity mediated by socioeconomic conditions, such as foreign investment risk and market dynamics. Accounting for these risk factors considerably lowered production in our analysis and may help explain the current lack of commercial offshore aquaculture in the Caribbean despite favorable conditions. The results of this research can be used to help prioritize areas in the Caribbean for offshore cobia aquaculture development and serve as a framework for identifying priority areas for offshore aquaculture of other species.
 
 
 # Introduction 
@@ -204,7 +204,7 @@ To account for potential conflicts with other ocean uses in offshore areas, we c
 
 ## Growth Potential
 
-Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data (NASA 2014) to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site.  
+Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data [@NASA2014] to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site.  
 
 The TPC is a temperature-dependent piecewise linear function defined as follows:
 
@@ -216,7 +216,7 @@ a_2T + b_2 ~~~ if ~~ T\ge T_o
 \end{array}  
 $$
 
-where $T$ is sea surface temperature in degrees C, $T_o$ is the optimal temperature for cobia growth, and $a_1$ and $a_2$ are slope parameters (kg per month per degree C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. Our temperature-growth parameters for cobia are presented in Table SX and were adopted from [@Klinger2017a], who also used a TPC to model cobia growth.
+where $T$ is sea surface temperature in degrees C, $T_o$ is the optimal temperature for cobia growth, and $a_1$ and $a_2$ are slope parameters (kg per month per degree C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. Our temperature-growth parameters for cobia are presented in Table SX and were adopted from [@Klinger2017], who also used a TPC to model cobia growth.
 
 Individual cobia growth at month $t$ for site $i$ ($G_{i,t}$) is estimated using the TPC for all 120 months in the SST time series. The 10 year ($y$) average individual growth ($\bar{G}_{i,t}$) at site $i$ is then calculated for each calendar month $t$:
 
@@ -278,7 +278,24 @@ $$ \pi_{i} = \sum R_{i} - TC_i $$
 
 Harvested biomass (in metric tons) and profit over a 10-year period are calculated for each farm across a range of prices (\$1-\$12 per kg).
 
-Net present value (NPV) can be used to assess an investment's long-term economic validity, accounting for the time value of money by discounting future cash flows at a specified discount rate that describes the present value of future cash flows. Defining appropriate discount rates in bioeconomic models is often difficult and depends on many factors, particularly the cost of capital and project risk [REF]. As a result, we run our bioeconomic model under two different discount rate assumptions. In the first scenario, we assume a fixed discount rate of 10% across all farms, which is based on the average discount rate of 10.6% found in a meta-analysis of published bioeconomic models for aquaculture from the last 25 years  [@RuizCampo2018]. However, lack of foreign investment due to perceived financial risk has been identfied as a major barrier to aquaculture development in the Caribbean (REF). Investment risk can be represented by adjusting the discount rate accordingly when estimating returns on an investment. Therefore, our second scenario uses EEZ-specific discount rates based on the financial risk of investing in offshore aquaculture in each country. 
+Net present value (NPV) can be used to assess an investment's long-term economic validity, accounting for the time value of money by discounting future cash flows at a specified discount rate that describes the present value of future cash flows. NPV for all farms that were profitable over a 10 year period was calculated as: 
+$$ NPV_i = \displaystyle\sum_{t=0}^{10} \frac{\pi^i_t}{(1+\delta_{z})^t} $$
+Where $\delta_{z}$ is the discount rate.
+
+NPV is then annualized by calculating annuity:
+
+*insert equation for annuity calculation.
+
+### Model Scenarios
+
+We calculate average annual production (mt) and annual annuity ($) over a 10 year period for each farm under 2 main scenarios: 1. 'Suitable scenario', where farms are developed in all areas that are technically suitable for offshore mariculture development, and 2. 'Profitable scenario' where only farms are that profitable over a 10 year period at the current price of cobia are developed. Under the 'profitable scenario' are 3 sub scenarios related to the discount rate and price of feed (described in more detail below):
+Scenario 2a: "10% discount rate, current feed price"
+Scenario 2b: "10% discount rate, reduced feed price"
+Scenario 2c: "Country specific discount rate, current feed price'
+
+Fed is well known to account for the largest portion of operating costs in aquaculture (REF). However, given that economic forces and technological innovation are driving promising advances in feed technology, particularly fishmeal and fish oil alternatives (refs), we chose to explore results where current feed price (\$1.65/kg) are reduced by 10% in the '10 % discount rate, reduced feed price'.
+
+Defining appropriate discount rates in bioeconomic models is often difficult and depends on many factors, particularly the cost of capital and project risk [REF]. As a result, we run our bioeconomic model under two different discount rate assumptions. In the first scenario, we assume a fixed discount rate of 10% across all farms, which is based on the average discount rate of 10.6% found in a meta-analysis of published bioeconomic models for aquaculture from the last 25 years  [@RuizCampo2018]. However, lack of foreign investment due to perceived financial risk has been identfied as a major barrier to aquaculture development in the Caribbean (REF). Investment risk can be represented by adjusting the discount rate accordingly when estimating returns on an investment. Therefore, our second scenario uses EEZ-specific discount rates based on the financial risk of investing in offshore aquaculture in each country. 
 
 Foreign investment risk reflects both political and economic risks in a country, which can be calculated into a single risk score using economic and socioeconomic indicators [@Bhalla2009]. We applied the Foreign Investment Risk Matrix (FIRM) developed by @Bhalla1983 and modified by @McGowanJr2009, which utilizes three political and three economic continuous risk variables that are readily available for most countries (Table X). Risk scores were then used to scale EEZ-specific discount rates (Table 1) ranging from 10% to 25%, which aligns with the range of discount rates found in the literature of bioeconomic modelling of aquaculture [@RuizCampo2018].
 
@@ -295,11 +312,6 @@ pander::pandoc.table(risk_table,
                      caption = 'Table 1. Investment risk scores and discount rates by country. A risk score of 1.5 (US Virgin Islands) is used as a baseline for scaling discount rates between 10%-25%')
 ```
 
-For both discount rate scenarios, we calculate the 10-year NPV for each farm:
-
-$$ NPV_i = \displaystyle\sum_{t=0}^{10} \frac{\pi^i_t}{(1+\delta_{z})^t} $$
-
-Where $\delta_{z}$ is the discount rate (10% or EEZ-specific). In subsequent analyses, only farms with a positive 10-year NPV are considered feasible for development. 
 
 # Results
 
@@ -309,11 +321,11 @@ According for some technical, environmental and use conflict constraints, we ide
 
 There is considerable variability in the amount and distribution of suitable area for offshore mariculture in the Caribbean (Table 1). The Bahamas, Trinidad and Tobago, and Jamaica are the top three countries in terms of suitable area, and the spatial distribution and clustering of suitable sites differs considerably among them (Figure 1; see Figure SX for the full Caribbean suitability map).
 
-```{r fig , fig.cap = "Figure 1. Results of the suitability analysis for the Bahamas, Jamaica, and Trinidad and Tobago. The orange areas represent areas that are potentially suitable for offshore mariculture "}
+```{r , fig.cap = "Figure 1. Results of the suitability analysis for the Bahamas, Jamaica, and Trinidad and Tobago. The orange areas represent areas that are potentially suitable for offshore mariculture "}
 include_graphics(path = paste0(run_dir,'Figures/eez_suitable_map_zoom.png'))
 ```
 
-Both The Bahamas and Trinidad and Tobago have more than twice the suitable area of the country with the next largest amount of suitable area (Jamaica; Table 1). The large suitable area in the Bahamas can be attributed to its relatively large EEZ (Table 1; Figure 1). Overall, Trinidad and Tobago had the largest percentage of their EEZ identified as suitable (13.3%), followed by Saba (11.1%). Suitable areas accounted for < 5% of total EEZ area for all other Caribbean islands and no suitable areas were found in Martinque, St. Martin, and Guadeloupe because of the conservation status of otherwise suitable sites (Table 1).
+Both The Bahamas and Trinidad and Tobago have more than twice the suitable area of the country with the next largest amount of suitable area (Jamaica; Table 1). The large suitable area in the Bahamas can be attributed to its relatively large EEZ (Table 2; Figure 1). Overall, Trinidad and Tobago had the largest percentage of their EEZ identified as suitable (13.3%), followed by Saba (11.1%). Suitable areas accounted for < 5% of total EEZ area for all other Caribbean islands and no suitable areas were found in Martinque, St. Martin, and Guadeloupe because of the conservation status of otherwise suitable sites (Table 2).
 
 ```{r table1, results='asis'}
 eez_suit_table <- main_eez_results %>% 
@@ -339,12 +351,12 @@ pander::pandoc.table(eez_suit_table,
                      missing = 0,
                      split.tables = Inf,
                      keep.trailing.zeros = TRUE,
-                     caption = "Estimated suitable area (km^2^ by EEZ)")
+                     caption = "Table 2. Estimated suitable area (km^2^ by EEZ)")
 ```
 
 Ignoring economic constraints, the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production of `r round(main_results[15,2] / 1e6 / 10, digits = 1)` MMT if all suitable sites were developed with cobia farms.  
 
-```{r , fig.cap = "Figure 2. Estimated total production of cobia (MT) using if all suitable areas (not accounting for economic constraints) are developed as offshore mariculture farms "}
+```{r ,fig.cap = "Figure 2. Estimated total production of cobia (MT) using if all suitable areas (not accounting for economic constraints) are developed as offshore mariculture farms "}
 include_graphics(path = paste0(run_dir,'Figures/total_prod_map.png'))
 ```
 
@@ -364,34 +376,21 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/cntry_boxplot.png'))
 
 Growth rates and harvest cycle length then impacts feed costs and the number of harvests events per 10 year period. For example, in the Bahamas, which has a large area suitable for aquaculture but a long average harvest cycle across all farms due to cooler waters, the majority of the suitable farm sites are unprofitable (Figures 2 and 3).  
 
-Feed is well known to account for the largest portion of operating costs in aquaculture (REF). Our findings support this conclusion, with the median farm spending `r round(100*main_results[5,3], digits = 0)`% of operating costs on feed. However, given that economic forces and technological innovation are driving promising advances in feed technology, particularly fishmeal and fish oil alternatives (refs), we chose to explore results where current feed costs (\$1.65/kg) are reduced by 10% (Figure 5). This reduction could increase cobia supply by 35%. This change would increase the revenue for farms in Aruba, the Turks and Caicos Islands, the US Virgin Islands, Montserrat, and the Cayman Islands to profitable levels. Whether or not feed costs decline, no farms in the Caribbean will be profitable if the price for cobia drops below $8/kg.
+ Our findings support the conclusion that feed accounts for the largest portion of farm operating costs, with the median farm spending `r round(100*main_results[5,3], digits = 0)`% of operating costs on feed. We find that a 10% reduction in the price of feed could increase cobia supply by 35%. This change would increase the revenue for farms in Aruba, the Turks and Caicos Islands, the US Virgin Islands, Montserrat, and the Cayman Islands to profitable levels. Whether or not feed costs decline, no farms in the Caribbean will be profitable if the price for cobia drops below $8/kg.
 
 ```{r, fig.cap="Figure 3. Cobia supply curves under current feed costs ($1.65/kg) and a 10% reduction in feed cost."}
 knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
 ```
 
-```{r}
-results_summary<-carib_supply %>%
-  filter(supply_scenario == "Profitable farms") %>%
-  select(country, disc_scenario, feed_price_index,total_supply,total_npv) %>%
-  mutate(scenario = ifelse (disc_scenario == "0.1" & feed_price_index == 1, "Scenario 1 ",
-                         ifelse(disc_scenario == "0.1" & feed_price_index == 0.9, "Scenario 2 ",
-                            ifelse(disc_scenario == "cntry" & feed_price_index == 1, "Scenario 3 ",
-                               "Scenario 4 ")))) %>%
-  select(country,total_supply,total_npv,scenario) %>%
-  gather(variable,value,(2:3)) %>%
-  unite(temp,scenario,variable) %>%
-  spread(temp,value) %>%
-  select(1,3,5,7,2,4,6) #removing country discount and reduced feed scenario
+```{r, results = 'asis'}
+scenario_table<-scenario_compare %>%
+  select (-2)%>%
+  select(1,2,4,6,8,3,5,7,9)
 
-# 
-# kable(results_summary) %>%
-#  # kable_styling(c("striped", "bordered")) %>%
-#   add_header_above(c( "Current Feed Cost" = 1, "Reduced Feed Cost" = 1, "Current Feed Cost" =1)) %>%
-#   add_header_above(c(" ", "10 % Discount rate" = 2, "Country Specific Discount Rate" = 1, "10 % Discount rate" = 2,"Country Specific Discount Rate" = 1)) %>%
-#   add_header_above(c(" ", "Total Supply (mt)" = 3, "Total NPV (mt)"))
-
-
+pander::pandoc.table(scenario_table,
+                     caption = 'Table 4. Supply (mt) and annuity under 4 different scenarios',
+                      split.tables = Inf,
+                     digits =2 )
 
 
 ```
@@ -465,20 +464,13 @@ pander::pandoc.table(tbl1,
 ```
 
 ```{r tableS2, results = 'asis'}
-temp_params <- data_frame(Parameter = c('Tmin',
-                                        'Topt',
-                                        'Tmax',
-                                        'Growth rate (g/month)',
-                                        'a1','a2','b1','b2'),
-                          Value = c(22,29,32,0.5,0.0714,-0.1667,-1.5714,5.3333))
-
-
-pander::pandoc.table(temp_params, 
+pander::pandoc.table(costtable, 
              digits = 2,
              split.tables = Inf,
              # split.cells = c(15,5,120,15,10),
              # justify = c("center","center","center","center","center"),
-             caption = 'Table S2. Temperature-growth parameters and linear function constants for cobia')
+             caption = "Table S2. Model parameters and values for the Thermal Performance Curve, Cost model, and Economic model")
+
 ```
 
 
