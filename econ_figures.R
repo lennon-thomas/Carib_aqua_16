@@ -105,7 +105,7 @@ bpA <- dense_df1 %>%
        y = 'Annuity ($USD)') +
   carib_theme() 
 
-ggsave(filename = paste0(figure_folder, '/npv_cntry_boxplot.png'), width = 6, height = 8)
+# ggsave(filename = paste0(figure_folder, '/npv_cntry_boxplot.png'), width = 6, height = 8)
 
 # boxplot of farm supply by EEZ
 bpB <- dense_df1 %>% 
@@ -124,7 +124,7 @@ bpB <- dense_df1 %>%
   theme(axis.text.y = element_blank(),
         axis.title.y = element_blank())
 
-ggsave(filename = paste0(figure_folder, '/supply_cntry_boxplot.png'), width = 6, height = 8)
+# ggsave(filename = paste0(figure_folder, '/supply_cntry_boxplot.png'), width = 6, height = 8)
 
 # Combine plots in grid
 boxplot_final <- bpA + bpB
@@ -151,7 +151,9 @@ supply_plot_df <- npv_df %>%
   mutate(supply = ifelse(npv < 0, 0, total_harvest / 1e3 / 10)) %>%  # supply = 0 if NPV is negative
   group_by(prices, disc_scenario, feed_price_index) %>%
   summarize(total_supply  = sum(supply, na.rm = T)) %>%  # supply
-  ungroup() %>% 
+  ungroup()
+
+supply_plot_df <- supply_plot_df %>%
   filter(total_supply > 0 & disc_scenario == "0.1") %>% 
   mutate(scenario = ifelse(feed_price_index == 1, "Current", "10% feed price\nreduction")) %>% 
   bind_rows(supply_plot_df %>%
@@ -183,11 +185,16 @@ supply_plot_df %>%
   coord_cartesian(ylim = c(min(supply_plot_df$prices),max(supply_plot_df$prices))) +
   scale_y_continuous(breaks = unique(supply_plot_df$prices),
                      labels = unique(supply_plot_df$prices)) +
-  scale_color_manual(values = c("#4DAF4A", "#377EB8", "#E41A1C")) +
+  scale_color_manual(values = c("#4DAF4A", "#377EB8", "#E41A1C"),
+                     labels = c('2a) 10% discount rate, current feed price',
+                                '2b) 10% discount rate, reduced feed price',
+                                '2c) Country specific discount rate, current feed price')) +
   labs(y     = 'Cobia price ($US/kg)',
        x     = 'Caribbean Supply (MMT)',
-       color = 'Scenario') +
+       color = NULL) +
   carib_theme() +
-  theme(panel.grid.minor = element_blank())
+  theme(panel.grid.minor = element_blank(),
+        legend.position = 'bottom',
+        legend.direction = 'vertical')
 
-ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 4)
+ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 6)

@@ -28,12 +28,12 @@
   # Run settings -------------------------------------------------------------
   
   ## Set User (lennon/tyler)
-  user <- 'lennon'
+  user <- 'tyler'
   
   if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
   if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
   
-  run_name = '2018-02-27_est'
+  run_name = '2018-03-15_est'
 
 # Create figure folder
   fig_folder <- paste0(boxdir,'results/',run_name, "/Figures/")
@@ -99,20 +99,17 @@
 
 
   result_folder <- paste0(boxdir,'results/',run_name,"/Results")
-  
   file.names <- list.files(path = result_folder, pattern = ".csv")
+  # result_files <- lapply(paste0(result_folder,"/",file.names),read_csv)
   
-  result_files <- lapply(paste0(result_folder,"/",file.names),read_csv)
-  
-  carib_supply<-result_files[[1]]
-  
-  eez_supply_df<-result_files[[2]]
-  
-  npv_df<-result_files[[4]]
-  
-  supply_summary<-result_files[[6]]
-  
-  rm(result_files)
+  # carib_supply<-result_files[[1]]
+  carib_supply <- read_csv(paste0(result_folder,"/carib_supply.csv"))
+  # eez_supply_df<-result_files[[2]]
+  eez_supply_df <- read_csv(paste0(result_folder,"/eez_supply_df.csv"))
+  # npv_df<-result_files[[4]]
+  npv_df <- read_csv(paste0(result_folder,"/npv_df.csv"))
+  # supply_summary<-result_files[[6]]
+  supply_summary <- read_csv(paste0(result_folder,"/supply_summary.csv"))
 
 # Prep data for plotting --------------------------------------------------
 
@@ -172,11 +169,11 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
 
 # Suitable area maps -----------------------------------------------------
 
-                  
-  suitable_plot<-base +
+  # Caribbean suitability map (all Caribbean)                  
+  suitable_plot <- base +
                     geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="orange") +
                     carib_theme() +
-                    theme(legend.position = "none") +
+                    theme(legend.position = "none")
                        
     
   ggsave(filename = paste0(fig_folder,'carib_suit_area.png'), width = 6, height = 5)
@@ -209,14 +206,14 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
   ggplot() +
     geom_polygon(data = subset(eez.water,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.1 , alpha = 0.5) +
     geom_polygon(data = subset(eez.land,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-    geom_raster(data = subset(all_df,Territory1 %in% c("Haiti") & npv > 0), aes(x=long,y=lat,fill=npv)) +
+    geom_raster(data = subset(all_df,Territory1 %in% c("Haiti") & npv > 0), aes(x=long,y=lat,fill=annuity)) +
     scale_fill_viridis() +
     #theme(legend.position="none") +
     carib_theme() +
     theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
     #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
     xlab("Longitude") +
-    ylab("Latitude") +
+    ylab("Latitude")
    
   ggsave(filename = paste0(fig_folder,'Haiti_npv_map.png'), width = 6, height = 6)
   
@@ -242,13 +239,15 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
    
   ggplot() + 
     geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-    geom_polygon(data = total_prod_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
+    geom_polygon(data = total_prod_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
  
     geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-    scale_fill_viridis("Average Annual \n Production (mt)") +
+    scale_fill_viridis("Average Annual Production (MMT)  ") +
+    guides(fill = guide_colorbar(title.vjust = 0.75)) +
     # ggtitle("(all suitable cells)") +
     carib_theme() + 
-    theme(legend.title.align =0.5,legend.position=c(0.87,0.87),legend.background = element_rect( fill = "white", color = "white")) +
+    theme(legend.position = 'bottom') +
+    # theme(legend.title.align =0.5,legend.position=c(0.87,0.87),legend.background = element_rect( fill = "white", color = "white")) +
     xlab("Longitude") +
     ylab("Latitude") +
     coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
@@ -265,7 +264,8 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
     dplyr::group_by(eez,feed_price_index) %>%
     summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
               annual_eez_harvest = eez_harvest_mt/10,
-              total_npv = sum(npv)) %>%
+              total_npv = sum(npv, na.rm = T),
+              total_annuity = sum(annuity, na.rm = T)) %>%
     ungroup() %>%
        mutate(scenario_names =  ifelse( feed_price_index == "1", "Current feed cost", "Reduced feed cost"))
  
@@ -274,29 +274,33 @@ ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
    
   # plot 
  
- econ_prod_map<- ggplot() + 
+ econ_prod_map <- ggplot() + 
                       geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-                      geom_polygon(data = econ_prod_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
+                      geom_polygon(data = econ_prod_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
                       geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-                      scale_fill_viridis("Average Annual \n Production (mt)") +
+                      scale_fill_viridis("Average Annual Production (MMT) ") +
+                      guides(fill = guide_colorbar(title.vjust = 0.75)) +
                       carib_theme() + 
                       xlab("Longitude") +
                       ylab("Latitude") +
                       coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
                       facet_wrap(~scenario_names) +
-                      theme(strip.text.x = element_text(size = 12))
+                      theme(strip.text.x = element_text(size = 12),
+                            legend.position = 'bottom')
                     
  econ_npv_map<- ggplot() + 
-                      geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-                     geom_polygon(data = econ_prod_sp,aes(x = long,y = lat, group = group, fill= total_npv), colour = "black", size = 0.1 , alpha = 0.8) +
-                     geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-                     scale_fill_viridis("10 Year NPV ($)") +
-                     carib_theme() + 
-                     xlab("Longitude") +
-                     ylab("Latitude") +
-                     coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-                     facet_wrap(~scenario_names) +
-                     theme(strip.background = element_blank(), strip.text = element_blank())
+   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
+   geom_polygon(data = econ_prod_sp,aes(x = long,y = lat, group = group, fill= total_annuity / 1e9), colour = "black", size = 0.1 , alpha = 0.8) +
+   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+   scale_fill_viridis("Annuity ($USD, billions)", labels = comma) +
+   guides(fill = guide_colorbar(title.vjust = 0.75)) +
+   carib_theme() + 
+   xlab("Longitude") +
+   ylab("Latitude") +
+   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+   facet_wrap(~scenario_names) +
+   theme(strip.text.x = element_text(size = 12),
+         legend.position = 'bottom')
 
  
 all_econ<-  ggarrange(econ_prod_map,econ_npv_map, nrow = 2)
@@ -315,24 +319,26 @@ invest_scenario<-all_df %>%
             annual_eez_harvest = eez_harvest_mt/10,
             total_npv = sum(npv)) %>%
   ungroup() %>%
-  mutate(scenario_names =  ifelse(disc_scenario == "0.1" & feed_price_index == "1", "10 % discount \n Current feed price",
-                                         ifelse (disc_scenario =="0.1" & feed_price_index == "0.9", "10 % discount \n Reduced feed price",
-                                                 ifelse(disc_scenario =="cntry" & feed_price_index == "1", "Country specific discount \n Current feed price",
-                                                        "Country specific discount \n Reduced feed price")))) 
+  mutate(scenario_names =  ifelse(disc_scenario == "0.1" & feed_price_index == "1", "10% discount rate\nCurrent feed price",
+                                         ifelse (disc_scenario =="0.1" & feed_price_index == "0.9", "10% discount rate\nReduced feed price",
+                                                 ifelse(disc_scenario =="cntry" & feed_price_index == "1", "Country specific discount rate\nCurrent feed price",
+                                                        "Country specific discount rate\nReduced feed price")))) 
 
 invest_scenario_sp<-left_join(invest_scenario,eez.water, by=c("eez"="MRGID")) 
 
 disc_scen_prod_map<- ggplot() + 
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-  geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("Average Annual Production (mt)") +
+  scale_fill_viridis("Average Annual Production (MMT) ") +
+  guides(fill = guide_colorbar(title.vjust = 0.75)) +
   carib_theme() + 
   xlab("Longitude") +
   ylab("Latitude") +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
   facet_wrap(~scenario_names) +
-  theme(strip.text.x = element_text(size = 12))
+  theme(strip.text.x = element_text(size = 12),
+        legend.position = 'bottom')
  
 ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
     
@@ -355,15 +361,17 @@ disc_only_sp<-left_join(disc_only,eez.water, by=c("eez"="MRGID"))
 
 presentation_disc_map<- ggplot() + 
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-  geom_polygon(data = disc_only_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = disc_only_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("Avg. Annual Production (mt)") +
+  scale_fill_viridis("Avg. Annual Production (MMT) ") +
+  guides(fill = guide_colorbar(title.vjust = 0.75)) +
   carib_theme() + 
   xlab("Longitude") +
   ylab("Latitude") +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
   facet_wrap(~scenario_name) +
-  theme(strip.text.x = element_text(size = 12))
+  theme(strip.text.x = element_text(size = 12),
+        legend.position = 'bottom')
 
 ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
 
