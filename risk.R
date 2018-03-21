@@ -21,7 +21,7 @@ data_rescale<-data %>%
          con_cor_rescale = rescale(con_cor, to = c(5,1), na.rm =TRUE),
          gdp_rescale = rescale(gdp_capita, to = c(5,1), na.rm = TRUE),
          cpi_growth_rescale = rescale(cpi_growth,to = c(5,1),na.rm = TRUE)) %>%
-  select(Country,reg_qual_rescale,pol_stab_rescale,con_cor_rescale,gdp_rescale,cpi_growth_rescale) %>%
+  dplyr::select(Country,reg_qual_rescale,pol_stab_rescale,con_cor_rescale,gdp_rescale,cpi_growth_rescale) %>%
   gather(parameter,value,-Country) %>%
   mutate(risk_type = ifelse(parameter %in% c("reg_qual_rescale","con_cor_rescale","pol_stab_rescale"),"political","economic")) %>%
   spread(risk_type,value) %>% 
@@ -34,7 +34,7 @@ data_rescale<-data %>%
   arrange(risk_score)
 
 data_rescale<-merge(data_rescale,data, by = "Country") %>%
-  select(c(1,2,3,4,6))
+  dplyr::select(c(1,2,3,4,6))
 
 regression_data<-data_rescale[!is.na(data_rescale$political_score),]
 
@@ -50,8 +50,8 @@ data_rescale<-data_rescale %>%
         new_risk_rescale = rescale(new_risk, to = c(1,5))) 
 
 risk_score<-data_rescale %>%
-  select(c(Country,new_risk)) %>%
-  arrange(new_risk) 
+  dplyr::select(c(Country,new_risk_rescale)) %>%
+  arrange(new_risk_rescale) 
 
 colnames(risk_score)<-c("Territory1","risk_score")
 
