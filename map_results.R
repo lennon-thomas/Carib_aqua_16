@@ -28,7 +28,7 @@
   # Run settings -------------------------------------------------------------
   
   ## Set User (lennon/tyler)
-  user <- 'tyler'
+  user <- 'lennon'
   
   if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
   if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -79,36 +79,27 @@
   
 # Load sim data
   
-  data_folder <- paste0(boxdir,'results/',run_name,"/Data/")
+  data_folder<-paste0(boxdir,'results/',run_name,"/Data/")
   
-  data.names <- list.files(path = data_folder, pattern = ".nc")
+  avg_growth<-brick(paste0(data_folder,"avg_month_growth_stack.nc"))
   
-  data_files <- lapply(paste0(data_folder,"/",data.names),brick)
+  harv_cycle_length<-raster(paste0(data_folder,"harvest_cycle_length.nc"))
   
-  avg_growth<-data_files[[1]]
+  no_cycles<-brick(paste0(data_folder,"harvest_cycles.nc"))
   
-  harv_cycle_length<-data_files[[2]]
-  
-  no_cycles<-data_files[[3]]
-  
-  stocking_n<-data_files[[4]]
-  
-  rm(data_files)
+  stocking_n<-brick(paste0(data_folder,"initial_stocking_stack.nc"))
+
 
 # Load run results 
 
-
   result_folder <- paste0(boxdir,'results/',run_name,"/Results")
-  file.names <- list.files(path = result_folder, pattern = ".csv")
-  # result_files <- lapply(paste0(result_folder,"/",file.names),read_csv)
-  
-  # carib_supply<-result_files[[1]]
+
   carib_supply <- read_csv(paste0(result_folder,"/carib_supply.csv"))
-  # eez_supply_df<-result_files[[2]]
+
   eez_supply_df <- read_csv(paste0(result_folder,"/eez_supply_df.csv"))
-  # npv_df<-result_files[[4]]
+
   npv_df <- read_csv(paste0(result_folder,"/npv_df.csv"))
-  # supply_summary<-result_files[[6]]
+
   supply_summary <- read_csv(paste0(result_folder,"/supply_summary.csv"))
 
 # Prep data for plotting --------------------------------------------------
@@ -154,7 +145,7 @@ base<- ggplot() +
         ylab("Latitude") +
         coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
 
-ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
+#ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
 
   base_facet<-  ggplot() + 
                   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
@@ -312,40 +303,39 @@ ggsave(paste0(fig_folder,'econ_npv_prod_map.png'), width = 12, height = 10)
 # Box plots of total production --------------------------------------------
 
 
-invest_scenario<-all_df %>%
-  filter(npv>0) %>%
-  dplyr::group_by(eez,feed_price_index, disc_scenario) %>%
-  summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
-            annual_eez_harvest = eez_harvest_mt/10,
-            total_npv = sum(npv)) %>%
-  ungroup() %>%
-  mutate(scenario_names =  ifelse(disc_scenario == "0.1" & feed_price_index == "1", "10% discount rate\nCurrent feed price",
-                                         ifelse (disc_scenario =="0.1" & feed_price_index == "0.9", "10% discount rate\nReduced feed price",
-                                                 ifelse(disc_scenario =="cntry" & feed_price_index == "1", "Country specific discount rate\nCurrent feed price",
-                                                        "Country specific discount rate\nReduced feed price")))) 
-
-invest_scenario_sp<-left_join(invest_scenario,eez.water, by=c("eez"="MRGID")) 
-
-disc_scen_prod_map<- ggplot() + 
-  geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-  geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
-  geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("Average Annual Production (MMT) ") +
-  guides(fill = guide_colorbar(title.vjust = 0.75)) +
-  carib_theme() + 
-  xlab("Longitude") +
-  ylab("Latitude") +
-  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-  facet_wrap(~scenario_names) +
-  theme(strip.text.x = element_text(size = 12),
-        legend.position = 'bottom')
- 
-ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
+# invest_scenario<-all_df %>%
+#   filter(npv>0) %>%
+#   dplyr::group_by(eez,feed_price_index, disc_scenario) %>%
+#   summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
+#             annual_eez_harvest = eez_harvest_mt/10,
+#             total_npv = sum(npv)) %>%
+#   ungroup() %>%
+#   mutate(scenario_names =  ifelse(disc_scenario == "0.1" & feed_price_index == "1", "10% discount rate\nCurrent feed price",
+#                                          ifelse (disc_scenario =="0.1" & feed_price_index == "0.9", "10% discount rate\nReduced feed price",
+#                                                  ifelse(disc_scenario =="cntry" & feed_price_index == "1", "Country specific discount rate\nCurrent feed price",
+#                                                         "Country specific discount rate\nReduced feed price")))) 
+# 
+# invest_scenario_sp<-left_join(invest_scenario,eez.water, by=c("eez"="MRGID")) 
+# 
+# disc_scen_prod_map<- ggplot() + 
+#   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
+#   geom_polygon(data = invest_scenario_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
+#   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+#   scale_fill_viridis("Average Annual Production (MMT) ") +
+#   guides(fill = guide_colorbar(title.vjust = 0.75)) +
+#   carib_theme() + 
+#   xlab("Longitude") +
+#   ylab("Latitude") +
+#   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+#   facet_wrap(~scenario_names) +
+#   theme(strip.text.x = element_text(size = 12),
+#         legend.position = 'bottom')
+#  
+# ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
     
 
 
-
-# Discount scenario production map
+# Discount scenario production map ----------------------------------------
 
 disc_only<-all_df %>%
   filter(npv>0 & feed_price_index =="1") %>%
