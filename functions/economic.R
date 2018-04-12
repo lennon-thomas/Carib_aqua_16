@@ -3,10 +3,25 @@
 
 # Calculate monthly and total costs of feed for each farm assuming a constant fcr and different stocking_n
 
-monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage,labor_installation,support_vessel,site_hours,site_workers,avg_boat_spd,feed_price,price_fingerlings,cage_cost,site_days){
+monthly_cost_est<-function (sim_results,
+                            econ_stack,
+                            stocking_n,
+                            site_lease,
+                            no_cage,
+                            labor_installation,
+                            support_vessel,
+                            site_hours,
+                            site_workers,
+                            avg_boat_spd,
+                            feed_price,
+                            price_fingerlings,
+                            cage_cost,
+                            site_days){
   
   #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
-  names(econ_stack)<-c("fuel_price","min_wage","permit_fee","risk_score","shore_distance","depth_charge","distance_charge","eez","cell_no")
+  names(econ_stack)<-c("fuel_price","min_wage","permit_fee",
+                       "risk_score","shore_distance","depth_charge",
+                       "distance_charge","eez","cell_no")
   
   #Turn economic parameters into data frame
   all_economic<-as.data.frame(econ_stack)
@@ -40,7 +55,7 @@ monthly_cost_est<-function (sim_results,econ_stack,stocking_n,site_lease,no_cage
   
   #convert into monthly costs                     
   monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
-    dplyr::select(cell,month,alive,weight,mortality,harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                            
+    dplyr::select(cell,month,alive,weight, harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                             
  
    # Match country names
   eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape") 

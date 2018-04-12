@@ -18,9 +18,27 @@ library(broom)
 library(fasterize)
 library(sf)
 library(tidyverse)
+library(patchwork)
 library(parallel)
 library(R.utils)
-library(readr)
+library(skimr)
+library(viridis)
+library(RColorBrewer)
+library(ggrepel)
+library(scales)
+library(rlang)
+library(ggforce)
+library(forcats)
+library(ggpubr)
+
+# Plot theme
+carib_theme <- function() {
+  theme_minimal() +
+    theme(text         = element_text(size = 6),
+          title        = element_text(size = 10),
+          axis.text    = element_text(size = 8),
+          legend.text  = element_text(size = 8))
+}
 
 # Run settings -------------------------------------------------------------
 
@@ -36,8 +54,10 @@ source(file = 'functions/process_production.R')
 source(file = 'functions/econ_data_prep.R')
 source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
+source(file = "functions/econ_figures.R")
+source(file = "functions/map_results.R")
 
-run_name = '2018-03-15_est'
+run_name = '2018-04-12_2feed_1fing'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -60,38 +80,38 @@ if (dir.exists(run_dir) == F) {
 
 econ_prep_data = FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock = FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-run_sim = FALSE # run population simulation to calculate feed costs
-process_growth = FALSE # process growth data to get average growth and number of harvest cycles per cell
+run_sim = TRUE # run population simulation to calculate feed costs
+process_growth = TRUE # process growth data to get average growth and number of harvest cycles per cell
 
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
 cage_cost <- 269701 # US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
-support_vessel <- 158331 #US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
+support_vessel <- 158331 # US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
 site_lease <- 3265 # US$ from Bezerra et al. 2016 This is for 16 ha farm in Brazil (ours is larger so may want to increase)
 labor_installation <- 52563 # US$ from Bezerra et al. 2016
 site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
 site_workers <- 17 # Bezerra et al. 2016 
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
-no_fingerlings <- 256000 #fixed fingerlings per farm
-price_fingerlings <- 2.58 #$US/fingerling Bezerra et al. 2016
-harv_den <- 15 #kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
+no_fingerlings <- 256000 # fixed fingerlings per farm
+price_fingerlings <- 1 # $US/fingerling Bezerra et al. 2016
+harv_den <- 15 # kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
 no_cage <- 16 # cages
-cage_volume <- 6400 #m^3
+cage_volume <- 6400 # m^3
 total_vol <- no_cage*cage_volume # m^3 total cage volume
 harvest_weight <- 5 # kg from various souces (5-6 kg)
-cobia_price <- 8.62 #$US/kg# Bezerra et al. 2016
-fcr <- 1.75 #Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
-feed_price <- 1.64 #in units of $/kg  Bezerra et al. 2016
-survival <- 0.75 #Benetti et al. 2007 over 12 monthes and Huang et al. 2011
+cobia_price <- 8.62 # $US/kg# Bezerra et al. 2016
+fcr <- 1.75 # Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
+feed_price <- 2 # in units of $/kg  ($1.64 from Bezerra et al. 2016)
+survival <- 0.75 # Benetti et al. 2007 over 12 monthes and Huang et al. 2011
 month_mort <- 1-survival ^ (1 / 12)
 int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
-no_trips <- 2 #number of trips to farm per day
+no_trips <- 2 # number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
 avg_boat_spd <- 48.28    
 site_days <- 30
 disc_rate <- 0.1 # discount rate to use in addition to country specific rates. can be a vector.
-#feed_rate <- 0.02 # feed rate is 2% body wweight Benetti et al. 2010
+feed_rate <- c(0.01, 0.01, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
 
 # Load Data ---------------------------------------------------------------
 
@@ -114,9 +134,9 @@ if (econ_prep_data == TRUE){
   
 } else {
   
-  file.names <- list.files(path = paste(boxdir,"data/economic_final/", sep = ""), pattern = ".nc")
+  file_names <- list.files(path = paste(boxdir,"data/economic_final/", sep = ""), pattern = ".nc")
   
-  model_files <- lapply(paste(boxdir,"data/economic_final/",file.names, sep = ""),brick)
+  model_files <- lapply(paste(boxdir,"data/economic_final/",file_names, sep = ""), brick)
   
   growth <- model_files[[1]]
   
@@ -166,13 +186,66 @@ if (econ_prep_data == TRUE){
 
   if (run_sim == TRUE){
   
-    sim_results <- sim_aqua(avg_month_growth = avg_month_growth, stocking_n = stocking_n, int_weight = int_weight, sim_length = sim_length, month_mort = month_mort, fcr = fcr)
+    # Run simulation
+    sim_results <- sim_aqua(avg_month_growth = avg_month_growth, 
+                            stocking_n = stocking_n, 
+                            int_weight = int_weight, 
+                            sim_length = sim_length, 
+                            month_mort = month_mort, 
+                            feed_rate  = feed_rate,
+                            fcr        = fcr)
+    
+    # Set feed to either value calculated by the feeding rate or by the fixed FCR
+    sim_results <- sim_results %>% 
+      ungroup() %>% 
+      mutate(feed = feed_by_rate)
   
     } else {
  
     sim_results <- read_csv(paste0(run_dir,"Results/sim_function_results.csv"))
  
-   }
+    }
+
+# FCR summary
+fcr_results <- sim_results %>%
+  filter(feed_by_rate > 0) %>% 
+  group_by(cell, harvest_cycle) %>% 
+  summarize(fcr_rate  = sum(feed_by_rate, na.rm = T) / sum(harvest, na.rm = T),
+            fcr_fcr   = sum(feed_by_fcr, na.rm = T) / sum(harvest, na.rm = T),
+            harvest_length = n_distinct(month)) %>% 
+  ungroup() 
+
+# FCR histograms
+fcr_plot <- fcr_results %>% 
+  gather(key = 'method', 'value', 3:5) %>% 
+  filter(!is.na(method) & !is.infinite(fcr)) %>%
+  filter(method %in% c('fcr_rate')) %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(binwidth = 0.1) +
+  scale_y_continuous(labels = comma) +
+  # scale_fill_manual(values = c("#375166", "#BE2A28"),
+  #                   labels = c("Fixed FCR (1.75)", "Feeding rate (1%)")) +
+  coord_cartesian(xlim = c(0,5)) +
+  labs(x = 'FCR (bin size = 0.1)',
+       title = "A") +
+  carib_theme()
+
+hl_plot <- fcr_results %>% 
+  filter(!is.na(harvest_cycle) & !is.infinite(fcr_fcr)) %>%
+  select(harvest_length) %>% 
+  ggplot(aes(harvest_length)) +
+  geom_histogram(binwidth = 1) +
+  scale_y_continuous(labels = comma) +
+  coord_cartesian(xlim = c(0,30)) +
+  labs(x = "Harvest cycle length (bin size = 1 month)",
+       title = "B") +
+  carib_theme()
+
+# Save stacked plot of FCR and harvest length histograms
+fcrPlot <- fcr_plot + hl_plot + plot_layout(ncol = 1)
+
+# Save histogram of FCR and harvest length
+ggsave(fcrPlot, filename = paste0(figure_folder,"fcr_histograms.png"), width = 4, height = 6)
   
   # Calculate monthly costs and revenue costs by cell ---------------------------------------------------------
   
@@ -231,7 +304,7 @@ if (econ_prep_data == TRUE){
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
                                          cobia_price = cobia_price, 
                                          prices = c(6, 6.5, 7, 7.5, 8, 9, 9.5, 10),
-                                         feed_price_index = c(1, 0.9),
+                                         feed_price_index = c(1, 1.25),
                                          discount_rates = disc_rate,
                                          eezs = countries, 
                                          area = cell_area,
@@ -243,6 +316,7 @@ if (econ_prep_data == TRUE){
   npv_df <- supply_curves_results[['npv']]
   eez_supply <- supply_curves_results[['eez_supply']]
   carib_supply <- supply_curves_results[['carib_supply']]
+  supply_summary <- supply_curves_results[['supply_summary']]
 
 # Select on the last month of simulation for every cell
   final_npv <- npv_df %>%
@@ -253,13 +327,31 @@ if (econ_prep_data == TRUE){
   write.csv(final_npv,paste0(run_dir,"Results/npv_df.csv"))
   write.csv(eez_supply,paste0(run_dir,"Results/eez_supply_df.csv"))
   write.csv(carib_supply,paste0(run_dir,"Results/carib_supply.csv"))
+  write_csv(supply_summary, path = paste0(run_dir,'Results/supply_summary.csv'))
 
 # Produce figures for paper -----------------------------------------------
 
 # Econ figures
+econ_figures(npv_df = npv_df,
+             cashflow = monthly_cashflow,
+             sim_results = sim_results,
+             supply_summary = supply_summary,
+             carib_theme,
+             result_folder,
+             figure_folder)
 
 # Maps  
-  
+  map_results(boxdir,
+              fig_folder = figure_folder,
+              avg_growth = avg_month_growth,
+              harv_cycle_length = harvest_cycle_length,
+              harvest_cycles,
+              stocking_n,
+              carib_supply,
+              eez_supply,
+              npv_df,
+              supply_summary)
+    
 # Save text file documenting run settings ---------------------------------
 
 # Write text file that includes run info- may want to add more to this (like price) later

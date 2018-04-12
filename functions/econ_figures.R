@@ -1,49 +1,17 @@
 ####################################################################################################
 ## Project: Caribbean aquaculture
-## Script purpose: Plots and tables for economic results
+## Script purpose: Function to make plots and tables for economic results
 ## Date: February 15, 2018
 ## Author: Tyler Clavelle
 ####################################################################################################
 
-# Load packages and functions -----------------------------------------------------------
-
-library(tidyverse)
-library(patchwork)
-library(skimr)
-library(viridis)
-library(RColorBrewer)
-library(ggrepel)
-library(scales)
-library(rlang)
-
-# Plot theme
-carib_theme <- function() {
-  theme_minimal() +
-    theme(text         = element_text(size = 6),
-          title        = element_text(size = 10),
-          axis.text    = element_text(size = 8),
-          legend.text  = element_text(size = 8))
-}
-
-# Run settings -------------------------------------------------------------
-
-## Set User (lennon/tyler)
-user <- 'tyler'
-
-if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
-if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
-
-run_name = '2018-03-15_est'  
-
-# Load run results 
-result_folder <- paste0(boxdir,'results/',run_name,"/Results")
-figure_folder <- paste0(boxdir,'results/',run_name,"/Figures")
-
-# Extract individual result data sets
-cashflow <- read_csv(file = paste0(result_folder,"/monthly_cashflow.csv"))
-npv_df <- read_csv(file = paste0(result_folder,"/npv_df.csv"))
-sim_results <- read_csv(file = paste0(result_folder,"/sim_function_results.csv"))
-supply_summary <- read_csv(file = paste0(result_folder,"/supply_summary.csv"))
+econ_figures <- function(npv_df,
+                      cashflow,
+                      sim_results,
+                      supply_summary,
+                      carib_theme,
+                      result_folder,
+                      figure_folder) {
 
 # NPV Summaries -----------------------------------------------------------
 
@@ -198,3 +166,5 @@ supply_plot_df %>%
         legend.direction = 'vertical')
 
 ggsave(filename = paste0(figure_folder,'/carib_supply_curves.png'), width = 5, height = 6)
+
+}

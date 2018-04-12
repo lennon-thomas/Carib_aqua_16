@@ -1,112 +1,81 @@
   # Load packages and functions-----------------------------------------------------------
-  rm(list = ls())
+  # rm(list = ls())
   
-  library(raster)
-  library(rgdal)
-  library(tmap)
-  library(ncdf4)
-  library(stringr)
-  library(broom)
-  library(fasterize)
-  library(sf)
-  library(tidyverse)
-  library(parallel)
-  library(R.utils)
-  library(readr)
-  library(pander)
-  library(scales)
-  library(viridis)
-  library(ggforce)
-  library(broom)
-  library(forcats)
-  library(ggpubr)
+  # library(raster)
+  # library(rgdal)
+  # library(tmap)
+  # library(ncdf4)
+  # library(stringr)
+  # library(broom)
+  # library(fasterize)
+  # library(sf)
+  # library(tidyverse)
+  # library(parallel)
+  # library(R.utils)
+  # library(readr)
+  # library(pander)
+  # library(scales)
+  # library(viridis)
+  # library(ggforce)
+  # library(forcats)
+  # library(ggpubr)
 
-#  library(rasterVis)
-  #library(plotly)
-  # library(plyr)
-  
-  # Run settings -------------------------------------------------------------
-  
-  ## Set User (lennon/tyler)
-  user <- 'lennon'
-  
-  if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
-  if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
-  
-  run_name = '2018-03-15_est'
-
-# Create figure folder
-  fig_folder <- paste0(boxdir,'results/',run_name, "/Figures/")
-
-  if (dir.exists(fig_folder) == F) {
-  dir.create(fig_folder, recursive = T)
-} else {
-  
-  print('Folder already exists')
-}
-  
- # Set figure theme 
-  carib_theme <- function() {
-    theme_minimal() +
-      theme(text         = element_text(size = 6),
-            title        = element_text(size = 10),
-            axis.text    = element_text(size = 8),
-            legend.text  = element_text(size = 8))
-  }  
+  map_results <- function(boxdir,
+                          fig_folder,
+                          avg_growth,
+                          harv_cycle_length,
+                          harvest_cycles,
+                          stocking_n,
+                          carib_supply,
+                          eez_supply,
+                          npv_df,
+                          supply_summary) {
+    
   
 # Load EEZ shapefile for plotting
 
-  EEZ = readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
+  EEZ <- readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
   
   # Load suitablity results
-  s_areas<-gzfile(paste0(boxdir,"results/Suitability/suitable_areas.rds"))
+  s_areas <- gzfile(paste0(boxdir,"results/Suitability/suitable_areas.rds"))
   
-   suit_areas<-readRDS(s_areas)
-  # 
-   suit_df<-read_csv(paste0(boxdir,"/results/Suitability/suitable_area_df.csv"),
-                     col_types = "iiddiic") %>%
-     dplyr::select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
-  # 
-   suit_df_summary<- suit_df %>%
-     group_by(country) %>%
-     summarise(suitable_area_km = round(sum(suit_area_km,na.rm = TRUE),2),
-               total_area_km = round(sum(study_area_km,na.rm =TRUE),2)) %>%
-     mutate(suitable_perc = round(suitable_area_km / total_area_km * 100,2)) %>%
-     arrange(desc(suitable_perc)) %>%
-     set_names(c("Country","Suitable area (km^2)","Total EEZ area (km^2)","Suitable area (% of EEZ)"))
+   suit_areas <- readRDS(s_areas)
+   
+   # suit_df <- read_csv(paste0(boxdir,"/results/Suitability/suitable_area_df.csv"),
+   #                   col_types = "iiddiiccccddddcc") %>%
+   #   dplyr::select(c("cell_no","study_area_km","suit_area_km","suit_index","eez","country"))
+   # 
+   # suit_df_summary <- suit_df %>%
+   #   group_by(country) %>%
+   #   summarise(suitable_area_km = round(sum(suit_area_km,na.rm = TRUE),2),
+   #             total_area_km = round(sum(study_area_km,na.rm =TRUE),2)) %>%
+   #   mutate(suitable_perc = round(suitable_area_km / total_area_km * 100,2)) %>%
+   #   arrange(desc(suitable_perc)) %>%
+   #   set_names(c("Country","Suitable area (km^2)","Total EEZ area (km^2)","Suitable area (% of EEZ)"))
     
-  suit_df_summary<-read_csv(paste0(boxdir,"results/Suitability/suit_df_summary.csv"))       
+  suit_df_summary <- read_csv(paste0(boxdir,"results/Suitability/suit_df_summary.csv"))       
   
 # Load sim data
   
-  data_folder<-paste0(boxdir,'results/',run_name,"/Data/")
-  
-  avg_growth<-brick(paste0(data_folder,"avg_month_growth_stack.nc"))
-  
-  harv_cycle_length<-raster(paste0(data_folder,"harvest_cycle_length.nc"))
-  
-  no_cycles<-brick(paste0(data_folder,"harvest_cycles.nc"))
-  
-  stocking_n<-brick(paste0(data_folder,"initial_stocking_stack.nc"))
-
+  # data_folder<-paste0(boxdir,'results/',run_name,"/Data/")
+  # 
+  # avg_growth<-brick(paste0(data_folder,"avg_month_growth_stack.nc"))
+  # 
+  # harv_cycle_length<-raster(paste0(data_folder,"harvest_cycle_length.nc"))
+  # 
+  # no_cycles<-brick(paste0(data_folder,"harvest_cycles.nc"))
+  # 
+  # stocking_n<-brick(paste0(data_folder,"initial_stocking_stack.nc"))
 
 # Load run results 
 
   result_folder <- paste0(boxdir,'results/',run_name,"/Results")
 
-  carib_supply <- read_csv(paste0(result_folder,"/carib_supply.csv"))
-
-  eez_supply_df <- read_csv(paste0(result_folder,"/eez_supply_df.csv"))
-
-  npv_df <- read_csv(paste0(result_folder,"/npv_df.csv"))
-
-  supply_summary <- read_csv(paste0(result_folder,"/supply_summary.csv"))
-
 # Prep data for plotting --------------------------------------------------
 
-#This joins npv_df dataframe with spatial coordinates and EEZ of each cell number
+# This joins npv_df dataframe with spatial coordinates and EEZ of each cell number
   
-  tidy_eez<-tidy(EEZ)
+  tidy_eez <- tidy(EEZ)
   
   temp_df <- data.frame(EEZ@data)
   
@@ -114,29 +83,29 @@
   
   EEZ_df <- merge(tidy_eez, temp_df, by="id")
   
-  cells<-as.vector(Which(suit_areas>0, cells =TRUE))
+  cells <- as.vector(Which(suit_areas > 0, cells =TRUE))
   
-  raster_coords<-as_data_frame(rasterToPoints(suit_areas))
+  raster_coords <- as_data_frame(rasterToPoints(suit_areas))
   
-  suit_coords<-cbind(cells,raster_coords) %>%
+  suit_coords <- cbind(cells,raster_coords) %>%
     set_names(c("cell","long","lat","suitable"))
   
-  all_df<- npv_df %>%
+  all_df <- npv_df %>%
     filter(prices == 8.62) %>%
     left_join(suit_coords) 
   
   
-  all_df<-dplyr:: rename(all_df,Territory1 = country) 
+  all_df <- dplyr::rename(all_df, Territory1 = country) 
 
 # Create base map of land and water in Carib ------------------------------
 
-eez.land<-EEZ_df %>%
+eez.land <- EEZ_df %>%
   filter(hole == TRUE)
 
-eez.water<-EEZ_df %>%
+eez.water <- EEZ_df %>%
   filter(hole == FALSE)
 
-base<- ggplot() + 
+base <- ggplot() + 
         geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
         geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
         theme(legend.position="none") +
@@ -147,7 +116,7 @@ base<- ggplot() +
 
 #ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
 
-  base_facet<-  ggplot() + 
+  base_facet <- ggplot() + 
                   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
                   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
                   theme(legend.position="none") +
@@ -178,7 +147,7 @@ base<- ggplot() +
 
 ## Plot EEZ level suitability for just a couple of countries
   
-  ggplot() + 
+  suitable_three <- ggplot() + 
     geom_polygon(data = subset(eez.water,Territory1 %in% c("Bahamas","Jamaica","Trinidad and Tobago")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.07 , alpha = 0.5) +
     geom_polygon(data = subset(eez.land,Territory1 %in% c("Bahamas","Jamaica", "Trinidad and Tobago")),aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.07) +
     geom_raster(data = subset(all_df,Territory1 %in% c("Bahamas","Jamaica","Trinidad and Tobago")), aes(x=long,y=lat,fill=suitable),fill="orange") +
@@ -191,8 +160,12 @@ base<- ggplot() +
     facet_wrap(~Territory1,scales = "free") +
     theme(strip.text.x = element_text(size = 12))
   
-  ggsave(filename = paste0(fig_folder,'eez_suitable_map_zoom.png'), width = 9, height = 3)
+  suitable_plot_final <- suitable_plot + 
+    suitable_three + 
+    plot_layout(nrow = 2,
+                heights = c(0.75,0.25))
   
+  ggsave(filename = paste0(fig_folder,'carib_suitable_map.png'), width = 6.5, height = 6.5)
   
   ggplot() +
     geom_polygon(data = subset(eez.water,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.1 , alpha = 0.5) +
@@ -212,12 +185,12 @@ base<- ggplot() +
 
 # Production if don't consider economics
   
-  all_df$eez<-as.factor(all_df$eez)
-  all_df$disc_scenario<-as.factor(all_df$disc_scenario)
-  all_df$feed_price_index<-as.factor(all_df$feed_price_index)
+  all_df$eez <- as.factor(all_df$eez)
+  all_df$disc_scenario <- as.factor(all_df$disc_scenario)
+  all_df$feed_price_index <- as.factor(all_df$feed_price_index)
   
   
-  total_prod<- all_df %>%
+  total_prod <- all_df %>%
     filter(feed_price_index == '1' & disc_scenario == '0.1' ) %>%
     group_by(eez) %>%
     summarise(eez_harvest_mt = sum(total_harvest)* 0.001) %>%
@@ -226,7 +199,7 @@ base<- ggplot() +
     ungroup() %>%
     dplyr::select(eez,scenario_names,eez_harvest_mt,annual_eez_harvest) 
  
-  total_prod_sp<-left_join(total_prod,eez.water,by=c("eez"="MRGID"))
+  total_prod_sp <- left_join(total_prod,eez.water,by=c("eez"="MRGID"))
    
   ggplot() + 
     geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
@@ -245,12 +218,9 @@ base<- ggplot() +
   
   ggsave(paste0(fig_folder,'total_prod_map.png'), width = 6, height = 5)
   
+  # Production and NPV - for .10 disount rate- only consider profitable cells
   
-  
-  ## Production and npv - for .10 disount rate- only consider profitable cells
-  
-  
-  econ_prod<- all_df %>%
+  econ_prod <- all_df %>%
     filter(disc_scenario == '0.1' & npv > 0 ) %>%
     dplyr::group_by(eez,feed_price_index) %>%
     summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
@@ -258,13 +228,11 @@ base<- ggplot() +
               total_npv = sum(npv, na.rm = T),
               total_annuity = sum(annuity, na.rm = T)) %>%
     ungroup() %>%
-       mutate(scenario_names =  ifelse( feed_price_index == "1", "Current feed cost", "Reduced feed cost"))
+       mutate(scenario_names = ifelse(feed_price_index == "1", "Current feed cost", "Reduced feed cost"))
  
-   econ_prod_sp<-left_join(econ_prod,eez.water, by=c("eez"="MRGID"))         
+   econ_prod_sp <- left_join(econ_prod,eez.water, by=c("eez"="MRGID"))         
    
-   
-  # plot 
- 
+# plot 
  econ_prod_map <- ggplot() + 
                       geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
                       geom_polygon(data = econ_prod_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
@@ -279,11 +247,11 @@ base<- ggplot() +
                       theme(strip.text.x = element_text(size = 12),
                             legend.position = 'bottom')
                     
- econ_npv_map<- ggplot() + 
+ econ_npv_map <- ggplot() + 
    geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
    geom_polygon(data = econ_prod_sp,aes(x = long,y = lat, group = group, fill= total_annuity / 1e9), colour = "black", size = 0.1 , alpha = 0.8) +
    geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-   scale_fill_viridis("Annuity ($USD, billions)", labels = comma) +
+   scale_fill_viridis("Annuity ($USD, billions) ", labels = comma) +
    guides(fill = guide_colorbar(title.vjust = 0.75)) +
    carib_theme() + 
    xlab("Longitude") +
@@ -294,14 +262,13 @@ base<- ggplot() +
          legend.position = 'bottom')
 
  
-all_econ<-  ggarrange(econ_prod_map,econ_npv_map, nrow = 2)
+all_econ <- ggarrange(econ_prod_map,econ_npv_map, nrow = 2)
   
 ggsave(paste0(fig_folder,'econ_npv_prod_map.png'), width = 12, height = 10)  
   
   
 
 # Box plots of total production --------------------------------------------
-
 
 # invest_scenario<-all_df %>%
 #   filter(npv>0) %>%
@@ -332,12 +299,10 @@ ggsave(paste0(fig_folder,'econ_npv_prod_map.png'), width = 12, height = 10)
 #         legend.position = 'bottom')
 #  
 # ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
-    
-
 
 # Discount scenario production map ----------------------------------------
 
-disc_only<-all_df %>%
+disc_only <- all_df %>%
   filter(npv>0 & feed_price_index =="1") %>%
   group_by(eez,disc_scenario) %>%
   summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
@@ -347,9 +312,9 @@ disc_only<-all_df %>%
 mutate(scenario_name = ifelse( disc_scenario =="0.1", "10% discount rate","Country specific discount rate"))
 
 
-disc_only_sp<-left_join(disc_only,eez.water, by=c("eez"="MRGID"))
+disc_only_sp <- left_join(disc_only,eez.water, by=c("eez"="MRGID"))
 
-presentation_disc_map<- ggplot() + 
+presentation_disc_map <- ggplot() + 
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
   geom_polygon(data = disc_only_sp,aes(x = long,y = lat, group = group, fill= annual_eez_harvest / 1e6), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
@@ -364,8 +329,6 @@ presentation_disc_map<- ggplot() +
         legend.position = 'bottom')
 
 ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
-
-
 
 # NPV maps/histograms for cntry specific discouont -----------------------------------------------------
 
@@ -409,36 +372,38 @@ dev.off()
 
 # Boxplot of average growth by month
 
-cells<-as.vector(Which(avg_growth[[1]]>0, cells =TRUE))
+cells <- as.vector(Which(avg_growth[[1]]>0, cells =TRUE))
 
-countries<-all_df %>%
-  select(cell,Territory1)
+countries <- all_df %>%
+  dplyr::select(cell,Territory1)
 
-growth_df<-as.data.frame(avg_growth) %>%
-  filter(!is.na(X1)) %>%
-  cbind(cells) %>%
-  set_names(c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec","cell")) %>%
-  gather("Month","avg_growth",1:12)
+# growth_df <- as.data.frame(avg_growth) %>%
+#   filter(!is.na(X1)) %>%
+#   cbind(cells) %>%
+#   set_names(c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec","cell")) %>%
+#   gather("Month","avg_growth",1:12)
+# 
+# growth_df <- left_join(growth_df,countries)
+# 
+# #Box plot of avergage growth per month for whole Carib
+# 
+# ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) ,y=avg_growth)) +
+#   geom_boxplot()+
+#   theme_minimal() +
+#   xlab("Month") +
+#   ylab("Average Growth")
+# 
+# ggsave(paste0(fig_folder,'Caribbean_avg_growth.png'), width = 6, height = 5)
+# 
+# ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")),y=avg_growth)) +
+#   geom_boxplot()+
+#   theme_minimal() +
+#   xlab("Month") +
+#   ylab("Average Growth") +
+#   facet_wrap(~Territory1)
+# 
+# ggsave(paste0(fig_folder,'EEZ_avg_growth.png'), width = 12, height = 12)
 
-growth_df<-left_join(growth_df,countries)
-
-#Box plot of avergage growth per month for whole Carib
-
-ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) ,y=avg_growth)) +
-  geom_boxplot()+
-  theme_minimal() +
-  xlab("Month") +
-  ylab("Average Growth")
-
-ggsave(paste0(fig_folder,'Caribbean_avg_growth.png'), width = 6, height = 5)
-
-ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")),y=avg_growth)) +
-  geom_boxplot()+
-  theme_minimal() +
-  xlab("Month") +
-  ylab("Average Growth") +
-  facet_wrap(~Territory1)
-
-ggsave(paste0(fig_folder,'EEZ_avg_growth.png'), width = 12, height = 12)
-
+return()
+}
 

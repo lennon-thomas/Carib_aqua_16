@@ -4,7 +4,12 @@
 ## Caribbean aquaculture project
 ##########################################################################
 
-sim_aqua <- function(avg_month_growth, stocking_n, month_mort, int_weight, sim_length,fcr) {
+sim_aqua <- function(avg_month_growth, 
+                     stocking_n, 
+                     month_mort, 
+                     int_weight, 
+                     sim_length,fcr, 
+                     feed_rate) {
 
 # avg_month_growth <- raster(x = paste0(boxdir,'data/avg_month_growth_stack.nc',sep = ""))
 # stocking_n <- raster(x = paste0(boxdir,'data/initial_stocking_stack.nc',sep = ""))
@@ -33,21 +38,21 @@ stocking <- data_frame(cell = cell_index,
                        stocking = stocking_n[cell_index])
 
 # Initialize storage data frame for results
-results <- as_data_frame(matrix(NA, nrow = nrow(stocking) * (sim_length + 1), ncol = 8))
-colnames(results) <- c('cell','month','alive','weight','mortality','harvest','feed', 'harvest_cycle')
+results <- as_data_frame(matrix(0, nrow = nrow(stocking) * (sim_length + 1), ncol = 9))
+colnames(results) <- c('cell','month','alive','weight', 'biomass', 'harvest','feed_by_rate', 'feed_by_fcr', 'harvest_cycle')
 
 results$month <- rep(0:(sim_length), each = nrow(stocking))
-results$cell <- rep(cell_index, times = sim_length + 1)
+results$cell <- rep(cell_index, times = sim_length + 1)  
 
 # Initialize starting conditions
-results$alive[results$month == 0] <- stocking$stocking
-results$weight[results$month == 0] <- 0.015
-results$mortality[results$month == 0] <- 0
+results$alive[results$month == 0] <- stocking$stocking 
+results$weight[results$month == 0] <- int_weight 
 results$harvest[results$month == 0] <- 0
-# results$feed[results$month == 0] <- fcr*results$weight[results$month == 0]*  results$alive[results$month == 0]
-# results$feed[results$month == 0] <- 0.02 * results$weight[results$month == 0] * results$alive[results$month == 0] * 30 # feeding 5% of total biomass every day of the month
-results$feed[results$month == 0] <- 0
+results$biomass[results$month == 0] <- results$alive[results$month == 0] * int_weight
+# results$feed_by_fcr[results$month == 0] <- fcr * results$alive[results$month == 0] * growth_vec[1]
+results$feed_by_rate[results$month == 0] <- feed_rate[1] * results$weight[results$month == 0] * results$alive[results$month == 0] * 30 # feeding 5% of total biomass every day of the month
 results$harvest_cycle[results$month == 0] <- 1
+
 
 sim_cell <- function(x) {
   
@@ -68,82 +73,88 @@ sim_cell <- function(x) {
   temp_results <- dplyr::filter(results, cell == x)
   
   # Generate growth vector representing average growth for each calendar month
-  growth_vec <-(avg_m_growth[avg_m_growth$cell == x,])%>%
+  growth_vec <- (avg_m_growth[avg_m_growth$cell == x,]) %>%
     slice(1) %>%
     unlist(.,use.names=FALSE)
-  growth_vec<-growth_vec[2:13]
+  
+  growth_vec <- growth_vec[2:13]
   
   # Repeat growth vector for length of simulation
-  growth_vec <- as.vector(rep(growth_vec, times = sim_length / 12) )
-
+  growth_vec <- as.vector(rep(growth_vec, times = sim_length / 12))
+  
   # initial counter for time since stocking. Determines mortality
   stock_counter <- 1 
+  
   # initial counter for harvest cycles. Exit loop after completing harvest cycles
   num_harv_cycles <- as.numeric(harv_cycles$harvest_cycles[harv_cycles$cell==x])
   
+  # initial stocking number
+  temp_stocking <- as.numeric(stocking[stocking$cell==x,2])
+  
   # Set sim length to number of harvest cycles times
   cycle_counter <- 1
-
+  
   # while(cycle_counter < num_harv_cycles) {
   # Loop over simulation months
-
-  for(i in 2:(sim_length + 1)) {
+  
+  for(i in 1:(sim_length-1)) {
+    # for(i in 1:17) {
     #break cycle if number of harvest cycles is exceeded.
     if (cycle_counter > num_harv_cycles)
-    {break}
+      # print("done")
+    { temp_results$harvest_cycle[i] <- cycle_counter - 1
+    break
+    }
     else{
-      # initial stocking number
-      temp_stocking <-as.numeric(stocking[stocking$cell==x,2]) 
+      
+      # Set feeding rate based on time of stocking
+      if(stock_counter <= 3) f_rate <- feed_rate[1]
+      if(stock_counter > 3 & stock_counter <= 5) f_rate <- feed_rate[3]
+      if(stock_counter > 5 & stock_counter <= 8) f_rate <- feed_rate[3]
+      if(stock_counter >= 9) f_rate <- feed_rate[4]
       
       # If individual weight has reached harvest weight (~5 kg), harvest and restock
-      if(temp_results$weight[i-1] >= 5) {
-        
-        # label harvest cycle and calculate harvest
-        temp_results$harvest_cycle[i] <- cycle_counter
-        temp_results$harvest[i-1] <- temp_results$alive[[i-1]] * temp_results$weight[[i-1]]
+      if(temp_results$weight[i] >= 5) {
         
         # Update harvest cycle counter
         cycle_counter <- cycle_counter + 1
         temp_results$harvest_cycle[i] <- cycle_counter
+        # label harvest cycle and calculate harvest
+        temp_results$harvest[i-1] <- temp_results$alive[i] * temp_results$weight[i]
         
         # If harvest cycle counter is still less than or equal to the number of harvest cycles, restock.
         if(cycle_counter <= num_harv_cycles) {
+          # Restock
           temp_results$alive[i] <- temp_stocking
-          temp_results$weight[i] <- 0.015
-          temp_results$mortality[i] <- 0
-          # temp_results$feed[i] <- 0.02 * mean(temp_results$weight[[i]],temp_results$weight[[i-1]]) * mean(temp_results$alive[[i]], temp_results$alive[[i-1]]) * 30
-          temp_results$feed[i] <- 0
+          temp_results$weight[i] <- int_weight
+          temp_results$biomass[i] <- temp_results$alive[i] * temp_results$weight[i]
+          # Update stock counter
+          stock_counter <- 1
+          # Calculate growth
+          temp_results$weight[i+1] <- temp_results$weight[i] + growth_vec[i]
+          # Subtract mortality
+          temp_results$alive[i+1] <- temp_stocking - temp_stocking * (1-exp(-month_mort*stock_counter))
+          temp_results$biomass[i+1] <- temp_results$alive[i+1] * temp_results$weight[i+1]
+          # Calculate feed
+          temp_results$feed_by_fcr[i] <- fcr * growth_vec[i] * temp_results$alive[i]
+          temp_results$feed_by_rate[i] <- f_rate * temp_results$weight[i] * temp_results$alive[i] * 30 
         }
-        
-        # Update stock counter
-        stock_counter <- 1
         
       } else { 
-        
         # Calculate growth
-        temp_results$weight[i] <- temp_results$weight[i - 1] + growth_vec[i-1]
+        temp_results$weight[i+1] <- temp_results$weight[i] + growth_vec[i]
         # Subtract mortality
-        temp_results$alive[i] <- temp_stocking - temp_stocking * (1-exp(-month_mort*stock_counter))
-        temp_results$mortality[i] <- temp_results$alive[i-1]-temp_results$alive[i] #or should this be temp_results$mortality[i-1]?
-        
+        temp_results$alive[i+1] <- temp_stocking - temp_stocking * (1-exp(-month_mort*stock_counter))
+        temp_results$biomass[i+1] <- temp_results$alive[i+1] * temp_results$weight[i+1]
         # Calculate feed use
-        temp_results$feed[i] <- 0.02 *  mean(temp_results$weight[[i]],temp_results$weight[[i-1]]) * mean(temp_results$alive[[i]], temp_results$alive[[i-1]]) * 30
+        temp_results$feed_by_fcr[i] <- fcr * growth_vec[i] * temp_results$alive[i]
+        temp_results$feed_by_rate[i] <- f_rate *  temp_results$weight[i] * temp_results$alive[i] * 30 
         stock_counter <- stock_counter + 1 # advance stocking counter
         temp_results$harvest_cycle[i] <- cycle_counter
-        
-        if(i == 121 & is.na(temp_results$weight[i]) == F){
-          temp_results$harvest[i] <- temp_results$alive[[i]] * temp_results$weight[[i]]
-        }
-        
-        }
       }
-      
-    # }
-      
+    }
   }
-  
   return(temp_results)   
-  
 }
 
 # Apply function in parallel

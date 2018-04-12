@@ -228,8 +228,8 @@ supply_curves <- function(cashflow,
                 filter(prices == cobia_price) %>%
                 mutate(country = 'Caribbean'))
   
-  # Save summary table to results
-  write_csv(supply_summary_tbl, path = paste0(result_folder, 'supply_summary.csv'))
-  
-  return(list('carib_supply' = carib_supply, 'eez_supply' = eez_supply, 'npv' = npv_df))
+  return(list('carib_supply' = carib_supply, 
+              'eez_supply' = eez_supply, 
+              'npv' = npv_df,
+              'supply_summary' = supply_summary_tbl))
 }
