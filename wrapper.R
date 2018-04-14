@@ -43,7 +43,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -57,7 +57,7 @@ source(file = 'functions/supply_curves.R')
 source(file = "functions/econ_figures.R")
 source(file = "functions/map_results.R")
 
-run_name = '2018-04-12_2feed_1fing'
+run_name = '2018-04-12_4feed_1fing'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -102,7 +102,7 @@ total_vol <- no_cage*cage_volume # m^3 total cage volume
 harvest_weight <- 5 # kg from various souces (5-6 kg)
 cobia_price <- 8.62 # $US/kg# Bezerra et al. 2016
 fcr <- 1.75 # Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
-feed_price <- 2 # in units of $/kg  ($1.64 from Bezerra et al. 2016)
+feed_price <- 4# in units of $/kg  ($1.64 from Bezerra et al. 2016)
 survival <- 0.75 # Benetti et al. 2007 over 12 monthes and Huang et al. 2011
 month_mort <- 1-survival ^ (1 / 12)
 int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
@@ -228,7 +228,8 @@ fcr_plot <- fcr_results %>%
   coord_cartesian(xlim = c(0,5)) +
   labs(x = 'FCR (bin size = 0.1)',
        title = "A") +
-  carib_theme()
+  carib_theme() + 
+  ggtitle(paste0("feed price =", feed_price, "fingerling price = ",price_fingerlings))
 
 hl_plot <- fcr_results %>% 
   filter(!is.na(harvest_cycle) & !is.infinite(fcr_fcr)) %>%
@@ -350,7 +351,9 @@ econ_figures(npv_df = npv_df,
               carib_supply,
               eez_supply,
               npv_df,
-              supply_summary)
+              supply_summary,
+              feed_price,
+              price_fingerlings)
     
 # Save text file documenting run settings ---------------------------------
 
