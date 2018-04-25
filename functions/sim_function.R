@@ -161,7 +161,45 @@ sim_cell <- function(x) {
 final_results <- mclapply(cell_index, function(x) sim_cell(x),mc.cores=4) %>%
   bind_rows()
 
-#write.csv(final_results,paste0(run_dir,"sim_function_results.csv"))
+# FCR summary
+fcr_results <- final_results %>%
+  filter(feed_by_rate > 0) %>% 
+  group_by(cell, harvest_cycle) %>% 
+  summarize(fcr_rate  = sum(feed_by_rate, na.rm = T) / sum(harvest, na.rm = T),
+            fcr_fcr   = sum(feed_by_fcr, na.rm = T) / sum(harvest, na.rm = T),
+            harvest_length = n_distinct(month)) %>% 
+  ungroup() 
 
-  return(final_results)
+# FCR histograms
+fcr_plot <- fcr_results %>% 
+  gather(key = 'method', 'value', 3:5) %>% 
+  filter(!is.na(method) & !is.infinite(fcr)) %>%
+  filter(method %in% c('fcr_rate')) %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(binwidth = 0.1) +
+  scale_y_continuous(labels = comma) +
+  coord_cartesian(xlim = c(0,5)) +
+  labs(x = 'FCR (bin size = 0.1)',
+       title = "A") +
+  carib_theme()
+
+hl_plot <- fcr_results %>% 
+  filter(!is.na(harvest_cycle) & !is.infinite(fcr_fcr)) %>%
+  select(harvest_length) %>% 
+  ggplot(aes(harvest_length)) +
+  geom_histogram(binwidth = 1) +
+  scale_y_continuous(labels = comma) +
+  coord_cartesian(xlim = c(0,30)) +
+  labs(x = "Harvest cycle length (bin size = 1 month)",
+       title = "B") +
+  carib_theme()
+
+# Save stacked plot of FCR and harvest length histograms
+fcrPlot <- fcr_plot + hl_plot + plot_layout(ncol = 1)
+
+# Save histogram of FCR and harvest length
+ggsave(fcrPlot, filename = paste0(figure_folder,"fcr_histograms.png"), width = 4, height = 6)
+
+return(final_results)
+
 }

@@ -49,7 +49,7 @@ monthly_cost_est<-function (sim_results,
   # Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
   
   suitable_economic<-suitable_economic %>%
-    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 *4) 
+    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 * 4) 
 
   
   
@@ -69,7 +69,7 @@ monthly_cost_est<-function (sim_results,
   monthly_costs<-left_join(monthly_costs,country,by = c('eez' = 'MRGID'))
   #set capital costs to 0 for all month except month one
   
-  monthly_costs$c_costs<-ifelse(monthly_costs$month==1,monthly_costs$c_costs,0)                                
+  monthly_costs$c_costs<-ifelse(monthly_costs$month==0,monthly_costs$c_costs,0)                                
   
   # Calculate all cost components and sum everything to get total monthly costs, revenues and profits
   monthly_costs$harvest[is.na(monthly_costs$harvest)]<-0
