@@ -29,7 +29,9 @@
                           carib_supply,
                           eez_supply,
                           npv_df,
-                          supply_summary) {
+                          supply_summary,
+                          feed_price,
+                          price_fingerlings) {
     
   
 # Load EEZ shapefile for plotting
@@ -391,7 +393,8 @@ presentation_disc_map <- ggplot() +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
   facet_wrap(~scenario_name) +
   theme(strip.text.x = element_text(size = 12),
-        legend.position = 'bottom')
+        legend.position = 'bottom') +
+  ggtitle(paste0("feed price =", feed_price, "fingerling price = ",price_fingerlings))
 
 ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
 

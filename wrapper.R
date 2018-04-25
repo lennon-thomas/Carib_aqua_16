@@ -44,7 +44,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -320,16 +320,18 @@ econ_figures(npv_df = npv_df,
              figure_folder)
 # Maps  
 map_results(boxdir,
-            fig_folder = figure_folder,
-            avg_growth = avg_month_growth,
-            harv_cycle_length = harvest_cycle_length,
-            harvest_cycles,
-            stocking_n,
-            carib_supply,
-            eez_supply,
-            npv_df,
-            supply_summary)
-    
+              fig_folder = figure_folder,
+              avg_growth = avg_month_growth,
+              harv_cycle_length = harvest_cycle_length,
+              harvest_cycles,
+              stocking_n,
+              carib_supply,
+              eez_supply,
+              npv_df,
+              supply_summary,
+              feed_price,
+              price_fingerlings)
+
 # Save text file documenting run settings ---------------------------------
 
 # Write text file that includes run info- may want to add more to this (like price) later
