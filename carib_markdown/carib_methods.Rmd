@@ -75,17 +75,11 @@ run_dir <- paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in SI tables
 suit_data <- read.csv(paste0(boxdir,"results/tables/suit_data.csv"),stringsAsFactors = FALSE,fileEncoding="latin1")
-
 farm_specs <- read.csv(paste0(boxdir,"results/tables/farm_specs.csv"),check.names=FALSE)
-
 cost_tablea <- read.csv(paste0(boxdir,"results/tables/cost_table_a.csv"),check.names=FALSE)
-
 cost_tableb <- read.csv(paste0(boxdir,"results/tables/cost_table_b.csv"),check.names=FALSE)
-
 cost_table_ref <- read.csv(paste0(boxdir,"results/tables/cost_table_ref.csv"),check.names=FALSE)
-
 risk_parms <- read.csv(paste0(boxdir,"data/risk_parms.csv"))
-
 suit_by_var <- read.csv(paste0(boxdir,"results/suitability/suit_by_variable.csv"))
 
 ## Read in data tables
@@ -96,16 +90,13 @@ colnames(suit_eez_table) <- c("Country", "Total EEZ Area (km^2^)", "Suitable are
 
 # Caribbean seafood production
 carib_production <- read_csv(file = paste0(boxdir, 'data/carib_seafood_2014.csv'))
-
 # 2014 total production
 carib_prod <- carib_production %>% 
   summarize(prod = sum(Production_MT, na.rm = T)) %>% .$prod
-
 # 2014 aquaculture production
 carib_aqua_prod <- carib_production %>% 
   filter(Type != 'Fisheries') %>% 
   summarize(aqua_prod = sum(Production_MT, na.rm = T)) %>% .$aqua_prod
-
 # 2014 fishery production
 carib_fish_prod <- carib_production %>% 
   filter(Type == 'Fisheries') %>% 
@@ -113,6 +104,10 @@ carib_fish_prod <- carib_production %>%
 
 # Results of supply analysis examining how much space required to replace Caribbean production and imports
 supply_replace <- read_csv(file = paste0(run_dir,'Results/supply_replace_results.csv'))
+
+# Harvest length and FCR results
+fcr_results <- read_csv(file = paste0(run_dir,'Results/fcr_results.csv')) %>% 
+  filter(is.infinite(fcr_rate)==F)
 
 # NPV results
 carib_supply <- read_csv(file = paste0(run_dir,"Results/supply_summary.csv"))
@@ -166,6 +161,8 @@ scenario_compare <- carib_supply %>%
               rename(suit_area  = area,
                      supply_all = total_supply,
                      annuity_all    = total_annuity)) %>% 
+  mutate(supply_diff = supply_all - supply_main,
+         supply_diff_perc = supply_diff / supply_all * 100) %>% 
   # Feed price scenario
   left_join(carib_supply %>%
               filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 0.9 & supply_scenario == 'Profitable farms') %>%
@@ -300,23 +297,23 @@ Foreign investment risk reflects both political and economic risks in a country,
 
 ## Suitability
 
-According for some technical, environmental and use conflict constraints, we identified `r prettyNum(main_results[1,2],big.mark=",", digits = 5)` km^2^ of ocean space (`r round(main_results[2,2], digits = 2)`% our study region) potentially suitable for the development of offshore mariculture. Depth was the largest constraining factor in the suitability analysis, as 97.85% of our study area fell outside the depth range (25 - 100 m) that we considered technically feasible for offshore farm infrastructure. By comparison, our second largest constraining factor was shipping activity, which only excluded 11% of our study area (Table S4). 
+Accounting for technical, environmental and use conflict constraints, we identified `r prettyNum(main_results[1,2],big.mark=",", digits = 5)` km^2^ of ocean space (`r round(main_results[2,2], digits = 2)`% our study region) potentially suitable for the development of offshore mariculture (Figure 1). Depth was the largest constraining factor in the suitability analysis, as 97.85% of our study area fell outside the depth range (25 - 100 m) that we considered technically feasible for offshore farm infrastructure. By comparison, our second largest constraining factor was shipping activity, which only excluded 11% of our study area (Table S4). 
 
 There is considerable variability in the amount and distribution of suitable area for offshore mariculture in the Caribbean (Table 1; Figure 1). The Bahamas, Trinidad and Tobago, and Jamaica are the top three countries in terms of suitable area, and the spatial distribution and clustering of suitable sites differs considerably among them (Figure 1). Both The Bahamas and Trinidad and Tobago have more than twice the suitable area of the next largest country with the next largest amount of suitable area (Jamaica; Table 2). The large suitable area in the Bahamas can be attributed to its relatively large EEZ (Table 2; Figure 1). Overall, Trinidad and Tobago had the largest percentage of their EEZ identified as suitable (13.3%), followed by Saba (11.1%). Suitable areas accounted for < 5% of total EEZ area for all other Caribbean islands and no suitable areas were found in Martinque, St. Martin, and Guadeloupe because of the conservation status of otherwise suitable sites (Table 2).
 
-Ignoring economic constraints, the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production from all suitable sites of `r round(main_results[15,2] / 1e6 / 10, digits = 1)` MMT. At the farm level, the median cobia farm occupying a 1-km^2^ site in the Caribbean yields an annual supply and value (annuity) of `r prettyNum(main_results[9,2], big.mark = ",", digits = 5)` MT and \$`r prettyNum(main_results[9,2], big.mark = ",", digits = 5)`, respectively. International variability in total annual production is driven by the amount of suitable area within each EEZ (Table 2; Figure 2A) - countries with the most suitable area also have the largest production potential. However, cobia growth is a function of temperature and average cobia growth rates (kg/month) vary across EEZs and show a clear seasonal trend (Figure S3). Not surprisingly then, countries with the largest potential production do not neccessarily have the most productive farms (Figure 2B). 
+## Cobia production
 
-When economics are considered, the Caribbean's potential for offshore cobia mariculture is considerably reduced in several countries relative to when only suitability and temperature-dependent growth are considered. In the Bahamas, which has the largest amount of suitable area, average annual production declines from `r round(scenario_compare$supply_all[scenario_compare$country=='Bahamas'] / 1e6 / 10, digits = 1)` MMT to just `r prettyNum(scenario_compare$supply_main[scenario_compare$country=='Bahamas'] / 10, big.mark = ",", digits = 5)` MMT, and total annual production for the Caribbean is reduced to `r round(main_results[15,3] / 1e6 / 10, digits = 1)` MMT. The number of countries with economically viable farming areas is further reduced if the country-specific risk of investment is considered, with profitable farms remaining only in Trinidad and Tobago, Jamaica, the Dominican Republic, Haiti, and Anguilla (Figure 3B). Using EEZ-specific risk adjusted discount rates, total potential annual production for the Caribbean is `r prettyNum(carib_supply[192,5]/1e6/10, big.mark = ",", digits = 2)` MMT.
+Ignoring economic constraints, the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production from all suitable sites of `r round(main_results[15,2] / 1e6 / 10, digits = 1)` MMT. The median cobia farm occupying a 1-km^2^ site in the Caribbean yields an annual supply and value (annuity) of `r prettyNum(main_results[9,2], big.mark = ",", digits = 5)` MT and \$`r prettyNum(main_results[9,2], big.mark = ",", digits = 5)`, respectively. Not surprisingly, international variability in production is driven by the amount of suitable area within each EEZ - countries with the most suitable area also have the largest production potential (Table 2; Figure 2A). However, these countries do not neccessarily have the most productive farms (Figure 2). Cobia growth is a function of temperature and growth rates (kg/month) vary across EEZs, showing a clear seasonal pattern (Figure 3). As a result, the most productive farm sites lie within the EEZs of Jamaica and several small nations in the southeastern Caribbean, such as St. Vincent and the Grenadines, Barbados, St. Lucia, and Trinidad and Tobago (Figure 3). Interstingly, farms in Haiti and the Cayman Islands experience below average growth rates during the peak summer months, likely due to water temperatures approaching $T_{max}$.  
 
-At the farm level, the median cobia farm occupying a 1-km^2^ site in the Caribbean yields an annual supply and value (annuity) of `r prettyNum(main_results[9,3], big.mark = ",", digits = 5)` MT and \$`r prettyNum(main_results[9,3], big.mark = ",", digits = 5)`, respectively. Farm value is highly variable across farms in Jamaica, Haiti, and the Dominican Republic, but relatively more consistent within the other EEZs (Figure 4). EEZs with more farm to farm variability in outcomes, particularly those where some sites are highly profitable and others are unprofitable (Figure 4), represent countries where strategic site selection is particularly important. The variability across EEZs is largely driven by temperature driven growth rates and resulting farm differences in the length of time required to raise cobia to a market size of 5 kg, with the median farm in the Caribbean completing a harvest cycle in X months but with individual farms having harvest cycles from x months to x months (Figure S4).
+Variability in growth rates, both spatial and seasonal, leads to differences in the length of time required to raise cobia to a market size of 5 kg (Figure S2). While the average farm in the Caribbean complete a harvest cycle in `r median(fcr_results$harvest_length, na.rm = T)` months, harvest cycles range from `r range(fcr_results$harvest_length)[1]` to `r range(fcr_results$harvest_length)[2]` months in duration. Longer harvest cycles affect the economics of cobia production by reducing harvestable biomass (mortality/escapes) and by increasing feed use and other operating costs. Feed conversion ratio (FCR) - calculated as total feed used divided by total harvested biomass - is a measure of how efficiently a farmed animal converts feed into biomass and is one of the main indicators used to compare the sustainability of different animal protein sources (REF). FCRs of cobia farms in our analysis ranged from `r range(fcr_results$fcr_rate)[1]` to `r range(fcr_results$fcr_rate)[2]`, with a median FCR of `r median(fcr_results$fcr_rate, na.rm = T)`. These findings accord with the literature, in which FCRs for cobia range from 1.5-3 . Our findings also support the conclusion that feed accounts for the vast majority of farm operating costs, with the median farm spending `r round(100*main_results[5,3], digits = 0)`% of operating costs on feed. 
 
-Growth rates and harvest cycle length then impacts feed costs and the number of harvests events per 10 year period. For example, in the Bahamas, which has a large area suitable for aquaculture but a long average harvest cycle across all farms due to cooler waters, the majority of the suitable farm sites are unprofitable (Figures 2 and 3).  
-
-Our findings support the conclusion that feed accounts for the largest portion of farm operating costs, with the median farm spending `r round(100*main_results[5,3], digits = 0)`% of operating costs on feed. We find that a 10% reduction in the price of feed could increase cobia supply by 35%. This change would increase the revenue for farms in Aruba, the Turks and Caicos Islands, the US Virgin Islands, Montserrat, and the Cayman Islands to profitable levels. Whether or not feed costs decline, no farms in the Caribbean will be profitable if the price for cobia drops below $8/kg.
+When economics are considered, the potential production and/or profitability of offshore cobia mariculture is considerably reduced in several countries relative to when only suitability and temperature-dependent growth are considered (Table 4; Figure 4). In the Bahamas, which has the largest amount of suitable area, average annual production declines by `r round(scenario_compare$supply_diff[scenario_compare$country=='Bahamas'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Bahamas'], digits = 1)`%), while Cuba experiences a decline of `r round(scenario_compare$supply_diff[scenario_compare$country=='Cuba'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Cuba'], digits = 1)`%). The Turks and Caicos and Haiti also both experience small declines (<1%). Overall, the potential annual production for the Caribbean is reduced to `r round(main_results[15,3] / 1e6 / 10, digits = 1)` MMT when only considering supply from profitable farm sites. In terms of value, farms in most countries were profitable and this result was robust to the discount rate (Figure 4). Only the Bahamas and Cuba contained a considerable number of unprofitable farm sites, with the median Bahamian farm unprofitable if assessed with a 10% discount rate. Farm annuity value is tightly clustered around $3 million for many countries, suggesting site selection is less of a concern in these areas. However, farms in Turks and Caicos, Jamaica, the Dominican Republic, Cuba, the Bahamas, and Aruba vary considerably in value and site selection is thus a critical factor for prospective cobia farms (Figure 4). 
 
 # Discussion 
 
 The total annual production of `r round(main_results[15,2] / 1e6 / 10, digits = 1)` MMT possible from all suitable areas in the Caribbean is two orders of magnitude larger than total current seafood production in the region (~300,000 MT) and approximately equal to the total annual harvest from the world's capture fisheries (~80 MMT). Impressively, this output requires just `r round(main_results[2,2], digits = 2)`% of the Caribbean's marine space, a result similar to that of [-@Gentry2017] who estimated that current total landings could be produced from 0.015% of global ocean area. In fact, the Caribbean could match its current seafood production using just `r round(sum(supply_replace$area), digits = 1)` km^2^ (`r round(100* sum(supply_replace$area) / 2966271, digits = 3)`%) of its marine space. 
+
+EEZs with more farm to farm variability in outcomes represent countries where strategic site selection is particularly important.
 
 -	We should then return to the three questions posed at the end of the intro and maybe spend a paragraph talking about each, particularly in the context of “charting an aquaculture future for the Caribbean.”  The last question is about barriers to development, which is where we could spend some time talking about Bess results.  We still may want to consider integrating her work into the methods and results as well, unless you think the paper is better and tighter as is. 
 -	Other topics we could cover:
@@ -328,15 +325,19 @@ o	How our results could be used to guide policy and investment in the region
 # Figures
 
 ```{r , fig.cap = "Figure 1. Suitable areas (orange) for offshore cobia mariculture in the Caribbean."}
-include_graphics(path = paste0(run_dir,'Figures/eez_suitable_map_zoom.png'))
+knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suitable_map.png'))
 ```
 
 ```{r ,fig.cap = "Figure 2. Estimated total annual production of cobia from all suitable farm sites (panel A) and median production from only profitable farm sites (panel B)"}
 knitr::include_graphics(path = paste0(run_dir,'Figures/prod_compare_map.png'))
 ```
 
+```{r fig.cap = "Figure 3: Average cobia growth rates per month by EEZ"}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/growth_heatmap.png'))
+```
+
 ```{r fig.cap = "Figure 4: Annualized profits per cobia aquaculture farm by Caribbean EEZ"}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/annuity_cntry_disc_boxplot.png'))
+knitr::include_graphics(path = paste0(run_dir, 'Figures/boxplot_annuity_disc_scenarios.png'))
 ```
 
 # Tables
@@ -353,6 +354,7 @@ risk_table <- read_csv(paste0(boxdir, 'data/country_risk_and_discount.csv')) %>%
 pander::pandoc.table(risk_table,
                      caption = 'Table 1. Investment risk scores and discount rates by country. A risk score of 1.5 (US Virgin Islands) is used as a baseline for scaling discount rates between 10%-25%')
 ```
+
 
 ```{r, results='asis'}
 eez_suit_table <- main_eez_results %>% 
@@ -408,20 +410,15 @@ For each variable, a country’s rating is determined by transforming the data f
 knitr::include_graphics(path = paste0(boxdir,'results/carib_seafood_production.png'))
 ```
 
+```{r, eval=F, fig.cap = "Figure S2. Distribution of A) feed conversion ratios; and B) harvest cycle length (months)"}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/fcr_histograms.png'))
+```
 
-```{r fig.cap = "Figure S2. Areas suitable for offshore mariculture in the Caribbean"}
-knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suit_area.png'))
+```{r, fig.cap="Figure S3. Cobia supply curves under current feed costs ($1.65/kg) and a 10% reduction in feed cost."}
+knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
 ```
 
 
-```{r, eval=F, fig.cap = "Figure S3. Average growth of cobia by month"}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/EEZ_avg_growth.png'))
-```
-
-
-```{r, eval=F, fig.cap = "Figure S4. Average harvest cycle length (months) by farm"}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/harv_length_hist.jpeg'))
-```
 ```{r, results='asis'}
 # Make table of suitability data layers
 tbl1 <- suit_data %>%
@@ -439,12 +436,6 @@ pander::pandoc.table(tbl1,
              # justify = c("center","center","center","center","center"),
              caption = "Table S1. Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean")
 ```
-
-
-```{r, fig.cap="Figure S5. Cobia supply curves under current feed costs ($1.65/kg) and a 10% reduction in feed cost."}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
-```
-
 
 ```{r , results = 'asis'}
 pander::pandoc.table(cost_tablea, 
@@ -494,7 +485,8 @@ pander::pandoc.table(farm_specs,
              caption = 'Farm design specification for hypothetical 1 square kilometer offshore cobia farms',
              split.cells = c(80,20))
 ```
-
+ 
+ 
 ```{r,results='asis', eval = FALSE}
 rownames(table4) <- NULL
 pander::pandoc.table(table4,
