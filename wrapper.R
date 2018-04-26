@@ -44,7 +44,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -213,13 +213,25 @@ if (econ_prep_data == TRUE){
     sim_results <- sim_results %>% 
       ungroup() %>% 
       mutate(feed = feed_by_rate)
+    
+    # FCR summary
+    fcr_results <- sim_results %>%
+      ungroup() %>% 
+      filter(feed > 0) %>% 
+      group_by(cell, harvest_cycle) %>% 
+      summarize(fcr_rate  = sum(feed_by_rate, na.rm = T) / sum(harvest, na.rm = T),
+                fcr_fcr   = sum(feed_by_fcr, na.rm = T) / sum(harvest, na.rm = T),
+                harvest_length = n_distinct(month)) %>% 
+      ungroup()
   
     # Save simulation results
     write_csv(sim_results, path = paste0(run_dir,"Results/sim_function_results.csv"))
+    write_csv(fcr_results, path = paste0(run_dir,"Results/fcr_results.csv"))
   
     } else {
  
     sim_results <- read_csv(paste0(run_dir,"Results/sim_function_results.csv"))
+    fcr_results <- read_csv(paste0(run_dir,"Results/fcr_results.csv"))
  
     }
 
