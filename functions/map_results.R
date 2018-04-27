@@ -29,12 +29,14 @@
                           carib_supply,
                           eez_supply,
                           npv_df,
-                          supply_summary) {
+                          supply_summary,
+                          feed_price,
+                          price_fingerlings) {
     
   
 # Load EEZ shapefile for plotting
 
-  EEZ <- readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape")
+  EEZ <- readOGR(dsn=paste(boxdir,"Suitability/tmp",sep = ""),layer="carib_eez_shape") 
   
   # Load suitablity results
   s_areas <- gzfile(paste0(boxdir,"results/Suitability/suitable_areas.rds"))
@@ -138,7 +140,7 @@ base <- ggplot() +
     
   ggsave(filename = paste0(fig_folder,'carib_suit_area.png'), width = 6, height = 5)
                                     
-  suitable_plot_facet<-base_facet +
+  suitable_plot_facet <- base_facet +
                           geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="orange") +
                           theme(legend.position = "none") +
                           ggtitle("Suitable Areas for Offshore Mariculture")
@@ -158,7 +160,7 @@ base <- ggplot() +
     xlab("Longitude") +
     ylab("Latitude") +
     facet_wrap(~Territory1,scales = "free") +
-    theme(strip.text.x = element_text(size = 12))
+    theme(strip.text.x = element_text(size = 12)) 
   
   suitable_plot_final <- suitable_plot + 
     suitable_three + 
@@ -179,16 +181,14 @@ base <- ggplot() +
     xlab("Longitude") +
     ylab("Latitude")
    
-  ggsave(filename = paste0(fig_folder,'Haiti_npv_map.png'), width = 6, height = 6)
+  ggsave(filename = paste0(fig_folder,'Haiti_npv_map.png'), width = 5, height = 6)
   
-# Production and NPV by EEZ maps  ---------------------------------------------------------
+# Production by EEZ map ---------------------------------------------------------
 
 # Production if don't consider economics
-  
   all_df$eez <- as.factor(all_df$eez)
   all_df$disc_scenario <- as.factor(all_df$disc_scenario)
   all_df$feed_price_index <- as.factor(all_df$feed_price_index)
-  
   
   total_prod <- all_df %>%
     filter(feed_price_index == '1' & disc_scenario == '0.1' ) %>%
@@ -216,7 +216,7 @@ base <- ggplot() +
     ylab("Latitude") +
     coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
   
-  ggsave(paste0(fig_folder,'total_prod_map.png'), width = 6, height = 5)
+  # ggsave(paste0(fig_folder,'total_prod_map.png'), width = 6, height = 5)
   
   # Production and NPV - for .10 disount rate- only consider profitable cells
   
@@ -266,7 +266,74 @@ all_econ <- ggarrange(econ_prod_map,econ_npv_map, nrow = 2)
   
 ggsave(paste0(fig_folder,'econ_npv_prod_map.png'), width = 12, height = 10)  
   
-  
+
+# Suitable vs profitable production ---------------------------------------
+
+eez_lookup <- all_df %>% 
+  ungroup() %>% 
+  select(eez, Territory1) %>% 
+  distinct() %>% 
+  rename(country = Territory1)
+
+prod_compare_A <- supply_summary %>% 
+  filter(country != "Caribbean") %>% 
+  filter(disc_scenario == 'cntry' & feed_price_index == 1 & supply_scenario == "All farms") %>% 
+  ungroup() %>% 
+  select(country, total_supply, total_annuity, median_supply, median_annuity, top95_supply, top95_annuity) %>% 
+  left_join(eez_lookup) %>% 
+  ungroup()
+
+prod_compare_spA <- left_join(prod_compare_A,eez.water, by=c("eez"="MRGID"))
+
+prod_compare_B <- supply_summary %>% 
+  filter(country != "Caribbean") %>% 
+  filter(disc_scenario == 'cntry' & feed_price_index == 1 & supply_scenario == "Profitable farms") %>% 
+  ungroup() %>% 
+  select(country, total_supply, total_annuity, median_supply, median_annuity, top95_supply, top95_annuity) %>% 
+  left_join(eez_lookup) %>% 
+  ungroup()
+
+prod_compare_spB <- left_join(prod_compare_B,eez.water, by=c("eez"="MRGID"))
+
+# plot production and profit and put plots together 
+prod_compare_A <- ggplot() + 
+  geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
+  geom_polygon(data = prod_compare_spA, aes(x = long,y = lat, group = group, fill= total_supply / 1e6 / 10 ), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+  scale_fill_viridis("MMT") +
+  guides(fill = guide_colorbar(title.vjust = 0.75)) +
+  carib_theme() + 
+  labs(x = "Longitude",
+       y = "Latitude",
+       title = "A",
+       subtitle = "Total annual production") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  theme(strip.text.x = element_text(size = 12))
+
+ggsave(paste0(fig_folder,'total_prod_map.png'), width = 6, height = 5)
+
+prod_compare_B <- ggplot() + 
+  geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
+  geom_polygon(data = prod_compare_spA, aes(x = long,y = lat, group = group, fill= median_supply / 10), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+  scale_fill_viridis("MT", labels = comma) +
+  guides(fill = guide_colorbar(title.vjust = 0.75)) +
+  carib_theme() + 
+  labs(x = "Longitude",
+       y = "Latitude",
+       title = "B",
+       subtitle = "Median annual production") +
+  coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  theme(strip.text.x = element_text(size = 12))
+
+ggsave(paste0(fig_folder,'median_prod_map.png'), width = 6, height = 5)
+
+prod_compare_A + 
+  prod_compare_B + 
+  plot_layout(ncol = 1) +
+  theme(plot.margin = unit(c(0,0,0,0), "cm"))
+
+ggsave(paste0(fig_folder,'prod_compare_map.png'), width = 6, height = 10) 
 
 # Box plots of total production --------------------------------------------
 
@@ -309,7 +376,7 @@ disc_only <- all_df %>%
             annual_eez_harvest = eez_harvest_mt/10,
             total_npv = sum(npv)) %>%
   ungroup() %>%
-mutate(scenario_name = ifelse( disc_scenario =="0.1", "10% discount rate","Country specific discount rate"))
+mutate(scenario_name = ifelse( disc_scenario =="0.1", "10% discount rate","Country specific discount rate")) 
 
 
 disc_only_sp <- left_join(disc_only,eez.water, by=c("eez"="MRGID"))
@@ -326,7 +393,8 @@ presentation_disc_map <- ggplot() +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
   facet_wrap(~scenario_name) +
   theme(strip.text.x = element_text(size = 12),
-        legend.position = 'bottom')
+        legend.position = 'bottom') +
+  ggtitle(paste0("feed price =", feed_price, "fingerling price = ",price_fingerlings))
 
 ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)    
 
@@ -363,12 +431,12 @@ ggsave(paste0(fig_folder,'disc_scenario_prod_map.png'), width = 12, height = 10)
 
 # Histograms of  avg harvest cycle length ---------------------------------
 
-jpeg(paste0(fig_folder,"harv_length_hist.jpeg"))
-
-hist(harv_cycle_length[[1]], maxpixels = 1000000,
-                                    main = "Distribution of harvest cycle lengths",xlab= "Harvest cycle length (months)")
-
-dev.off()
+# jpeg(paste0(fig_folder,"harv_length_hist.jpeg"))
+# 
+# hist(harv_cycle_length[[1]], maxpixels = 1000000,
+#                                     main = "Distribution of harvest cycle lengths",xlab= "Harvest cycle length (months)")
+# 
+# dev.off()
 
 # Boxplot of average growth by month
 
@@ -377,16 +445,36 @@ cells <- as.vector(Which(avg_growth[[1]]>0, cells =TRUE))
 countries <- all_df %>%
   dplyr::select(cell,Territory1)
 
-# growth_df <- as.data.frame(avg_growth) %>%
-#   filter(!is.na(X1)) %>%
-#   cbind(cells) %>%
-#   set_names(c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec","cell")) %>%
-#   gather("Month","avg_growth",1:12)
-# 
-# growth_df <- left_join(growth_df,countries)
-# 
+growth_df <- raster::as.data.frame(avg_growth) %>%
+  filter(!is.na(index_1)) %>%
+  cbind(cells) %>%
+  set_names(c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec","cell")) %>%
+  gather("Month","avg_growth",1:12)
+
+growth_df <- left_join(growth_df,countries)
+ 
+growth_plot_df <- growth_df %>% 
+  group_by(Territory1, Month) %>% 
+  summarize(growth = mean(avg_growth, na.rm = T),
+            sd_growth  = sd(avg_growth, na.rm = T)) %>%
+  group_by(Territory1) %>% 
+  mutate(total_growth = sum(growth, na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(Month = fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")))
+
+# get overall caribbean avg growth to use as midpoint in heatmap
+carib_avg <- mean(growth_df$avg_growth, na.rm = T)
+
+ggplot(growth_plot_df, aes(y = fct_reorder(Territory1, total_growth),  x = Month, fill = growth)) +
+  geom_tile() +
+  scale_fill_gradient2(midpoint = unique(carib_avg), low = muted("blue"), high = muted("red")) +
+  labs(y = "Country",
+       x = "Month",
+       fill = "Average\ngrowth (kg)")
+
+ggsave(paste0(fig_folder,'growth_heatmap.png'), width = 8, height = 6)
+
 # #Box plot of avergage growth per month for whole Carib
-# 
 # ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) ,y=avg_growth)) +
 #   geom_boxplot()+
 #   theme_minimal() +

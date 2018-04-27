@@ -23,19 +23,21 @@ supply_curves <- function(cashflow,
                 dplyr::select(eez, disc_rate) %>% 
                 mutate(disc_scenario = 'cntry')) 
    
-  # Calculate discounted profits for a range of prices and the baseline (country specific) discount rate
+  # Calculate discounted revenues for a range of prices and the baseline (country specific) discount rate
   supply <- cashflow %>%
     dplyr::select(cell, eez, month, harvest, disc_rate, disc_scenario) %>%
-    filter(harvest > 0) %>%
-    mutate(prices       = list(prices),
-           profit       = map2(harvest, prices, `*`)) %>%
+    filter(harvest > 0) %>% 
+    mutate(prices  = list(prices),
+           revenue = map2(harvest, prices, `*`)) %>%
     unnest() %>% 
     group_by(eez) %>% 
-    mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
+    mutate(disc_rate     = list(c(unique(disc_rate), discount_rates)),
            disc_scenario = list(c('cntry', as.character(discount_rates))),
-           disc_profit = pmap(list(month, profit, disc_rate), # map discounting function across discount rates
-                              function(month, profit, disc_rate) profit / (1 + disc_rate) ^ (month * 1/12))) %>%
-    unnest()
+           disc_revenue  = pmap(list(month, revenue, disc_rate), # map discounting function across discount rates
+                              function(month, revenue, disc_rate) revenue / (1 + disc_rate) ^ (month * 1/12))) %>%
+    unnest() %>%
+    group_by(cell, disc_scenario, prices) %>%
+    mutate(total_disc_revenue = cumsum(disc_revenue)) # take cumulative sum of discounted costs
    
   # Calculate discounted costs for a range of feed costs and discount rates
   supply_costs <- cashflow %>%
@@ -63,12 +65,11 @@ supply_curves <- function(cashflow,
   # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
   no_costs <- filter(supply_costs, total_disc_costs == 0) 
   
-  # Join discounted costs with discounted profits before summing NPV
+  # Join discounted costs with discounted revenues before summing NPV
   cashflow_disc <- supply %>%
     left_join(supply_costs) %>%
     filter(!(cell %in% unique(no_costs$cell))) %>% # remove any cells missing costs
-    dplyr::select(-total_monthly_costs, -profit, -disc_costs) %>%
-    mutate(disc_profit = ifelse(is.na(disc_profit), 0, disc_profit))
+    dplyr::select(-total_monthly_costs, -revenue, -disc_revenue, -disc_costs)
   
   # Convert eez data to tibble for left join
   eez_df <- dplyr::select(eezs, eez, country) %>%  tbl_df()
@@ -76,17 +77,15 @@ supply_curves <- function(cashflow,
     mutate(eez = as.numeric(levels(eez)[eez]),
            country = as.character(country))
 
-
 # NPV Calculations --------------------------------------------------------
 
-  # Calculate present value as discounted profits minus discounted costs
+  # Calculate present value as discounted revenues minus discounted costs
   npv_df <- cashflow_disc %>%
     group_by(cell, disc_scenario, prices, feed_price_index) %>%
-    mutate(total_disc_profit = cumsum(disc_profit),
-           total_harvest     = sum(harvest, na.rm = T),
-           npv               = total_disc_profit - total_disc_costs,
-           annuity = (disc_rate * npv) / (1 - (1 + disc_rate)^-10),
-           eez               = as.numeric(eez)) %>%
+    mutate(total_harvest      = sum(harvest, na.rm = T),
+           npv                = total_disc_revenue - total_disc_costs,
+           annuity            = (disc_rate * npv) / (1 - (1 + disc_rate)^-10),
+           eez                = as.numeric(eez)) %>%
     left_join(eez_df) %>% 
     left_join(feed_cost_percs) %>% 
     left_join(area %>% 
@@ -95,7 +94,7 @@ supply_curves <- function(cashflow,
   ### Only profitable farms ###  
   
   # Total Caribbean supply from profitable farms 
-  carib_supply <- npv_df %>%
+  carib_supply <- npv_df %>% 
     group_by(cell) %>%
     filter(month == max(month)) %>%
     mutate(supply  = ifelse(npv < 0, 0, total_harvest / 1e3), # supply = 0 if NPV is negative, otherwise convert from kg to MT
