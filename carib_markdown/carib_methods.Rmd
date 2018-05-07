@@ -49,10 +49,10 @@ options(figcap.prefix = "Figure", figcap.sep = ":", figcap.prefix.highlight = "*
 library(hrbrthemes)
 library(tidyverse)
 library(knitr)
-library(rgdal)
+# library(rgdal)
 library(pander)
-library(raster)
-library(RefManageR)
+# library(raster)
+# library(RefManageR)
 
 # Source functions
 source(file = '../functions/plot_map.R')
@@ -65,7 +65,7 @@ paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
 theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
@@ -164,12 +164,12 @@ scenario_compare <- carib_supply %>%
                      annuity_all    = total_annuity)) %>% 
   mutate(supply_diff = supply_all - supply_main,
          supply_diff_perc = supply_diff / supply_all * 100) %>% 
-  # Feed price scenario
-  left_join(carib_supply %>%
-              filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 0.9 & supply_scenario == 'Profitable farms') %>%
-              dplyr::select(country, total_supply, total_annuity) %>% 
-              rename(supply_feed = total_supply,
-                     annuity_feed    = total_annuity)) %>% 
+  # # Feed price scenario
+  # left_join(carib_supply %>%
+  #             filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 0.9 & supply_scenario == 'Profitable farms') %>%
+  #             dplyr::select(country, total_supply, total_annuity) %>% 
+  #             rename(supply_feed = total_supply,
+  #                    annuity_feed    = total_annuity)) %>% 
   dplyr::select(country, suit_area, supply_all, annuity_all, supply_main,annuity_main, everything()) %>% 
   arrange(desc(supply_all))
   
@@ -178,7 +178,7 @@ scenario_compare <- carib_supply %>%
 
 # Abstract
 
-Marine aquaculture development in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. However, when located close to shore, aquaculture’s environmental impacts can jeopardize sensitive habitats (e.g., mangroves, coral reefs) and competition for space can conflict with fisheries, tourism, and other uses. Farming further from shore is an option for alleviating these stresses. Using high-resolution environmental and economic data, we develop a spatial bio-economic model to identify suitable areas throughout the Caribbean for offshore cobia aquaculture (*Rachycentron canadum*), a species with considerable market potential, and estimate yields and profits for cobia farms under different economic scenarios. We find that approximately `r prettyNum(main_results[1,2],big.mark=",", digits = 2)` km^2^ (`r round(main_results[2,2], digits = 2)`%  is technically feasible for cobia aquaculture, with the potential to produce  `r round(main_results[20,2] / 1e6 / 10, digits = 1)` million metric tons (MMT) of seafood annually, an amount roughly equal to the total global production from capture fisheries. Given our estimates of production costs and cobia price, ~ `r prettyNum(main_results[1,3],big.mark=",", digits = 5)`  km^2^  (`r round(main_results[2,3], digits = 2)`%) is economically viable for cobia farming, with the potential to produce  `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT of cobia annually. When accounting for foreign investment risk, these estimates drop slightly and some countries look far less favorable for aquaculture development. The variability of farm-scale production and value, and thus the importance of within-EEZ site selection, differed across countries, demonstrating the value of spatial models for decision-making at different spatial scales. 
+Marine aquaculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. In particular, offshore aquaculture can alleviate numerous environmental and social impacts associated with farming closer to shore, such as habitat degradation and spatial conflicts with fisheries, tourism, and other stakeholders. We identify areas throughout the Caribbean suitable for offshore aquaculture of cobia (*Rachycentron canadum*) and develop a spatial bio-economic model to estimate yields and profits under different scenarios of economic risk. We find that approximately `r prettyNum(main_results[1,2],big.mark=",", digits = 2)` km^2^ (`r round(main_results[2,2], digits = 2)`%  is technically feasible for cobia aquaculture, with the potential to produce  `r round(main_results[20,2] / 1e6 / 10, digits = 1)` million metric tons (MMT) of seafood annually, an amount roughly equal to the total global production from capture fisheries. Given our estimates of production costs and cobia price, ~ `r prettyNum(main_results[1,3],big.mark=",", digits = 5)`  km^2^  (`r round(main_results[2,3], digits = 2)`%) is economically viable for cobia farming, with the potential to produce  `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT of cobia annually. These results are slightly reduced when accounting for country-specific risks of foreign investment, though most farms (85%) remain profitable. Farm-scale production and value varied across and within countries, demonstrating the value of spatial models for decision-making at different spatial scales. This analysis can help prioritize areas in the Caribbean for offshore cobia aquaculture and serve as a framework for evaluating other species. 
 
 # Introduction 
 
@@ -211,7 +211,7 @@ To account for potential conflicts with other ocean uses in offshore areas, we c
 
 ## Growth Model
 
-Temperature is one of the primary abiotic factors controlling growth in ecotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data [@NASAGoddardSpaceFlightCenter2014] to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site [@Klinger2017].  
+Temperature is one of the primary abiotic factors controlling growth in ectotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data [@NASAGoddardSpaceFlightCenter2014] to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site [@Klinger2017].  
 
 The TPC is a temperature-dependent piecewise linear function defined as follows:
 
@@ -229,7 +229,7 @@ Individual cobia growth at month $t$ for site $i$ ($G$) is estimated using the T
 
 $$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} $$
 
-We model offshore mariculture potential in the Caribbean by coupling site specific estimates of average monthly cobia growth from the TPC model with a fixed farm design, per 1 km^2^ site, that we apply across the study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson2004; @Xu2015]. The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010]. Our farm design is based onthe total cage volume to farm area ratio of offshore mariculture farms currently operating off the coast of Kona, Hawaii [@Sims] and the Gulf of Maine [@Fredriksson2004]. Our hypothetical farm has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell gridded mooring systems, for a total cage volume of 102,400 m^3^ per individual 1 km^2^ farm. The infrastructure of the farm has a footprint of  ~0.48 km^2^, which meets the guidelines issued in NOAA's Fishery Management Plan for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
+We model offshore mariculture production using a fixed farm design, per 1 km^2^ site, that we apply across the study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson2004; @Xu2015]. The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010]. Our farm design is based onthe total cage volume to farm area ratio of offshore mariculture farms currently operating off the coast of Kona, Hawaii [@Sims] and the Gulf of Maine [@Fredriksson2004]. Our hypothetical farm has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell gridded mooring systems, for a total cage volume of 102,400 m^3^ per individual 1 km^2^ farm. The infrastructure of the farm has a footprint of  ~0.48 km^2^, which meets the guidelines issued in NOAA's Fishery Management Plan for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
 
 In our farm design, we assume that fingerlings are stocked at an initial weight of 15 grams and fish weight ($w$) in month $t$ at site $i$ is calculated as the cumulative growth since the stocking month ($t_s$):
 
@@ -308,15 +308,15 @@ There is considerable variability in the amount and distribution of suitable are
 
 ## Cobia production
 
-Ignoring economic constraints (the "suitable scenario"), the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production from all suitable sites of `r round(main_results[20,2] / 1e6 / 10, digits = 1)` MMT. The median cobia farm occupying a 1-km^2^ site in the Caribbean yields an annual supply of `r prettyNum(main_results[11,1], big.mark = ",", digits = 5)` MT. Not surprisingly, international variability in production is driven by the amount of suitable area within each EEZ; countries with the most suitable area also have the largest production potential (Table 2; Figure 2A). However, countries with the highest production potential do not necessarily have the most productive farms (Figure 2). Cobia growth is a function of temperature, and growth rates vary across EEZs, showing a clear seasonal pattern (Figure 3). As a result, the most productive farm sites are located within the EEZs of Jamaica and several small nations in the southeastern Caribbean, such as St. Vincent and the Grenadines, Barbados, St. Lucia, and Trinidad and Tobago (Figure 3) where temperatures are more optimal (i.e., closer to T_o_) for cobia growth throughout the year. Interestingly, farms in Haiti and the Cayman Islands experience below average growth rates during the peak summer months, likely due to water temperatures approaching $T_{max}$.  
+Ignoring economic constraints (the "suitable scenario"), the Caribbean's potential to produce cobia from mariculture is extremely large, with an approximate annual production from all suitable sites of `r round(main_results[20,2] / 1e6 / 10, digits = 1)` MMT. The median cobia farm occupying a 1-km^2^ site in the Caribbean yields an annual supply of `r prettyNum(main_results[11,2], big.mark = ",", digits = 5)` MT. Not surprisingly, international variability in production is driven by the amount of suitable area within each EEZ; countries with the most suitable area also have the largest production potential (Table 2; Figure 2A). However, countries with the highest production potential do not necessarily have the most productive farms (Figure 2). Cobia growth is a function of temperature, and growth rates vary across EEZs, showing a clear seasonal pattern (Figure 3). As a result, the most productive farm sites are located within the EEZs of Jamaica and several small nations in the southeastern Caribbean, such as St. Vincent and the Grenadines, Barbados, St. Lucia, and Trinidad and Tobago (Figure 3) where temperatures are more optimal (i.e., closer to T_o_) for cobia growth throughout the year. Interestingly, farms in Haiti and the Cayman Islands experience below average growth rates during the peak summer months, likely due to water temperatures approaching $T_{max}$.  
 
 Variability in growth rates, both spatial and seasonal, leads to differences in the length of time required to raise cobia to a market size of 5 kg (Figure S2). While the average farm in the Caribbean completes a harvest cycle in `r median(fcr_results$harvest_length, na.rm = T)` months, harvest cycles range from `r round(range(fcr_results$harvest_length)[1],2)` to `r round(range(fcr_results$harvest_length)[2],2)` months in duration. Longer harvest cycles affect the economics of cobia production by reducing harvestable biomass (mortality/escapes) and by increasing feed use and other operating costs. The feed conversion ratio (FCR) - calculated as total feed used divided by total harvested biomass - is a measure of how efficiently a farmed animal converts feed into biomass and is one of the main indicators used to compare the sustainability of different animal protein sources [@Naylor2000]. FCRs of cobia farms in our analysis ranged from `r round(range(fcr_results$fcr_rate)[1],2)` to `r round(range(fcr_results$fcr_rate)[2],2)`, with a median FCR of `r median(fcr_results$fcr_rate, na.rm = T)`. These findings accord with the literature, in which FCRs for cobia range from 1.5-3 (ref). Our findings also support the conclusion that feed accounts for the vast majority of farm operating costs, with the median farm spending `r round(100*main_results[5,3], digits = 0)`% of operating costs on feed. 
 
 When economics are considered (the "profitable" scenario), the potential production and/or profitability of offshore cobia mariculture is considerably reduced in several countries relative to when only suitability and temperature-dependent growth are considered (Table 4; Figure 4). In the Bahamas, which has the largest amount of suitable area, average annual production declines by `r round(scenario_compare$supply_diff[scenario_compare$country=='Bahamas'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Bahamas'], digits = 1)`%), while Cuba experiences a decline of `r round(scenario_compare$supply_diff[scenario_compare$country=='Cuba'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Cuba'], digits = 1)`%). The Turks and Caicos and Haiti also both experience small declines (<1%). Overall, the potential annual production for the Caribbean is reduced to `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT when only considering supply from profitable farm sites. In terms of value, farms in most countries were profitable and this result was robust to the discount rate (Figure 4). Only the Bahamas and Cuba contained a considerable number of unprofitable farm sites under both discount scenarios, with the median Bahamian farm unprofitable if assessed with a 10% discount rate. Farm annuity value is tightly clustered around $3 million for many countries, suggesting site selection is less of a financial concern in these areas. However, farms in Turks and Caicos, Jamaica, the Dominican Republic, Cuba, the Bahamas, and Aruba vary considerably in value and therefore strategic site selection will be criticalfor prospective cobia farms in these areas (Figure 4). 
 
-The assumed market price of cobia had a large impact on Annual Caribbean supply (Figure S3). A market price of $9.5/kg (?) resulted in the development of all suitable farms and a supply equal to our "suitable" scenario using both country specific and a fixed 10% discount rate. Supply was reduced by over ~50% relative to our 'economic' scenario at a assumed cobia price of $6.50/kg (?). At a price of $6/kg cobia supply was reduced to 0 MMT and XX MMT using the country specific discount and 10% discount rate, respectively.
+The assumed market price of cobia had a large impact on Annual Caribbean supply (Figure S3). A market price of \$9.5/kg (?) resulted in the development of all suitable farms and a supply equal to our "suitable" scenario using both country specific and a fixed 10% discount rate. Supply was reduced by over ~50% relative to our 'economic' scenario at a assumed cobia price of \$6.50/kg (?). At a price of \$6/kg cobia supply was reduced to 0 MMT and XX MMT using the country specific discount and 10% discount rate, respectively.
 
-#Discussion
+# Discussion
 
 This study incorporates biological, environmental, economic, and political data to estimate potential for offshore cobia aquaculture, in terms of yields and profits, across the Caribbean region. Our results reveal remarkable potential; we estimate a total annual production of 80.5 MMT if all suitable areas are developed and 72.1 MMT if only profitable farms are developed. This potential yield is more than two orders of magnitude larger than total current seafood production in the region (~300,000 MT) and is on par with total annual harvest from the world’s capture fisheries (~80 MMT). Impressively, this output requires <2% of the Caribbean’s marine space, a result similar to the findings of Gentry et al. [-@Genry2017] who estimated that current total landings could be produced from farming finfish in 0.015% of global ocean area. In fact, the Caribbean could match its current seafood production using just 179 km2 (0.006%) of its marine space. In addition to highlighting the total production potential of the Caribbean, this study also highlights where in the region culturing of cobia will be most productive, and can be used to identify sites within an EEZ that will be most economically profitable for offshore cobia mariculture development.
 
@@ -400,14 +400,25 @@ pander::pandoc.table(eez_suit_table,
 ```
 
 ```{r, results = 'asis'}
-scenario_table<-scenario_compare %>%
-  dplyr::select(-2) %>%
-  dplyr::select(1,2,4,6,8,3,5,7,9)
+scenario_table <- scenario_compare %>%
+  dplyr::select(country, supply_all, supply_main, supply_cntry, annuity_all, annuity_main, annuity_cntry) %>% 
+  mutate(supply_all = round(supply_all / 1e6, digits = 1),
+         supply_main = round(supply_main / 1e6, digits = 1),
+         supply_cntry = round(supply_cntry / 1e6, digits = 1),
+         annuity_all = round(annuity_all / 1e9, digits = 2),
+         annuity_main = round(annuity_main / 1e9, digits = 2),
+         annuity_cntry = round(annuity_cntry / 1e9, digits = 2))
 
 pander::pandoc.table(scenario_table,
-                     caption = 'Table 4. Supply (mt) and annuity under 4 different scenarios',
-                      split.tables = Inf,
-                     digits =2 )
+                     caption = 'Table 3. Supply (MT) and annuity under 4 different scenarios',
+                     split.tables = Inf,
+                     col.names = c('Country',
+                                   "Supply (suitable)",
+                                   "Supply (profitable, 10%)",
+                                   "Supply (profitable, country %)",
+                                   "Annuity (suitable)",
+                                   "Annuity (profitable, 10%)",
+                                   "Annuity (profitable, country %)"))
 ```
 
 # Supplementary Information
