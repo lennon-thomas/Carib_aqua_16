@@ -191,7 +191,7 @@ base <- ggplot() +
   all_df$feed_price_index <- as.factor(all_df$feed_price_index)
   
   total_prod <- all_df %>%
-    filter(feed_price_index == '1' & disc_scenario == '0.1' ) %>%
+    filter(feed_price_index == '1' & disc_scenario == '0.106' ) %>%
     group_by(eez) %>%
     summarise(eez_harvest_mt = sum(total_harvest)* 0.001) %>%
     mutate(annual_eez_harvest = eez_harvest_mt/10, 
@@ -221,7 +221,7 @@ base <- ggplot() +
   # Production and NPV - for .10 disount rate- only consider profitable cells
   
   econ_prod <- all_df %>%
-    filter(disc_scenario == '0.1' & npv > 0 ) %>%
+    filter(disc_scenario == '0.106' & npv > 0 ) %>%
     dplyr::group_by(eez,feed_price_index) %>%
     summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
               annual_eez_harvest = eez_harvest_mt/10,
@@ -376,7 +376,7 @@ disc_only <- all_df %>%
             annual_eez_harvest = eez_harvest_mt/10,
             total_npv = sum(npv)) %>%
   ungroup() %>%
-mutate(scenario_name = ifelse( disc_scenario =="0.1", "10% discount rate","Country specific discount rate")) 
+mutate(scenario_name = ifelse( disc_scenario =="0.106", "10.6% discount rate","Country specific discount rate")) 
 
 
 disc_only_sp <- left_join(disc_only,eez.water, by=c("eez"="MRGID"))

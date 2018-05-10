@@ -19,7 +19,7 @@ econ_figures <- function(npv_df,
 # pos_npv <- filter(npv_df, npv > 0) 
  
 # Pull out base scenario results from NPV ($8.62 and 0% discount results)
-main_npv <- filter(npv_df, prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 1)
+main_npv <- filter(npv_df, prices == 8.62 & disc_scenario == "0.106" & feed_price_index == 1)
 cntry_disc_npv <- filter(npv_df, prices == 8.62 & disc_scenario == 'cntry' & feed_price_index == 1)
 
 # Find how many farms are required to match current annual Caribbean production (330,000 MT) and imports (144,000 MT)
@@ -62,7 +62,7 @@ bpA <- main_npv %>%
   labs(x = 'Country',
        y = 'Annuity ($USD, millions)',
        title = "Distribution of farm profitability by EEZ",
-       subtitle = "10% discount rate") +
+       subtitle = "10.6% discount rate") +
   carib_theme()  
  
 ggsave(filename = paste0(figure_folder, '/annuity_cntry_boxplot.png'), width = 6.5, height = 6)
@@ -138,7 +138,7 @@ bpC <- npv_df %>%
   ggplot(aes(x = country, y = annuity / 1e6, color = disc_scenario)) +
   geom_boxplot() +
   scale_color_brewer(palette = 'Paired', 
-                     labels = c("0.1", "Country specific")) +
+                     labels = c("0.106", "Country specific")) +
   labs(x = 'Country',
        y = 'Annuity ($USD, millions)',
        color = "Discount rate",
@@ -160,7 +160,7 @@ ggsave(filename = paste0(figure_folder, '/boxplot_annuity_disc_scenarios.png'), 
 # Caribbean supply curve --------------------------------------------------
 
 # Feed change variable
-feed_change <- paste0("10% discount rate, ", (unique(npv_df$feed_price_index)[2] - 1) * 100, "% change in feed price") 
+feed_change <- paste0("10.6% discount rate, ", (unique(npv_df$feed_price_index)[2] - 1) * 100, "% change in feed price") 
 
 # Total Caribbean supply from profitable farms - 10% discount rate
 supply_plot_df <- npv_df %>%
@@ -172,12 +172,14 @@ supply_plot_df <- npv_df %>%
   ungroup()
 
 supply_plot_df <- supply_plot_df %>%
-  filter(total_supply > 0 & disc_scenario == "0.1") %>% 
+  filter(total_supply > 0 & disc_scenario == "0.106") %>% 
   mutate(scenario = ifelse(feed_price_index == 1, "Current", feed_change)) %>% 
   bind_rows(supply_plot_df %>%
               filter(total_supply > 0 & disc_scenario == "cntry" & feed_price_index == 1) %>% 
               mutate(scenario = 'Investment risk')) %>%
   filter(feed_price_index == 1) #Took out scenario of increased feed price
+
+write_csv(supply_plot_df, path = paste0(result_folder, '/supply_plot_df.csv'))
 
 # Find supply curve intercepts
 intercepts <- supply_plot_df %>% 
@@ -205,7 +207,7 @@ supply_plot_df %>%
   scale_y_continuous(breaks = unique(supply_plot_df$prices),
                      labels = unique(supply_plot_df$prices)) +
   scale_color_manual(values = c( "#377EB8", "#E41A1C"), #"#4DAF4A"
-                     labels = c("Current" = '10% discount rate, current feed price',
+                     labels = c("Current" = '10.6% discount rate, current feed price',
                              #   feed_change,
                                 "Investment risk" = 'Country specific discount rate, current feed price')) +
   labs(y     = 'Cobia price ($US/kg)',
