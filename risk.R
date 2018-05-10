@@ -16,29 +16,30 @@ if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 data<-read.csv(paste0(boxdir,"data/risk_parms.csv")) 
 
 data_rescale<-data %>%
+  filter(Country != "US") %>%
   mutate(reg_qual_rescale = rescale(reg_quality, to = c(5,1),na.rm = TRUE),
          pol_stab_rescale = rescale(pol_stab, to = c(5,1), na.rm = TRUE),
          con_cor_rescale = rescale(con_cor, to = c(5,1), na.rm =TRUE),
          gdp_rescale = rescale(gdp_capita, to = c(5,1), na.rm = TRUE),
-         cpi_growth_rescale = rescale(cpi_growth,to = c(5,1),na.rm = TRUE)) %>%
+         cpi_growth_rescale = rescale(cpi_uncta,to = c(5,1),na.rm = TRUE)) %>%
   dplyr::select(Country,reg_qual_rescale,pol_stab_rescale,con_cor_rescale,gdp_rescale,cpi_growth_rescale) %>%
-  gather(parameter,value,-Country) %>%
-  mutate(risk_type = ifelse(parameter %in% c("reg_qual_rescale","con_cor_rescale","pol_stab_rescale"),"political","economic")) %>%
-  spread(risk_type,value) %>% 
+ gather(parameter,value,-Country) %>%
+ mutate(risk_type = ifelse(parameter %in% c("reg_qual_rescale","con_cor_rescale","pol_stab_rescale"),"political","economic")) %>%
+ spread(risk_type,value) %>% 
   group_by(Country) %>%
   summarise(political_score = mean(political,na.rm = TRUE),
-            economic_score = mean(economic,na.rm = TRUE)) %>%
+        economic_score = mean(economic,na.rm = TRUE)) %>%
   ungroup() %>%
   group_by(Country) %>%
-  mutate(risk_score = mean (c(political_score, economic_score), na.rm = TRUE)) %>%
+  mutate(risk_score = mean (c(political_score,economic_score), na.rm = TRUE)) %>%
   arrange(risk_score)
 
-data_rescale<-merge(data_rescale,data, by = "Country") %>%
-  dplyr::select(c(1,2,3,4,6))
+data_rescale<-merge(data_rescale,data, by = "Country") 
+ # dplyr::select(c(1,2,3,4,6))
 
 regression_data<-data_rescale[!is.na(data_rescale$political_score),]
 
-est_missing_risk<-lm(regression_data$risk_score~regression_data$gdp)
+est_missing_risk<-lm(regression_data$risk_score~regression_data$gdp_capita)
 
 intercept<-as.numeric(est_missing_risk$coefficients[1])
 
@@ -51,10 +52,11 @@ data_rescale<-data_rescale %>%
 
 risk_score<-data_rescale %>%
   dplyr::select(c(Country,new_risk_rescale)) %>%
-  arrange(new_risk_rescale) 
+  arrange(new_risk_rescale) #%>%
+ # mutate(discount_factor = rescale(new_risk_rescale, to =c(0.1,.25)))
 
 colnames(risk_score)<-c("Territory1","risk_score")
 
-write_csv(risk_score,paste0(boxdir,"final_risk_score2.csv"))  
+write_csv(risk_score,paste0(boxdir,"data/final_risk_score.csv"))  
 
   
