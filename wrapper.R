@@ -44,7 +44,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -59,7 +59,7 @@ source(file = "functions/econ_figures.R")
 source(file = "functions/map_results.R")
 
 # Run name
-run_name = '2018-04-20'
+run_name = '2018-05-08'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -85,7 +85,7 @@ econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in exist
 fix_int_stock <- FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 process_growth <- FALSE # process growth data to get average growth and number of harvest cycles per cell
 run_sim <- FALSE # run population simulation to calculate feed costs
-run_econ <- FALSE # run economic analyses
+run_econ <- TRUE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
@@ -114,7 +114,7 @@ no_trips <- 2 # number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
 avg_boat_spd <- 48.28    
 site_days <- 30
-disc_rate <- 0.1 # discount rate to use in addition to country specific rates. can be a vector.
+disc_rate <- 0.106 # discount rate to use in addition to country specific rates. can be a vector.
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
 
 # Load Data ---------------------------------------------------------------
@@ -237,7 +237,7 @@ if (econ_prep_data == TRUE){
 
 # Run economic analyses ---------------------------------------------------------
 
-if(run_econ) {
+if(run_econ == TRUE) {
   
   monthly_cashflow <- monthly_cost_est(sim_results,
                                        econ_stack,
@@ -271,20 +271,21 @@ if(run_econ) {
   risk_scores <- read_csv(paste0(boxdir, 'data/final_risk_score.csv')) %>% 
     rename(country = Territory1) %>% 
     mutate(country = ifelse(country == 'Curacao', 'Curaçao', country),
-           country = ifelse(country == 'Saint-Barth\x8elemy', "Saint-Barthélemy", country))
-             
+           country = ifelse(country == 'Saint-Barthelemy', "Saint-Barthélemy", country))
+    
+ # us_risk<-risk_scores$risk_score[risk_scores$country=="Cayman Islands"]         
   # Join country lookup table with risk scores and calculate discount rates based on Brazil score (2.93) and discount rate (14%)
   countries <- countries %>% 
     left_join(risk_scores) %>% 
-    mutate(risk_score  = ifelse(country == "Saint-Barthélemy", 2.2, risk_score),
-           disc_rate   = pmax(pmin(0.1 * (1-(1.5 - risk_score)), 0.25), 0.1)) # Using USVI as baseline for now
-
+  #  mutate(risk_score  = ifelse(country == "Saint-Barthélemy", 2.2, risk_score),
+   #        disc_rate   = pmax(pmin(0.1 * (1-(us_risk - risk_score)), 0.25), 0.1)) # Using USVI as baseline for now
+    mutate(disc_rate = rescale(risk_score, to = c(0.1,.25)))
   write.csv(countries, paste0(boxdir,"data/country_risk_and_discount.csv"))
   
   # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
                                          cobia_price = cobia_price, 
-                                         prices = c(6, 6.5, 7, 7.5, 8, 9, 9.5),
+                                         prices = c(5.75,6, 6.5, 7, 7.5, 8, 9, 9.5,12),
                                          feed_price_index = c(1, 1.25),
                                          discount_rates = disc_rate,
                                          eezs = countries, 
