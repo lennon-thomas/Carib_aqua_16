@@ -305,26 +305,26 @@ prod_compare_A <- ggplot() +
   carib_theme() + 
   labs(x = "Longitude",
        y = "Latitude",
-       title = "A",
-       subtitle = "Total annual production") +
+       title = "a)",
+       subtitle = "Total annual production- 'suitable' scenario") +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-  theme(strip.text.x = element_text(size = 12))
+  theme(strip.text.x = element_text(size = 16),plot.title=element_text(face = "bold"))
 
 ggsave(paste0(fig_folder,'total_prod_map.png'), width = 6, height = 5)
 
 prod_compare_B <- ggplot() + 
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
-  geom_polygon(data = prod_compare_spA, aes(x = long,y = lat, group = group, fill= median_supply / 10), colour = "black", size = 0.1 , alpha = 0.8) +
+  geom_polygon(data = prod_compare_spB, aes(x = long,y = lat, group = group, fill= median_supply / 10), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
   scale_fill_viridis("MT", labels = comma) +
   guides(fill = guide_colorbar(title.vjust = 0.75)) +
   carib_theme() + 
   labs(x = "Longitude",
        y = "Latitude",
-       title = "B",
-       subtitle = "Median annual production") +
+       title = "b)",
+       subtitle = "Median annual production- 'economic' scenario") +
   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-  theme(strip.text.x = element_text(size = 12))
+  theme(strip.text.x = element_text(size = 12), plot.title=element_text(face = "bold"))
 
 ggsave(paste0(fig_folder,'median_prod_map.png'), width = 6, height = 5)
 
