@@ -61,11 +61,11 @@ write_csv(supply_replace, path = paste0(result_folder, '/supply_replace_results.
 
 # Boxplots ---------------------------------------------------------------
 
-cntry_disc_npv$risk_score<-as.factor(cntry_disc_npv$risk_score)
 
-bpA2 <- cntry_disc_npv %>% 
-  group_by(eez) %>%
-  ggplot(cntry_disc_npv,
+
+#bpA2 <- cntry_disc_npv %>% 
+ # group_by(eez) %>%
+risk<-  ggplot(cntry_disc_npv,
          aes(x=risk_score, 
              y = harvest / 1e6,
              color = npv))+
@@ -74,9 +74,9 @@ bpA2 <- cntry_disc_npv %>%
  # geom_hline(aes(yintercept = median(annuity, na.rm = T) / 1e6), linetype = 2, color = 'black') +
   #geom_hline(yintercept = 0, linetype = 2, color = 'red') +
   scale_y_continuous(labels = comma) +
-  scale_color_gradientn(name = 'NPV',# trans = 'log10',
+  scale_color_gradient(name = 'NPV', low = "red",high="blue") +# trans = 'log10',
                        # breaks = c(10, 100, 1000, 10000), labels = c(10, 100, 1000, 10000),
-                        colors = viridis(100)) +
+                       
   coord_flip() +
   labs(x = 'Risk Score',
        y = 'Annual Production (MMT)',
@@ -84,7 +84,7 @@ bpA2 <- cntry_disc_npv %>%
       # subtitle = "Country-specific discount rate") +
   carib_theme()
 
-ggsave(filename = paste0(figure_folder, '/annuity_cntry_disc_boxplot.png'), width = 6.5, height = 6)
+ggsave(risk,filename = paste0(figure_folder, '/risk_vs_production_boxplot.png'), width = 6.5, height = 6)
 
 
 
