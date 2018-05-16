@@ -11,7 +11,8 @@ econ_figures <- function(npv_df,
                       supply_summary,
                       carib_theme,
                       result_folder,
-                      figure_folder) {
+                      figure_folder,
+                      countries) {
 
 # NPV Summaries -----------------------------------------------------------
 
@@ -19,8 +20,12 @@ econ_figures <- function(npv_df,
 # pos_npv <- filter(npv_df, npv > 0) 
  
 # Pull out base scenario results from NPV ($8.62 and 0% discount results)
+npv_df$eez<-as.factor(npv_df$eez)
+
 main_npv <- filter(npv_df, prices == 8.62 & disc_scenario == "0.106" & feed_price_index == 1)
-cntry_disc_npv <- filter(npv_df, prices == 8.62 & disc_scenario == 'cntry' & feed_price_index == 1)
+
+cntry_disc_npv <- filter(npv_df, prices == 8.62 & disc_scenario == 'cntry' & feed_price_index == 1) %>%
+  left_join(countries)
 
 # Find how many farms are required to match current annual Caribbean production (330,000 MT) and imports (144,000 MT)
 # Use only profitable farms and divide total production by 10 for annual estimate
@@ -40,7 +45,55 @@ supply_replace <- main_npv %>%
 # save results of caribbean supply/import replacement 
 write_csv(supply_replace, path = paste0(result_folder, '/supply_replace_results.csv'))
 
+
+
+# Scatterplot ------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
 # Boxplots ---------------------------------------------------------------
+
+cntry_disc_npv$risk_score<-as.factor(cntry_disc_npv$risk_score)
+
+bpA2 <- cntry_disc_npv %>% 
+  group_by(eez) %>%
+  ggplot(cntry_disc_npv,
+         aes(x=risk_score, 
+             y = harvest / 1e6,
+             color = npv))+
+          #    group = eez) +
+  geom_boxplot() +
+ # geom_hline(aes(yintercept = median(annuity, na.rm = T) / 1e6), linetype = 2, color = 'black') +
+  #geom_hline(yintercept = 0, linetype = 2, color = 'red') +
+  scale_y_continuous(labels = comma) +
+  scale_color_gradientn(name = 'NPV',# trans = 'log10',
+                       # breaks = c(10, 100, 1000, 10000), labels = c(10, 100, 1000, 10000),
+                        colors = viridis(100)) +
+  coord_flip() +
+  labs(x = 'Risk Score',
+       y = 'Annual Production (MMT)',
+       title = "Risk Score vx. Distribution of Production by EEZ") +
+      # subtitle = "Country-specific discount rate") +
+  carib_theme()
+
+ggsave(filename = paste0(figure_folder, '/annuity_cntry_disc_boxplot.png'), width = 6.5, height = 6)
+
+
+
+
+
+
+
+
+
 
 # boxplot of farm annuity by EEZ
 bpA <- main_npv %>%  
@@ -133,20 +186,20 @@ ggsave(filename = paste0(figure_folder, '/npv_discount_scenarios.png'), width = 
 bpC <- npv_df %>%
   filter(prices == 8.62 & feed_price_index == 1) %>% 
   group_by(disc_scenario) %>% 
-  mutate(carib_avg = mean(annuity, na.rm = T)) %>% 
+  mutate(carib_avg = mean(npv, na.rm = T)) %>% 
   ungroup() %>% 
-  ggplot(aes(x = country, y = annuity / 1e6, color = disc_scenario)) +
+  ggplot(aes(x = country, y = npv / 1e6, color = disc_scenario)) +
   geom_boxplot() +
   scale_color_brewer(palette = 'Paired', 
                      labels = c("0.106", "Country specific")) +
   labs(x = 'Country',
-       y = 'Annuity ($USD, millions)',
+       y = 'NPV ($USD, millions)',
        color = "Discount rate",
-       title = "Distribution of farm profitability by EEZ") +
+       title = "Distribution of farm NPV by EEZ") +
   carib_theme()
 
 # Calculate Caribbean boxplot stats
-ylim1 <- boxplot.stats(bpC$data$annuity)$stats[c(1, 5)] / 1e6
+ylim1 <- boxplot.stats(bpC$data$npv)$stats[c(1, 5)] / 1e6
 
 bpC +
   coord_flip(ylim = ylim1) +

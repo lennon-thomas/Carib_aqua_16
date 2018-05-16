@@ -71,7 +71,7 @@ if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/B
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 
 # Specify run directory to source results from
-run_name <- "2018-05-08"
+run_name <- "2018-05-14"
 run_dir <- paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in SI tables
@@ -239,53 +239,33 @@ In conclusion, sustainable aquaculture development can be greatly assisted by ad
 
 ## Study Region and Overview 
 
-The study area includes the Exclusive Economic Zones (EEZs) surrounding the 28 island countries of the Caribbean Sea. We do not consider the potential for offshore aquaculture development in the high seas or disputed waters. EEZ boundaries in our study are are defined using data from Flanders Marine Institute [-@Burke2011] and all analyses are performed at a 1 km^2^ spatial resolution. We develop a spatial bioeconomic model to estimate the production potential, in terms of harvested biomass and annuity, for offshore cobia aquaculture in the Caribbean. We first identify 1 km^2^ sites throughout the study region that are suitable for offshore mariculture development. Next, we apply a thermal performance curve (TPC) to predict temperature-dependent individual growth and subsequent total production of cobia at each hypothetical farm, over a 10-year period. Finally, production estimates are coupled with an economic model in order to calculate farm-scale annuity values given a 10-year time horizon and several scenarios of investment risk. 
+The study area includes the Exclusive Economic Zones (EEZs) surrounding the 28 island countries of the Caribbean Sea. We do not consider the potential for offshore aquaculture development in the high seas or disputed waters. EEZ boundaries in our study are are defined using data from Flanders Marine Institute [-@FlandersMarineInstitute2018 and all analyses are performed at a 1 km^2^ spatial resolution. We develop a spatial bioeconomic model to estimate the production potential, in terms of annual harvested biomass and annuity, for offshore cobia mariculture in the Caribbean. We first identify 1 km^2^ sites throughout the study region that are suitable for offshore mariculture development. Next, we apply a thermal performance curve (TPC) to predict temperature-dependent individual growth and subsequent total production of cobia at each hypothetical farm, over a 10-year period. Finally, cobia production estimates are coupled with an economic model in order to calculate farm-scale annuity values given a 10-year time horizon.
 
 ## Suitability Assessment 
 
-We identify areas that are potentially suitable for the development of offshore mariculture in the Caribbean by considering factors related to technical feasibility, environmental impacts, and current ocean uses that we view as fixed constraints to development (Table S1). We define suitable thresholds for each factor and use high resolution spatial data in a Boolean overlay to identify 1 km^2^ areas in our study region that are potentially suitable for offshore mariculture development given the defined thresholds.
-
-Physical specifications listed by the original manufacture of SeaStation cages are used to define thresholds for areas that are technically feasible for offshore mariculture. SeaStation cages are submersible, self-tensioned, single rim cages and are currently the most widely used offshore mariculture cages in the U.S.  [@Loverich2010]. The minimum depth for installation of a SeaStation cage is 25 m and the cages are not recommended for areas that experience current velocities exceeding 1 m/s [@OceanSpar2013]. We assume the maximum depth threshold for suitable areas is 100 m because cage installation and inspection of mooring and anchoring systems becomes more difficult and costly in depths > 100 m [@Kapetsky2013]. We use spatial bathymetry data from  Becker et al. [-@Becker2009] to identify areas within a suitable depth range. The absolute maximum zonal and meridional current velocities are set using data on daily averages over a 10-year period (2005 - 2015) from [-@ESR2009]. 
-
-Offshore mariculture farms can be associated with increased nutrient levels in the water column and along the benthos from fish waste released from the cages [@Lovatelli2013], which can cause algal blooms, reduced water quality and clarity, and low oxygen conditions, all of which can be damaging to coral reef ecosystems [@Holmer2010]. Using data from [-@UNEP-WCMC2010] on locations of coral reef habitat, we exclude these areas from offshore mariculture development. Additionally, we exclude areas within designated marine protected areas (MPAs) and conservation priority areas [@IUCN2017], as many MPAs do not allow aquaculture development and because these locations are likely to include ecologically important or sensitive habitats. Shipping and structures used for oil drilling are offshore activities that may preclude aquaculture development. In order to account for potential conflicts with these other ocean uses, we use spatial data from Halpern [-@Halpern2008], to exclude areas falling within 10% of the highest relative shipping activity locations and areas with benthic oil structures. 
+We identify areas that are potentially suitable for the development of offshore mariculture in the Caribbean by considering factors related to technical feasibility, environmental impacts, and current ocean uses that we view as fixed constraints to development (Table S1). We define suitable thresholds for each factor and use high resolution spatial data in a Boolean overlay to identify 1 km^2^ areas in our study region that are potentially suitable for offshore mariculture development given the defined thresholds. See 'sutiablility analysis' section in  Supplemnatry Information for a description of data layers and thresholds used to identify suitable areas for offshore maricutlure.
 
 ## Growth Model
 
-Temperature is one of the primary abiotic factors controlling growth in ectotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variations, we use 10 years of remotely-sensed sea surface temperature (SST) data [@NASAGoddardSpaceFlightCenter2014] to calculate 1 km^2^ resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model temperature dependent individual somatic growth ($G$, kg per month) of cobia for each farm site [@Klinger2017].
+We model offshore mariculture production using a hypothetical fixed farm design, per 1 km^2^ site, that we apply across the study region to all suitable cells. Our hypothetical farm design is based off of the total cage volume to farm area ratio of other offshore mariculture farms [@Sims; [@Fredriksson2004] and has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell gridded mooring systems, for a total cage volume of 102,400 m^3^ per individual 1 km^2^ farm. The infrastructure of the farm has a footprint of half the size of the total farm area (~0.48 km^2^) which meets the guidelines issued in NOAA's Fishery Management Plan for offshore aquaculture development in the Gulf of Mexico [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
 
-The TPC is a temperature-dependent piecewise linear function defined as follows:
+Temperature is one of the primary abiotic factors controlling growth in ectotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variations, we use 10 (2005 - 2015) years of remotely-sensed sea surface temperature (SST) data to calculate 1 km2 resolution spatial data layers of average monthly SST. We then use a thermal performance curve (TPC) to model monthly temperature-dependent individual somatic growth ($G$, kg per month) of cobia for each farm site over a 120 month period [@Klinger2017]. TPC equations used to calculate growth are presented in 'Growth Model' section in the Supplementary Information.
 
-$$ 
-G(T) = \Big\{\begin{array}
-{rr}
-a_1T - b_1 ~~~ if ~~ T<T_o \\
-a_2T + b_2 ~~~ if ~~ T\ge T_o
-\end{array}  
-$$
+We assume that fingerlings at each farm are stocked at an initial weight of 15 grams and fish weight ($w$) in each month ($t$) is calculated as the cumulative growth since the stocking month ($t_s$):
 
-where $T$ is sea surface temperature in degrees C, $T_o$ is the optimal temperature for cobia growth, and $a_1$ and $a_2$ are slope parameters (kg per month per degree C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. Our temperature-dependent growth parameters for cobia are presented in Table S2 and are adopted from [@Klinger2017], who also use a TPC to model cobia growth.
+$$ w_{i,t} = \sum_{t_s}^{t} \bar{G}_{i,t} (1) $$
 
-Individual cobia growth for site $i$ in month $t$ is modeled using the 10-year average individual growth ($\bar{G}$) for each calendar month as estimated by the TPC from the 120-month historical SST timeseries:
-
-$$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} $$
-
-We model offshore mariculture production using a hypothetical fixed farm design, per 1 km^2^ site, that we apply across the study region. SeaStation cages are typically configured using a mooring system that includes a grid, anchor, and mooring lines secured at varying distances from the cages [@Fredriksson2004; @Xu2015]. The cages are held in position by the mooring system at depths of 15-20 m below the surface[@Loverich2010]. Our farm design is based on the total cage volume to farm area ratio of offshore mariculture farms currently operating off the coast of Kona, Hawaii [@Sims] and the Gulf of Maine [@Fredriksson2004]. Our hypothetical farm has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell gridded mooring systems, for a total cage volume of 102,400 m^3^ per individual 1 km^2^ farm. The infrastructure of the farm has a footprint of  ~0.48 km^2^, which meets the guidelines issued in NOAA's Fishery Management Plan for offshore aquaculture development in the Gulf of Mexico that specifies the total mariculture farm area should be twice the size of the total area occupied by farm infrastructure [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
-
-In our farm design, we assume that fingerlings are stocked at an initial weight of 15 grams and fish weight ($w$) in each month is calculated as the cumulative growth since the stocking month ($t_s$):
-
-$$ w_{i,t} = \sum_{t_s}^{t} \bar{G}_{i,t} $$
-
-We apply an instantaneous mortality rate of 0.024, which we adopt from previous studies that estimated a total 12-month survival rate of 75% for cobia raised in offshore cages in the Caribbean [@Benetti2008a; @Huang2011]. Cobia are harvested when individual fish have grown to a harvestable size of 5 - 6 kg. We adopt $15 \frac{kg}{m^3}$ as a target harvest density for sustainable offshore mariculture from @Benetti2010. Because growth rates vary across farm sites, we calculate the optimal number of stocked fingerlings ($n_0$) required to achieve the target harvest density of $15 \frac{kg}{m^3}$ (19,200 5 kg fish per 6,400 m^3^ cage). For each site, we first calculate the number of grow out cycles ($g$) hypothetically completed over the 120-month historical timeseries by dividing the cumulative individual growth by the target harvest weight: 
+We apply an instantaneous mortality rate of 0.024[@Benetti2008a; @Huang2011] and assume cobia are harvested when individual fish have grown to a harvestable size of 5 - 6 kg. We adopt $15 \frac{kg}{m^3}$ as a target harvest density for offshore mariculture from a previous Caribbean study [@Benetti2010]. Because growth rates vary across farm sites, we calculate the optimal number of stocked fingerlings ($n_0$) required to achieve the target harvest density of $15 \frac{kg}{m^3}$ (19,200 5 kg fish per 6,400 m^3^ cage). For each farm ($i$), we first calculate the number of grow out cycles ($g$) hypothetically completed over the 120-month timeseries by dividing the cumulative individual growth by the target harvest weight: 
 
 $$ g_i = \frac{\sum_{t=1}^{120} G_{i,t}}{5~kg} $$  
 
 Next, we calculate the average length (months) per grow out cycle ($\bar{t}_i$) is as $\bar{t}_i = \frac{120}{g_i}$. Given $\bar{t}_i$, natural mortality, and the target harvest of 307,200 fish (16 cages each with 19,200 5-kg fish), the optimal number of stocked fingerlings is estimated for each site as:
 
-$$ n_0,_i = \frac{307,200}{1-(1-e)^{0.024~\bar{t}_{i}}} $$
+$$ n_0,_i = \frac{307,200}{1-(1-e)^{0.024~\bar{t}_{i}}} (2) $$
 
-Finally, the total production acheived from $g_i$ grow out cycles (approximately 10-years) is modeled for each farm site. Total biomass ($B$) in each month of the simulation is a function of the initial stocking number, individual fish weight, and the instantaneous mortality rate: 
+Finally, the total production (mt) acheived from $g_i$ grow out cycles (approximately 10-years) is modeled for each farm. Total biomass ($B$) in each month of the simulation is a function of the initial stocking number, individual fish weight, and the instantaneous mortality rate: 
 
-$$ B_{i,t} =  w_{c,t,i} n_{0,i} - n_{0,i} (1-e)^{-0.024~t} $$
+$$ B_{i,t} =  w_{c,t,i} n_{0,i} - n_{0,i} (1-e)^{-0.024~t} (3)$$
 
 Cobia are harvested in months where $w_{t} >= 5$ (under the assumption harvest occurs at the beginning of the month) and, while $g <= g_i$, farms are restocked with $n_0$.
 
@@ -293,45 +273,47 @@ Cobia are harvested in months where $w_{t} >= 5$ (under the assumption harvest o
  
 The total cost ($TC$) of production for each farm consists of start up costs ($SC$) plus the sum of operating costs ($OC$). 
 
-$$ TC_i = SC_i + \displaystyle\sum_{t=1}^T OC_{i,t} $$
+$$ TC_i = SC_i + \displaystyle\sum_{t=1}^T OC_{i,t} (4)$$
 
-Cost parameters were obtained from published literature or from personal communication with industry experts. Some parameters were fixed across our study region (Table S2) while others are a function of EEZ (Table S3a) and/or vary by site within an EEZ. Costs of aquaculture infrastructure and installation increase with depth and distance from shore [@Nations2007]. References for parameter values are included in Tables S2 and S3b.  
+Cost parameters were obtained from published literature or from personal communication with industry experts. Some parameters were fixed across our study region (Table S2) while others are a function of EEZ (Table S3) and/or vary by site within an EEZ. We assume costs of aquaculture infrastructure and installation increase with depth and distance from shore [@Nations2007]. 
 
-Start-up costs, which include initial capital expenditures ($E$) and installation costs ($I$), vary as functions of average site depth in meters $m$, and EEZ-specific permit and/or lease costs ($P$):
+Start-up costs, which include initial capital expenditures ($E$) and installation costs ($I$) (see 'Costs' section in Supplementary Information for a breakdown of start-up costs), vary as functions of average site depth in meters $m$:
 
-$$ SC_i =  E_i(m_i) + I_i(m_i) + P_{z} $$
+$$ SC_i =  E_i(m_i) + I_i(m_i) (5)$$
 
-Initial capital expenditures ($E$) include the cost of 16 SeaStation fish cages (\$269,701 each) plus the cost of one 16-m-long support vessel and two 7-m-long motorboats. Installation costs ($I$) include the labor costs and equipment required for installing the culture system. A 10% increase in cage and installation costs are assigned to sites with depths greater than 50 meters to account for a more complex and time consuming installation procedure in deeper water [@Lester2018]. Operating costs are organized in two main categories: farm labor and maintenance costs as a function of site depth, EEZ-specific hourly salary and fuel costs, and costs associated with purchasing and feeding stocked fish $F_{i,t}$ 
+Operating costs are organized in two main categories: farm labor and maintenance costs as a function of distance from shore ($d_i$), EEZ-specific hourly salary ($s_z$) and fuel price ($g_z$), and costs associated with purchasing and feeding stocked fish $F$: 
 
-$$ OC_{i,t} = L_{i,t}(s_z,d_i,g_z) + F_{i,t}(n_{0,i,t}) $$
+$$ OC_{i,t} = L_{i,t}(s_z,d_i,g_z) + F_{i,t}(n_{0,i,t}) (6)$$
+Fingerling and feed costs ($F$) include the total cost of stocked fingerlings ($\$1.50 * n_{0,i,t}$) plus the total cost of feed. Cost of feed is based on a feed price of \$2.50/kg and a tapered feeding strategy in which daily feed usage (30 days per month) corresponds to 3% of total farm biomass ($B_{i,t}$) for the first three months, 2% for months 4-8, and 1% thereafter. For  $F_{i,t}$. For details on how labor costs are calculated see 'Costs' section of Supplementary Information. 
 
-Labor and maintenance costs ($L$) are modeled as follows: 
+Farms earn revenue $R$ by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w_t$) reaches or exceeds 5 kg, otherwise $R_{i,t} = 0$. Revenue is a function of harvested biomass ($B_{i,t}$, kg) and cobia price ($p$), where $R_{i,t} = B_{i,t}p$. We assume the current global market price of $8.62/kg.
 
-$$ L_{i,t} = 2,720s_z + \frac{d_i}{3,219}60g_z  $$
-
-Where 2,720 is the total monthly labor hours required at each site (17 full time workers); $s_z$ is the EEZ-specific hourly salary; $d_i$ is distance from shore (in meters); 3,219 is average fuel efficiency (meters per gallon); 60 is the number of one-way trips required per month for running the farm; and $g_z$ is the per-gallon cost of fuel as a function of EEZ. 
-
-Fingerling and feed costs ($F$) include the total cost of stocked fingerlings ($\$1.00 * n_{0,i,t}$) plus the total cost of feed. Feed cost is based on a feed price of \$2.50/kg and a tapered feeding strategy in which daily feed usage (30 days per month) corresponds to 3% of total farm biomass ($B_{i,t}$) for the first three months, 2% for months 4-8, and 1% thereafter. 
-
-Farms earn revenue $R$ by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w_t$) reaches or exceeds 5 kg, otherwise $R_{i,t} = 0$. Revenue is a function of harvested biomass ($B_{i,t}$, kg) and cobia price ($p$), where $R_{i,t} = B_{i,t}p$. 
-
-$$ \pi_{i} = \sum R_{i} - TC_i $$
+$$ \pi_{i} = \sum R_{i} - TC_i (7)$$
 Cobia farms in the Caribbean are assumed to be price takers and thus production in month $t$ does not affect price in month $t+1$. Total farm profit ($\pi$) is the sum of revenues less total farm costs.
 
 Net present value (NPV) can be used to assess an investment's long-term economic validity, accounting for the time value of money by discounting future cash flows at a specified discount rate that describes the present value of future cash flows. We calculate NPV for all farms over a 10-year period  as: 
 
-$$ NPV_i = \displaystyle\sum_{t=0}^{10} \frac{\pi^i_t}{(1+\delta_{z})^t} $$
+$$ NPV_i = \displaystyle\sum_{t=0}^{10} \frac{\pi^i_t}{(1+\delta_{z})^t}  (8)$$
 where $\delta_{z}$ is the discount rate. Lastly, for ease of interpretation, NPV is annualized by calculating the corresponding annuity $A$ payment:
 
-$$ A_i = \frac{\delta_{z}(NPV)}{1 - (1+\delta_{z})^{-10}}  $$
+$$ A_i = \frac{\delta_{z}(NPV)}{1 - (1+\delta_{z})^{-10}} (9) $$
 
 Production and annuity values for each EEZ are calculated for two main scenarios: 1. “Suitable”, where farms are developed in all areas that meet the criteria used in our suitability assessment, and 2. “Profitable”, where only farms with a positive 10-year NPV at the current global market price of cobia are developed.
 
+## Discount Rate
+
+Lack of foreign investment due to perceived financial risk has been identified as a major barrier to aquaculture development in the Caribbean [@Nations2007]. Foreign investment risk reflects both political and economic risks in a country, which can be calculated into a single risk score using economic and socioeconomic indicators [@Bhalla1983]. Investment risk can be represented by adjusting the discount rate accordingly when estimating returns on an investment [@Stanley1990]. We apply the Foreign Investment Risk Matrix (FIRM) method developed by Bhalla [-@Bhalla1983] and modified by McGowan [@McGowanJr2009], which utilizes  political and  economic  risk variables that are readily available for most countries to calculate an investment risk score for each country (See 'Risk Adjusted Discount Rate' section in Supplemenatry Information and Tables S4-S5). Risk scores are the scaled to EEZ-specific discount rates (Table 1) between 10% and 25%, which aligns with the range of discount rates found in the literature of bioeconomic modelling of aquaculture [@RuizCampo2018].
+
 ## Sensitivity Analyses
 
-Defining appropriate discount rates in bioeconomic models is often difficult and depends on many factors, particularly the cost of capital and project risk [@Stanley1990]. Therefore, we examine results under two different discount rate assumptions. First, we assume a fixed discount rate of 10.6% across all farms, which we base on the average discount rate of 10.6% found in a meta-analysis of published bioeconomic models for aquaculture from the last 25 years  [@RuizCampo2018]. However, lack of foreign investment due to perceived financial risk has been identified as a major barrier to aquaculture development in the Caribbean [@Nations2007]. Investment risk can be represented by adjusting the discount rate accordingly when estimating returns on an investment. Therefore, we also examine results using EEZ-specific discount rates that are based on the financial risk of investing in offshore aquaculture in each country. 
+The use of current global market price of cobia is a large assumption in our model, as market dynamics in this rapidly developing industry are difficult to predict. Therefore, we evaluate the sensitivity of our results (annual Caribbean supply) to cobia prices ranging from \$1.00-$12.00 per kg.  
 
-Foreign investment risk reflects both political and economic risks in a country, which can be calculated into a single risk score using economic and socioeconomic indicators [@Bhalla1983]. We apply the Foreign Investment Risk Matrix (FIRM) method developed by Bhalla [-@Bhalla1983] and modified by McGowan [@McGowanJr2009], which utilizes three political and three economic continuous risk variables that are readily available for most countries (See 'Risk Adjusted Discount Rate' sectionin S.I. and Tables S4-S5). Risk scores are used to scale EEZ-specific discount rates (Table 1) between 10% and 25%, which aligns with the range of discount rates found in the literature of bioeconomic modelling of aquaculture [@RuizCampo2018]. The risk score for the US Virgin Islands is used as a baseline index. The use of current global market price of cobia is a large assumption in our model, as market dynamics in this rapidly developing industry are difficult to predict. Therefore, we evaluate the sensitivity of our results (annual Caribbean supply) to cobia prices ranging from \$1.00-$9.50 per kg.  
+Defining appropriate discount rates in bioeconomic models is often difficult and depends on many factors, particularly the cost of capital and project risk [@Stanley1990]. Therefore, in addition to our country specific discount rates representing investment risk, we also examine results assuming a fixed discount rate of 10.6% across all farms. The fixed discount rate of 10.6 is based on the average discount rate found in a meta-analysis of published bioeconomic models for aquaculture from the last 25 years  [@RuizCampo2018].  
+
+
+## Data Availability
+
+The datasets generated during and/or analysed during the current study and code are available in the XX git-hub repository, [PERSISTENT WEB LINK TO DATASETS].
 
 # Figures
 
@@ -339,7 +321,7 @@ Foreign investment risk reflects both political and economic risks in a country,
 knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suitable_map.png'))
 ```
 ------
-```{r , fig.height = 7.5, fig.cap = "Figure 2. Estimated total annual production of cobia from all suitable farm sites (panel A) and median production from only profitable farm sites (panel B)"}
+```{r , fig.height = 7.5, fig.cap = "Figure 2. Estimated total annual production of cobia from all suitable farm sites (panel a) and median production from only profitable farm sites (panel b)"}
 knitr::include_graphics(path = paste0(run_dir,'Figures/prod_compare_map.png'))
 ```
 -----
@@ -418,7 +400,41 @@ pander::pandoc.table(scenario_table,
 -------
 # Supplementary Information
 
-#### Risk Adjusted Discount Rate 
+## Suitabitily Analysis
+
+We assume our offshore mariculture farms will utilize SeaStation cages.  SeaStation cages are submersible, self-tensioned, single rim cages and are currently the most widely used offshore mariculture cages in the U.S. [@Loverich2010].Physical specifications listed by the original manufacture of SeaStation cages are used to define thresholds for areas that are technically feasible for offshore mariculture. The minimum depth for installation of a SeaStation cage is 25 m and the cages are not recommended for areas that experience current velocities exceeding 1 m/s [@OceanSpar2013]. We assume the maximum depth threshold for suitable areas is 100 m because cage installation and inspection of mooring and anchoring systems becomes more difficult and costly in depths > 100 m [@Kapetsky2013]. We use spatial bathymetry data from  Becker et al. [-@Becker2009] to identify areas within a suitable depth range. The absolute maximum zonal and meridional current velocities are set using data on daily averages over a 10-year period (2005 - 2015) from [-@ESR2009]. 
+
+Offshore mariculture farms can be associated with increased nutrient levels in the water column and along the benthos from fish waste released from the cages [@Lovatelli2013], which can cause algal blooms, reduced water quality and clarity, and low oxygen conditions, all of which can be damaging to coral reef ecosystems [@Holmer2010]. Using data from [-@UNEP-WCMC2010] on locations of coral reef habitat, we exclude these areas from offshore mariculture development. Additionally, we exclude areas within designated marine protected areas (MPAs) and conservation priority areas [@IUCN2017], as many MPAs do not allow aquaculture development and because these locations are likely to include ecologically important or sensitive habitats. Shipping and structures used for oil drilling are offshore activities that may preclude aquaculture development. In order to account for potential conflicts with these other ocean uses, we use spatial data from Halpern [-@Halpern2008], to exclude areas falling within 10% of the highest relative shipping activity locations and areas with benthic oil structures. 
+
+## Growth Model
+
+The TPC is a temperature-dependent piecewise linear function defined as follows:
+
+$$ 
+G(T) = \Big\{\begin{array}
+{rr}
+a_1T - b_1 ~~~ if ~~ T<T_o \\
+a_2T + b_2 ~~~ if ~~ T\ge T_o
+\end{array}  (10)
+$$
+
+where $T$ is sea surface temperature in degrees C, $T_o$ is the optimal temperature for cobia growth, and $a_1$ and $a_2$ are slope parameters (kg per month per degree C), and $b_1$, and $b_2$ are intercept parameters (kg per month). At temperatures below the minimum temperature for growth ($T_{min}, b_1/a_1$) and above the maximum temperature for growth ($T_{max}, -b_2/a_2$), $G$ is forced to 0 to reflect the absence of growth. Where $a_2$ is negative, $T_o = (b_1 + b_2) / (a_1 - a_2)$. Our temperature-dependent growth parameters for cobia are presented in Table S2 and are adopted from [@Klinger2017], who also use a TPC to model cobia growth.
+
+Individual cobia growth for site $i$ in month $t$ is modeled using the 10-year average individual growth ($\bar{G}$) for each calendar month as estimated by the TPC from the 120-month historical SST timeseries:
+
+$$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} (11)$$
+
+## Costs
+
+Initial capital expenditures ($E$) include the cost of 16 SeaStation fish cages (\$269,701 each) plus the cost of one 16-m-long support vessel and two 7-m-long motorboats. Installation costs ($I$) include the labor costs and equipment required for installing the culture system. A 10% increase in cage and installation costs are assigned to sites with depths greater than 50 meters to account for a more complex and time consuming installation procedure in deeper water [@Lester2018].
+
+Labor and maintenance costs ($L$) are modeled as follows: 
+
+$$ L_{i,t} = 2,720s_z + \frac{d_i}{3,219}60g_z (12) $$
+
+Where 2,720 is the total monthly labor hours required at each site (17 full time workers); $s_z$ is the EEZ-specific hourly salary; $d_i$ is distance from shore (in meters); 3,219 is average fuel efficiency (meters per gallon); 60 is the number of one-way trips required per month for running the farm; and $g_z$ is the per-gallon cost of fuel as a function of EEZ. 
+
+## Risk Adjusted Discount Rate 
 
 We modify previously published methodologies to quantify a country’s relative investment risk in the Caribbean, where limited data on economic and political conditions are available. Bhalla[-@Bhalla1983] developed the Foreign Investment Risk Matrix (FIRM) to assist investors in classifying the political and economic risks associated with investing in different countries using discrete risk categories. An expanded version of FIRM to classify foreign investment risk was developed by McGowan and Moeller45 that utilizes 3 political and 3 economic continuous variables (Table S4)
 
@@ -536,3 +552,7 @@ pander::pandoc.table(risk_parms,
 ```
 
 # References
+
+# Acknowledgements
+
+# Author contributions

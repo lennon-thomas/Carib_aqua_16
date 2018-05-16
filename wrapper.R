@@ -59,7 +59,7 @@ source(file = "functions/econ_figures.R")
 source(file = "functions/map_results.R")
 
 # Run name
-run_name = '2018-05-08'
+run_name = '2018-05-14'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -83,8 +83,8 @@ if (dir.exists(run_dir) == F) {
 # Analysis sections
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock <- FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <- FALSE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- FALSE # run population simulation to calculate feed costs
+process_growth <- TRUE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- TRUE # run population simulation to calculate feed costs
 run_econ <- TRUE # run economic analyses
 
 # Parameters --------------------------------------------------------------
@@ -98,7 +98,7 @@ site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
 site_workers <- 17 # Bezerra et al. 2016 
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 no_fingerlings <- 256000 # fixed fingerlings per farm
-price_fingerlings <- 1 # $US/fingerling Bezerra et al. 2016
+price_fingerlings <- 1.50 # between 1.37-1.93 personal comm with Dr. Rombenso May 2018# # $US/fingerling Bezerra et al. 2016
 harv_den <- 15 # kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
 no_cage <- 16 # cages
 cage_volume <- 6400 # m^3
@@ -106,7 +106,7 @@ total_vol <- no_cage*cage_volume # m^3 total cage volume
 harvest_weight <- 5 # kg from various souces (5-6 kg)
 cobia_price <- 8.62 # $US/kg# Bezerra et al. 2016
 fcr <- 1.75 # Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
-feed_price <- 2.5 # in units of $/kg  ($1.64 from Bezerra et al. 2016)
+feed_price <- 2.50#1.93#personal comm with Dr. Rombenso May 2018 # in units of $/kg  ($1.64 from Bezerra et al. 2016)
 survival <- 0.75 # Benetti et al. 2007 over 12 monthes and Huang et al. 2011
 month_mort <- 1-survival ^ (1 / 12)
 int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
@@ -343,7 +343,8 @@ map_results(boxdir,
               npv_df,
               supply_summary,
               feed_price,
-              price_fingerlings)
+              price_fingerlings,
+              countries)
 
 # Save text file documenting run settings ---------------------------------
 
