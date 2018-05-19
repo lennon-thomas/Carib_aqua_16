@@ -39,12 +39,16 @@ supply_curves <- function(cashflow,
     group_by(cell, disc_scenario, prices) %>%
     mutate(total_disc_revenue = cumsum(disc_revenue)) # take cumulative sum of discounted costs
    
+  # Breakdown of costs before discounting
+  
+  
+  
   # Calculate discounted costs for a range of feed costs and discount rates
   supply_costs <- cashflow %>%
     mutate(feed_price_index = list(feed_price_index)) %>% 
     unnest() %>% 
     mutate(feed_cost           = feed_cost * feed_price_index,
-           total_monthly_costs = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost) %>% 
+           total_monthly_costs = c_costs + total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost + mo_maint_cost) %>%  #added c_costs to this but not sure if it is discounted correctly?
     dplyr::select(cell, eez, month, feed_price_index, feed_cost, total_monthly_costs, disc_rate) %>%
     group_by(eez) %>% 
     mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),

@@ -25,13 +25,13 @@ data_rescale<-data %>%
   dplyr::select(Country,reg_qual_rescale,pol_stab_rescale,con_cor_rescale,gdp_rescale,cpi_growth_rescale) %>%
  gather(parameter,value,-Country) %>%
  mutate(risk_type = ifelse(parameter %in% c("reg_qual_rescale","con_cor_rescale","pol_stab_rescale"),"political","economic")) %>%
- spread(risk_type,value) %>% 
+spread(risk_type,value) %>% 
   group_by(Country) %>%
   summarise(political_score = mean(political,na.rm = TRUE),
         economic_score = mean(economic,na.rm = TRUE)) %>%
   ungroup() %>%
   group_by(Country) %>%
-  mutate(risk_score = mean (c(political_score,economic_score), na.rm = TRUE)) %>%
+  mutate(risk_score = mean (c(political_score,(economic_score)), na.rm = TRUE)) %>%
   arrange(risk_score)
 
 data_rescale<-merge(data_rescale,data, by = "Country") 
@@ -47,7 +47,7 @@ slope<-as.numeric(est_missing_risk$coefficients[2])
 
 data_rescale<-data_rescale %>%
   mutate(predicted_risk = intercept + slope*gdp_capita,
-         new_risk = round(ifelse(is.na(political_score),predicted_risk,risk_score),2),
+         new_risk = round(ifelse(is.na(political_score),predicted_risk,risk_score),3),
         new_risk_rescale = rescale(new_risk, to = c(1,5))) 
 
 risk_score<-data_rescale %>%

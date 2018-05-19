@@ -31,6 +31,7 @@ library(ggforce)
 library(forcats)
 library(ggpubr)
 library(ggridges)
+library(forcats)
 
 # Plot theme
 carib_theme <- function() {
@@ -59,7 +60,7 @@ source(file = "functions/econ_figures.R")
 source(file = "functions/map_results.R")
 
 # Run name
-run_name = '2018-05-14'
+run_name = '5-18-18'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -83,30 +84,30 @@ if (dir.exists(run_dir) == F) {
 # Analysis sections
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock <- FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <- TRUE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- TRUE # run population simulation to calculate feed costs
+process_growth <- FALSE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- FALSE# run population simulation to calculate feed costs
 run_econ <- TRUE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
-cage_cost <- 269701 # US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
+cage_cost <- 321000 #Kim et al. 2007 seastation cages that are half the volume are 269,000 and total equitment for startup is 321,000 so 500000 for larger cages seems reasonable US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
 support_vessel <- 158331 # US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
-site_lease <- 3265 # US$ from Bezerra et al. 2016 This is for 16 ha farm in Brazil (ours is larger so may want to increase)
+site_lease <- 10000 # Cost of 10 year permit in Gulf of Mexico
 labor_installation <- 52563 # US$ from Bezerra et al. 2016
 site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
-site_workers <- 17 # Bezerra et al. 2016 
+site_workers <- 25 # scaled using volume /worker ratio from Bezerra et al. 2016 .  open blue employs over 200 full time people.
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 no_fingerlings <- 256000 # fixed fingerlings per farm
 price_fingerlings <- 1.50 # between 1.37-1.93 personal comm with Dr. Rombenso May 2018# # $US/fingerling Bezerra et al. 2016
-harv_den <- 15 # kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
+harv_den <- 10 # kg/m^3 harvest density Benetti et al. 2010 and Dane's industry contacts
 no_cage <- 16 # cages
 cage_volume <- 6400 # m^3
 total_vol <- no_cage*cage_volume # m^3 total cage volume
 harvest_weight <- 5 # kg from various souces (5-6 kg)
 cobia_price <- 8.62 # $US/kg# Bezerra et al. 2016
 fcr <- 1.75 # Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
-feed_price <- 2.50#1.93#personal comm with Dr. Rombenso May 2018 # in units of $/kg  ($1.64 from Bezerra et al. 2016)
+feed_price <- 2##personal comm with Dr. Rombenso May 2018 that said 1.87/kg # in units of $/kg  ($1.64 from Bezerra et al. 2016)
 survival <- 0.75 # Benetti et al. 2007 over 12 monthes and Huang et al. 2011
 month_mort <- 1-survival ^ (1 / 12)
 int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
@@ -116,7 +117,7 @@ avg_boat_spd <- 48.28
 site_days <- 30
 disc_rate <- 0.106 # discount rate to use in addition to country specific rates. can be a vector.
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
-
+mainent<- 0.005# 7% of capital costs annually Knapp so that means 0.05% of capital costs every month
 # Load Data ---------------------------------------------------------------
 
 # load cell area data
@@ -154,7 +155,7 @@ if (econ_prep_data == TRUE){
 
  if(process_growth == TRUE) {
   
-   annual_prod<-ann_prod(growth = growth)  
+   annual_prod<-ann_prod(growth = growth, start_weight = int_weight, harv_den = harv_den)  
  
    stocking_n<-annual_prod[[1]]
   
@@ -252,7 +253,8 @@ if(run_econ == TRUE) {
                                        feed_price,
                                        price_fingerlings,
                                        cage_cost,
-                                       site_days)
+                                       site_days,
+                                       mainent)
   
   monthly_cashflow[is.na(monthly_cashflow)] <- 0
   
@@ -309,6 +311,7 @@ if(run_econ == TRUE) {
   write.csv(eez_supply,paste0(run_dir,"Results/eez_supply_df.csv"))
   write.csv(carib_supply,paste0(run_dir,"Results/carib_supply.csv"))
   write_csv(supply_summary, path = paste0(run_dir,'Results/supply_summary.csv'))
+  
 
 } else {
   
@@ -318,6 +321,7 @@ if(run_econ == TRUE) {
   eez_supply <- read_csv(file = paste0(run_dir,"Results/eez_supply_df.csv"))
   carib_supply <- read_csv(file = paste0(run_dir,"Results/carib_supply.csv"))
   supply_summary <- read_csv(file = paste0(run_dir,"Results/supply_summary.csv"))
+  countries<- read_csv(paste0(boxdir,"data/country_risk_and_discount.csv"))
   
 }
 
@@ -330,7 +334,8 @@ econ_figures(npv_df = npv_df,
              supply_summary = supply_summary,
              carib_theme,
              result_folder,
-             figure_folder)
+             figure_folder,
+             countries)
 # Maps  
 map_results(boxdir,
               fig_folder = figure_folder,
@@ -343,8 +348,7 @@ map_results(boxdir,
               npv_df,
               supply_summary,
               feed_price,
-              price_fingerlings,
-              countries)
+              price_fingerlings)
 
 # Save text file documenting run settings ---------------------------------
 
@@ -355,5 +359,7 @@ cat(paste0("Fix_int_stock? ",fix_int_stock),file = paste0(run_dir,'Results/runde
 cat(paste0("Run name: ",run_name),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 cat(paste0("FCR: ",fcr),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
 cat(paste0("Discount rate (additional): ",disc_rate),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
-
-  
+cat(paste0("Harvest density: ",harv_den),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)
+cat(paste0("Feed price: ",feed_price),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE)  
+cat(paste0("Feed rate: ",feed_rate),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE) 
+cat(paste0("Fingerling price: ",price_fingerlings),file = paste0(run_dir,'Results/rundescription.txt'), sep="\n",append = TRUE) 

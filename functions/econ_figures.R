@@ -24,8 +24,12 @@ npv_df$eez<-as.factor(npv_df$eez)
 
 main_npv <- filter(npv_df, prices == 8.62 & disc_scenario == "0.106" & feed_price_index == 1)
 
+cntr_risk<-countries %>%
+  select(country,risk_score,disc_rate)
+
 cntry_disc_npv <- filter(npv_df, prices == 8.62 & disc_scenario == 'cntry' & feed_price_index == 1) %>%
-  left_join(countries)
+  left_join(cntr_risk, by='country') 
+
 
 # Find how many farms are required to match current annual Caribbean production (330,000 MT) and imports (144,000 MT)
 # Use only profitable farms and divide total production by 10 for annual estimate
@@ -47,7 +51,46 @@ write_csv(supply_replace, path = paste0(result_folder, '/supply_replace_results.
 
 
 
-# Scatterplot ------------------------------------------------------------
+# Scatterplot risk vs. prod------------------------------------------------------------
+
+#bpA2 <- cntry_disc_npv %>% 
+# group_by(eez) %>%
+risk_plot<-cntry_disc_npv %>%
+   filter(npv>0) %>%
+  group_by(country) %>%
+  summarise(median_npv = median(npv),
+            total_production = median(harvest),
+            risk_score = unique(risk_score)) %>%
+  ungroup()
+
+#bpA2 <- cntry_disc_npv %>%
+# group_by(eez) %>%
+ ggplot(risk_plot,
+aes(x = risk_score,
+    y = total_production / 1e6,
+    color = median_npv))+
+  ## group = eez)) +
+  geom_point(size=1) +
+  # geom_hline(aes(yintercept = median(annuity, na.rm = T) / 1e6), linetype = 2, color = 'black') +
+  #geom_hline(yintercept = 0, linetype = 2, color = 'red') +
+  #scale_y_continuous(labels = comma) +
+  scale_color_gradientn(name = 'Median NPV',  colors = viridis(1000)) +  # trans = 'log10',
+  # breaks = c(10, 100, 1000, 10000), labels = c(10, 100, 1000, 10000),
+  
+  coord_flip() +
+  labs(x = 'Risk Score',
+       y = 'Median Annual Production (MMT)') +
+  # title = "Risk Score vs. Distribution of Production by EEZ") +
+  # subtitle = "Country-specific discount rate") +
+  carib_theme() +
+  geom_text(aes(label = country),vjust = -1)
+
+
+
+ggsave(filename = paste0(figure_folder, '/risk_v_prod.png'), width = 6.5, height = 6)
+
+
+
 
 
 
@@ -60,39 +103,6 @@ write_csv(supply_replace, path = paste0(result_folder, '/supply_replace_results.
 
 
 # Boxplots ---------------------------------------------------------------
-
-
-
-#bpA2 <- cntry_disc_npv %>% 
- # group_by(eez) %>%
-risk<-  ggplot(cntry_disc_npv,
-         aes(x=risk_score, 
-             y = harvest / 1e6,
-             color = npv))+
-          #    group = eez) +
-  geom_boxplot() +
- # geom_hline(aes(yintercept = median(annuity, na.rm = T) / 1e6), linetype = 2, color = 'black') +
-  #geom_hline(yintercept = 0, linetype = 2, color = 'red') +
-  scale_y_continuous(labels = comma) +
-  scale_color_gradient(name = 'NPV', low = "red",high="blue") +# trans = 'log10',
-                       # breaks = c(10, 100, 1000, 10000), labels = c(10, 100, 1000, 10000),
-                       
-  coord_flip() +
-  labs(x = 'Risk Score',
-       y = 'Annual Production (MMT)',
-       title = "Risk Score vx. Distribution of Production by EEZ") +
-      # subtitle = "Country-specific discount rate") +
-  carib_theme()
-
-ggsave(risk,filename = paste0(figure_folder, '/risk_vs_production_boxplot.png'), width = 6.5, height = 6)
-
-
-
-
-
-
-
-
 
 
 # boxplot of farm annuity by EEZ

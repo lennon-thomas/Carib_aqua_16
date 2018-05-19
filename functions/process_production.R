@@ -5,7 +5,7 @@ library(rts)
 
 # Function to calculate growth of one individual each month (this takes the average growth for)
 
-ann_prod<-function(growth,start_weight=0.15) {                  
+ann_prod<-function(growth,start_weight, harv_den) {                  
 
 # Calculate cumulative growth in each month
 all_growth <- raster::calc(growth,fun = function(x) cumsum(x))

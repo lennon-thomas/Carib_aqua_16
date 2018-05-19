@@ -16,7 +16,8 @@ monthly_cost_est<-function (sim_results,
                             feed_price,
                             price_fingerlings,
                             cage_cost,
-                            site_days){
+                            site_days,
+                            mainent){
   
   #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
   names(econ_stack)<-c("fuel_price","min_wage","permit_fee",
@@ -49,13 +50,14 @@ monthly_cost_est<-function (sim_results,
   # Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
   
   suitable_economic<-suitable_economic %>%
-    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 * 4) 
+    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 * 4) %>%
+    mutate(mo_maint_cost = c_costs*mainent)
 
   
   
   #convert into monthly costs                     
   monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
-    dplyr::select(cell,month,alive,weight, harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez)                             
+    dplyr::select(cell,month,alive,weight, harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,mo_maint_cost,eez)                             
  
    # Match country names
   eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape") 
@@ -78,7 +80,7 @@ monthly_cost_est<-function (sim_results,
     mutate(feed_cost = feed * feed_price,
            fingerling_cost = ifelse(weight==0.015,alive*price_fingerlings,
                                     0),
-           total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost,
+           total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost + mo_maint_cost,
            total_monthly_costs = total_operating_cost + c_costs,
            monthly_revenue = harvest * cobia_price,
            cash_flow = monthly_revenue - total_operating_cost, # I think this should be 'total_monthly costs' instead
