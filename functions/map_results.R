@@ -191,7 +191,7 @@ base <- ggplot() +
   all_df$feed_price_index <- as.factor(all_df$feed_price_index)
   
   total_prod <- all_df %>%
-    filter(feed_price_index == '1' & disc_scenario == '0.106' ) %>%
+    filter(feed_price_index == '1' & disc_scenario == '0.1' ) %>%
     group_by(eez) %>%
     summarise(eez_harvest_mt = sum(total_harvest)* 0.001) %>%
     mutate(annual_eez_harvest = eez_harvest_mt/10, 
@@ -221,13 +221,13 @@ base <- ggplot() +
   # Production and NPV - for .10 disount rate- only consider profitable cells
   
   econ_prod <- all_df %>%
-    filter(disc_scenario == '0.106' & npv > 0 ) %>%
+    filter(disc_scenario == '0.1' & npv > 0 ) %>%
     dplyr::group_by(eez,feed_price_index) %>%
     summarise(eez_harvest_mt = sum(total_harvest) * 0.001,
               annual_eez_harvest = eez_harvest_mt/10,
               total_npv = sum(npv, na.rm = T))%>%
     ungroup() %>%
-       mutate(scenario_names = ifelse(feed_price_index == "1", "Current feed cost", "Reduced feed cost"))
+       mutate(scenario_names = ifelse(feed_price_index == "1", "Current feed cost", "Increased feed cost"))
  
    econ_prod_sp <- left_join(econ_prod,eez.water, by=c("eez"="MRGID"))         
    
@@ -299,7 +299,7 @@ prod_compare_A <- ggplot() +
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
   geom_polygon(data = prod_compare_spA, aes(x = long,y = lat, group = group, fill= total_supply / 1e6 / 10 ), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("MMT") +
+  scale_fill_viridis("MMT",limits=c(0.001,13)) +
   guides(fill = guide_colorbar(title.vjust = 0.75)) +
   carib_theme() + 
   labs(x = "Longitude",
@@ -315,7 +315,7 @@ prod_compare_B <- ggplot() +
   geom_polygon(data = eez.water,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.15) +
   geom_polygon(data = prod_compare_spB, aes(x = long,y = lat, group = group, fill= total_supply /1e6/ 10), colour = "black", size = 0.1 , alpha = 0.8) +
   geom_polygon(data = eez.land,aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-  scale_fill_viridis("MMT", labels = comma) +
+  scale_fill_viridis("MMT", labels = comma,limits=c(0.001,13)) +
   guides(fill = guide_colorbar(title.vjust = 0.75)) +
   carib_theme() + 
   labs(x = "Longitude",
@@ -375,7 +375,7 @@ disc_only <- all_df %>%
             annual_eez_harvest = eez_harvest_mt/10,
             total_npv = sum(npv)) %>%
   ungroup() %>%
-mutate(scenario_name = ifelse( disc_scenario =="0.106", "10.6% discount rate","Country specific discount rate")) 
+mutate(scenario_name = ifelse( disc_scenario =="0.1", "10 % discount rate","Country specific discount rate")) 
 
 
 disc_only_sp <- left_join(disc_only,eez.water, by=c("eez"="MRGID"))

@@ -17,7 +17,8 @@ monthly_cost_est<-function (sim_results,
                             price_fingerlings,
                             cage_cost,
                             site_days,
-                            mainent){
+                            mainent)
+{
   
   #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
   names(econ_stack)<-c("fuel_price","min_wage","permit_fee",
@@ -50,14 +51,15 @@ monthly_cost_est<-function (sim_results,
   # Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
   
   suitable_economic<-suitable_economic %>%
-    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 * 4) %>%
-    mutate(mo_maint_cost = c_costs*mainent)
+    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 * 4) 
+  
 
   
   
   #convert into monthly costs                     
   monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
-    dplyr::select(cell,month,alive,weight, harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,mo_maint_cost,eez)                             
+    dplyr::select(cell,month,alive,weight, harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez) %>%
+    mutate(mo_maint_cost = mainent * c_costs)
  
    # Match country names
   eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape") 
