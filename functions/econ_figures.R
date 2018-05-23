@@ -58,14 +58,14 @@ risk_plot<-cntry_disc_npv %>%
    filter(npv>0) 
 
  ggplot(risk_plot,
-    aes(x =  fct_reorder (country,risk_score),
-    y = harvest/1e6,
-    color = npv))+
+    aes(x =  harvest/1e6,
+    y =npv,
+    color = risk_score))+
   geom_point(size=1) +
-  scale_color_gradientn(name = '10 year NPV',  colors = viridis(1000)) + 
-  coord_flip() +
-  labs(x = 'Risk Score',
-       y = 'Average Annual Production (MMT)') +
+  scale_color_gradientn(name = 'Risk score',  colors = viridis(1000)) + 
+  #coord_flip() +
+  labs(x = "Average Annual Production (MMT)",
+       y = " 10 yr NPV") +
   carib_theme()
 
 ggsave(filename = paste0(figure_folder, '/risk_v_prod.png'), width = 6.5, height = 6)
@@ -73,15 +73,25 @@ ggsave(filename = paste0(figure_folder, '/risk_v_prod.png'), width = 6.5, height
 avg_risk_df<-cntry_disc_npv %>%
   filter(npv>0) %>%
   group_by(country) %>%
-  summarize(avg_npv = mean(npv),
-            average_production = mean(harvest/1e6),
+  summarize(avg_npv = sum(npv),
+            average_production = sum(harvest/1e6),
             risk = unique(risk_score)) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(unit = average_production/avg_npv)
 
+
+ggplot(avg_risk_df,aes(x=fct_reorder(country,risk),y=unit,fill=risk))+
+  geom_bar(stat= "identity") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90)) +
+  xlab("Country") +
+  ylab("Production (MMT)/NPV")
+  
+  
 p_v_npv<-ggplot(avg_risk_df,
-            aes(x = average_production,y =avg_npv)) +
-            geom_point() +
-            coord_flip() +
+            aes(x = risk,y =average_production,size = avg_npv)) +
+            geom_point(size=3) +
+        #    coord_flip() +
          #   scale_color_gradientn(name = 'risk',  colors = viridis(1000)) +
             labs(x = 'Average annunal farm production (MMT)',
                  y = 'Average Farm 10 year NPV') +
@@ -103,6 +113,8 @@ p_v_npv +
     plot_layout(ncol = 1) +
        theme(plot.margin = unit(c(0,0,0,0), "cm"))
 
+attach(avg_risk_df)
+#scatterplot3d(risk,y = average_production,z = avg_npv, box= FALSE)
 
 
 ggsave(filename = paste0(figure_folder, '/avg_risk_v_npv.png'), width = 6.5, height = 6)
@@ -142,11 +154,11 @@ bpA2 <- cntry_disc_npv %>%
   mutate(farms = n_distinct(cell[annuity > 0]),
          annuity = ifelse(annuity / 1e6 < -2.5, -2.5, annuity)) %>% 
   ungroup() %>% 
-  ggplot(aes(x = fct_reorder(country, annuity, fun = 'median'), 
+  ggplot(aes(x = fct_reorder(country, npv, fun = 'median'), 
              y = annuity / 1e6,
              color = farms)) +
   geom_boxplot() +
-  geom_hline(aes(yintercept = median(annuity, na.rm = T) / 1e6), linetype = 2, color = 'black') +
+  geom_hline(aes(yintercept = median(npv, na.rm = T) / 1e6), linetype = 2, color = 'black') +
   geom_hline(yintercept = 0, linetype = 2, color = 'red') +
   scale_y_continuous(labels = comma) +
   scale_color_gradientn(name = '# profitable', trans = 'log10',

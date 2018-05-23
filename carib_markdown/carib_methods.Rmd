@@ -396,24 +396,24 @@ pander::pandoc.table(eez_suit_table,
 -------
 ```{r, results = 'asis'}
 scenario_table <- scenario_compare %>%
-  dplyr::select(country, supply_all, supply_main, supply_cntry, annuity_all, annuity_main, annuity_cntry) %>% 
+  dplyr::select(country, supply_all, supply_cntry, supply_fixed, npv_all, npv_cntry, npv_fixed) %>% 
   mutate(supply_all = round(supply_all / 1e6, digits = 1),
-         supply_main = round(supply_main / 1e6, digits = 1),
          supply_cntry = round(supply_cntry / 1e6, digits = 1),
-         annuity_all = round(annuity_all / 1e9, digits = 2),
-         annuity_main = round(annuity_main / 1e9, digits = 2),
-         annuity_cntry = round(annuity_cntry / 1e9, digits = 2))
+         supply_fixed = round(supply_fixed / 1e6, digits = 1),
+         npv_all = round(npv_all / 1e9, digits = 2),
+         npv_cntry = round(npv_cntry / 1e9, digits = 2),
+         npv_fixed = round(npv_fixed / 1e9, digits = 2))
 
 pander::pandoc.table(scenario_table,
                      caption = 'Table 3. Supply (MT) and annuity under 4 different scenarios',
                      split.tables = Inf,
                      col.names = c('Country',
                                    "Supply (suitable)",
-                                   "Supply (profitable, 10%)",
                                    "Supply (profitable, country %)",
-                                   "Annuity (suitable)",
-                                   "Annuity (profitable, 10%)",
-                                   "Annuity (profitable, country %)"))
+                                   "Supply (profitable, 10%)",
+                                   "NPV (suitable)",
+                                   "NPV (profitable, country %)",
+                                   "NPV (profitable, 10%)"))
 ```
 -------
 # Supplementary Information
