@@ -32,6 +32,7 @@ library(forcats)
 library(ggpubr)
 library(ggridges)
 library(forcats)
+library(scatterplot3d)
 
 # Plot theme
 carib_theme <- function() {
@@ -84,8 +85,8 @@ if (dir.exists(run_dir) == F) {
 # Analysis sections
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock <- FALSE# should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <- TRUE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- TRUE# run population simulation to calculate feed costs
+process_growth <-FALSE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- FALSE# run population simulation to calculate feed costs
 run_econ <- TRUE # run economic analyses
 
 # Parameters --------------------------------------------------------------
@@ -95,7 +96,7 @@ cage_cost <- 321000 #Kim et al. 2007 seastation cages that are half the volume a
 support_vessel <- 158331 # US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
 site_lease <- 10000 # Cost of 10 year permit in Gulf of Mexico
 labor_installation <- 52563 # US$ from Bezerra et al. 2016
-site_hours <- 224 # monthly hours per worker per month (8*4 weeks * 7 days)
+site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
 site_workers <- 17 # Bezerra et al. 2016 .  open blue employs over 200 full time people.
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 no_fingerlings <- 256000 # fixed fingerlings per farm

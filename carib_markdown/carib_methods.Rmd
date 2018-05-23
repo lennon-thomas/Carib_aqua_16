@@ -71,7 +71,7 @@ if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/B
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 
 # Specify run directory to source results from
-run_name <- "2018-05-14"
+run_name <- "2018-05-22"
 run_dir <- paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Read in SI tables
@@ -132,16 +132,33 @@ supply_plot_df<-read_csv(paste0(run_dir, 'Results/supply_plot_df.csv'))
 # Extract important values to reference in paper
 # Main Caribbean results - profitable farms, current cobia and feed price, and 10% discount rate
 main_results <- carib_supply %>% 
-  filter(prices == 8.62 & disc_scenario == "0.106" & feed_price_index == 1) %>% 
+  filter(prices == 8.62 & disc_scenario == "cntry" & feed_price_index == 1) %>% 
   filter(country == 'Caribbean') %>% 
   dplyr::select(-prices, -disc_scenario, -country, -feed_price_index) %>%
   dplyr::select(supply_scenario, dplyr::everything()) %>% 
   gather(key = 'key', 'value', 2:ncol(.)) %>% 
-  spread(supply_scenario, value)
+  spread(supply_scenario, value) %>%
+    set_names(c('key','All farms','Profitable_cntry'))
+
+main_results_fixed <- carib_supply %>% 
+  filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 1) %>% 
+  filter(country == 'Caribbean') %>% 
+  dplyr::select(-prices, -disc_scenario, -country, -feed_price_index) %>%
+  dplyr::select(supply_scenario, dplyr::everything()) %>% 
+  gather(key = 'key', 'value', 2:ncol(.)) %>% 
+  spread(supply_scenario, value) %>%
+  select(c(1,3)) %>%
+  set_names(c('key','Profitable_fixed'))
+
+
+main_results<-left_join(main_results,main_results_fixed)
+
+
+
 
 # Main EEZ results
 main_eez_results <- carib_supply %>% 
-  filter(prices == 8.62 & disc_scenario == "0.106" & feed_price_index == 1) %>% 
+  filter(prices == 8.62 & disc_scenario == "cntry" & feed_price_index == 1) %>% 
   filter(country != 'Caribbean') %>% 
   dplyr::select(-prices, -disc_scenario, -feed_price_index) %>%
   dplyr::select(country, supply_scenario, dplyr::everything())
@@ -149,32 +166,33 @@ main_eez_results <- carib_supply %>%
 # EEZ scenario comparisons
 scenario_compare <- carib_supply %>%
   # Investment risk scenario
-  filter(prices == 8.62 & disc_scenario == "cntry" & feed_price_index == 1 & supply_scenario == 'Profitable farms') %>% 
-  dplyr::select(country, total_supply, total_annuity) %>% 
-  rename(supply_cntry = total_supply,
-         annuity_cntry    = total_annuity) %>% 
+  filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 1 & supply_scenario == 'Profitable farms') %>% 
+  dplyr::select(country, total_supply, total_npv) %>% 
+  rename(supply_fixed = total_supply,
+         npv_fixed    = total_npv) %>% 
   # Main scenario
   right_join(main_eez_results %>% 
               filter(supply_scenario == 'Profitable farms') %>% 
-              dplyr::select(country, total_supply, total_annuity) %>% 
-              rename(supply_main = total_supply,
-                     annuity_main    = total_annuity)) %>% 
+              dplyr::select(country, total_supply, total_npv) %>% 
+              rename(supply_cntry = total_supply,
+                     npv_cntry    = total_npv)) %>% 
     # Main scenario
   right_join(main_eez_results %>% 
               filter(supply_scenario == 'All farms') %>% 
-              dplyr::select(country, area, total_supply, total_annuity) %>% 
+              dplyr::select(country, area, total_supply, total_npv) %>% 
               rename(suit_area  = area,
                      supply_all = total_supply,
-                     annuity_all    = total_annuity)) %>% 
-  mutate(supply_diff = supply_all - supply_main,
-         supply_diff_perc = supply_diff / supply_all * 100) %>% 
+                     npv_all    = total_npv)) %>% 
+  mutate(supply_diff = supply_all - supply_cntry,
+         supply_diff_perc = supply_diff / supply_all * 100,
+         npv_dff = (npv_fixed-npv_cntry)/npv_fixed * 100) %>% 
   # # Feed price scenario
   # left_join(carib_supply %>%
   #             filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 0.9 & supply_scenario == 'Profitable farms') %>%
   #             dplyr::select(country, total_supply, total_annuity) %>% 
   #             rename(supply_feed = total_supply,
   #                    annuity_feed    = total_annuity)) %>% 
-  dplyr::select(country, suit_area, supply_all, annuity_all, supply_main,annuity_main, everything()) %>% 
+  dplyr::select(country, suit_area, supply_all, npv_all, supply_cntry,npv_cntry, everything()) %>% 
   arrange(desc(supply_all))
   
 ```
@@ -182,7 +200,7 @@ scenario_compare <- carib_supply %>%
 
 # Abstract
 
-Mariculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. In particular, offshore mariculture can alleviate numerous environmental and social impacts associated with coastal mariculture, such as habitat degradation and spatial conflicts with fisheries, tourism, and other stakeholders. We identify areas throughout the Caribbean suitable for offshore mariculture of cobia (*Rachycentron canadum*) and develop a spatial bio-economic model to estimate yields and profits under different scenarios of economic risk. We find that approximately `r prettyNum(main_results[1,2],big.mark=",", digits = 2)` km^2^ (`r round(main_results[2,2], digits = 2)`% of study area)  is technically feasible for cobia aquaculture, with the potential to produce  `r round(main_results[20,2] / 1e6 / 10, digits = 1)` million metric tons (MMT) of cobia annually, an amount roughly equal to the total global production from capture fisheries. Given our estimates of production costs and cobia price, ~ `r prettyNum(main_results[1,3],big.mark=",", digits = 5)`  km^2^  (`r round(main_results[2,3], digits = 2)`% of study area) is economically viable for cobia mariculture, with the potential to produce  `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT of cobia annually. Farm-scale production and value varied across and within countries, demonstrating the value of spatial models for decision-making at different spatial scales. This analysis can help prioritize areas in the Caribbean for offshore cobia mariculture and serve as a framework for evaluating other species. 
+Mariculture in the Caribbean has been identified as an avenue to stimulate local economies, increase employment opportunities, and improve seafood supply and food security. In particular, offshore mariculture can alleviate numerous environmental and social impacts associated with coastal mariculture, such as habitat degradation and spatial conflicts with fisheries, tourism, and other stakeholders. We identify areas throughout the Caribbean suitable for offshore mariculture of cobia (*Rachycentron canadum*) and develop a spatial bio-economic model to estimate yields and profits under different scenarios of economic risk. We find that approximately `r prettyNum(main_results[1,2],big.mark=",", digits = 2)` km^2^ (`r round(main_results[2,2], digits = 2)`% of study area)  is technically feasible for cobia aquaculture, with the potential to produce  `r round(main_results[20,2] / 1e6 / 10, digits = 1)` million metric tons (MMT) of cobia annually, an amount roughly equal to over half the total global production from capture fisheries. Given our estimates of production costs and cobia price, ~ `r prettyNum(main_results[1,3],big.mark=",", digits = 5)`  km^2^  (`r round(main_results[2,3], digits = 2)`% of study area) is economically viable for cobia mariculture, with the potential to produce  `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT of cobia annually. Farm-scale production and value varied across and within countries, demonstrating the value of spatial models for decision-making at different spatial scales. This analysis can help prioritize areas in the Caribbean for offshore cobia mariculture and serve as a framework for evaluating other species. 
 
 # Introduction 
 
@@ -211,13 +229,13 @@ Variability in growth rates, both spatial and seasonal, leads to differences in 
 
 When economics are considered (the "profitable" scenario), the potential production and/or profitability of offshore cobia mariculture is considerably reduced in several countries relative to when only suitability and temperature-dependent growth are considered (Table 4; Figure 4). In the Bahamas, which has the largest amount of suitable area, average annual production declines by `r round(scenario_compare$supply_diff[scenario_compare$country=='Bahamas'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Bahamas'], digits = 1)`%), while Cuba experiences a decline of `r round(scenario_compare$supply_diff[scenario_compare$country=='Cuba'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Cuba'], digits = 1)`%). The Turks and Caicos and Haiti also both experience small declines (<1%). Overall, the potential annual production for the Caribbean is reduced to `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT when only considering supply from profitable farm sites. 
 
-In terms of value, farms in most countries are profitable and this result is robust to the discount rate (Figure 4). Farm value is tightly clustered around $3 million for many countries, suggesting site selection is less of a financial concern in these areas. However, farms in Turks and Caicos, Jamaica, the Dominican Republic, Cuba, the Bahamas, and Aruba vary considerably in value and therefore strategic site selection will be critical for prospective cobia farms in these areas (Figure 4). Only the Bahamas and Cuba contained a considerable number of unprofitable farm sites under both discount scenarios, with the median Bahamian farm unprofitable if assessed with a 10% discount rate. When considering country-specific discount rates based on investment risk, the value of cobia farms in certain countries changes considerably relative to others (Figure 4). For example, the median farm in Haiti, where investment is risk is particularly high, drops from 2nd to 20th in terms of highest value. In contrast, Barbados moves from 7th to 2nd and Puerto Rico moves up from 14th to 6th.  
+In terms of value, the median farm 10-year NPV and was \$/ `r round(main_results[10,3], digits =1)` assuming a fixed 10 % discount rate, and `r round(main_results[10,2], digits =1)`, or `r round((main_results[10,3]-main_results[10,2])/main_results[10,3]*100)`% lower with the country specific discount rate that incorporates investment risk (Figure 4). NPV is tightly clustered around $5.5 million for many countries, suggesting site selection is less of a financial concern in these areas. However, farms in Turks and Caicos, Jamaica, the Dominican Republic, Cuba, the Bahamas, and Aruba vary considerably in value and therefore strategic site selection will be critical for prospective cobia farms in these areas (Figure 4). Only the Bahamas and Cuba contained a considerable number of unprofitable farm sites under both discount scenarios, with the median farm unprofitable if in both countries.  
 
 The assumed market price of cobia has a large impact on annual Caribbean supply (Figure S3). A market price of \$9.50/kg resulted in the development of all suitable farms and a supply over `r round(supply_plot_df[16,4]/1e6/10,digits=0)`) MMT. At a price of \$6.50/kg supply was reduced by over `r round(supply_plot_df[2,4]/supply_plot_df[6,4]*100,digits=2)`% relative to our ‘economic’ scenario where the cobia price was \$8.62/kg. At a price of \$6/kg cobia supply was reduced to 0 MMT and XX MMT using the country specific discount and 10% discount rate, respectively.
 
 # Discussion
 
-This study incorporates biological, environmental, economic, and political data to estimate potential for offshore cobia aquaculture, in terms of yields and profits, across the Caribbean region. Our results reveal remarkable potential; we estimate a total annual production of 80.5 MMT if all suitable areas are developed and 72.1 MMT if only profitable farms are developed. This potential yield is more than two orders of magnitude larger than total current seafood production in the region (~300,000 MT) and is on par with total annual harvest from the world’s capture fisheries (~80 MMT). Impressively, this output requires <2% of the Caribbean’s marine space, a result similar to the findings of Gentry et al. [-@Gentry2017] who estimated that current total landings could be produced from farming finfish in 0.015% of global ocean area. In fact, the Caribbean could match its current seafood production using just 179 km2 (0.006%) of its marine space. In addition to highlighting the total production potential of the Caribbean, this study also highlights where in the region culturing of cobia will be most productive, and can be used to identify sites within an EEZ that will be most economically profitable for offshore cobia mariculture development.
+This study incorporates biological, environmental, economic, and political data to estimate potential for offshore cobia aquaculture, in terms of yields and profits, across the Caribbean region. Our results reveal remarkable potential; we estimate a total annual production of  `r round(main_results[20,2] / 1e6 / 10, digits = 1)` MMT if all suitable areas are developed and `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT if only profitable farms are developed. This potential yield is more than two orders of magnitude larger than total current seafood production in the region (~300,000 MT) and is on par with total annual harvest from the world’s capture fisheries (~80 MMT). Impressively, this output requires <2% of the Caribbean’s marine space, a result similar to the findings of Gentry et al. [-@Gentry2017] who estimated that current total landings could be produced from farming finfish in 0.015% of global ocean area. In fact, the Caribbean could match its current seafood production using just 179 km2 (0.006%) of its marine space. In addition to highlighting the total production potential of the Caribbean, this study also highlights where in the region culturing of cobia will be most productive, and can be used to identify sites within an EEZ that will be most economically profitable for offshore cobia mariculture development.
 
 This study provides an important contribution to the literature by integrating biophysical, economic and political factors in identifying potential sites for mariculture development [@Stelzenmuller2017b]. Previous studies have found large potential for global mariculture development by identifying suitable areas using solely environmental data [@Kapetsky2013; @Gentry2017], and by estimating biological production rates that could occur in suitable areas [@Gentry2017]. To date, studies that have applied bioeconomic modeling to examine the economic feasibility of mariculture farms have largely been focused on a single farm in a previously specified area [@Kam2003; @Shamshak2009; @Kaiser2010; @Bezerra2016] or on spatial variation in farm profitability within a single national jurisdiction [@Lester2018]. This analysis bridges that gap between biophysical production potential and economic profitability across multiple jurisdictions, and is the first assessment of the economic feasibility of offshore mariculture for the Caribbean region as a whole[@Patil2016]. The framework provided by our study could be applied to other species in the Caribbean or applied to other regions. 
 
@@ -249,13 +267,13 @@ We identify areas that are potentially suitable for the development of offshore 
 
 We model offshore mariculture production using a hypothetical fixed farm design, per 1 km^2^ site, applied across the study region to all suitable cells. Our hypothetical farm design is based on the total cage volume to farm area ratio of other offshore mariculture farms [@Sims;@Fredriksson2004] and has 16 SeaStation cages (each 6,400 m^3^) configured in two eight-cell gridded mooring systems, for a total cage volume of 102,400 m^3^ per individual 1 km^2^ farm. The infrastructure of the farm has a footprint of half the size of the total farm area (~0.48 km^2^) which meets the guidelines issued in NOAA's Fishery Management Plan for offshore aquaculture development in the Gulf of Mexico [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
 
-Temperature is one of the primary abiotic factors controlling growth in ectotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variation, we use 10 years (2005 - 2015) of remotely-sensed sea surface temperature (SST) data to calculate 1 km2 resolution  data layers of average monthly SST. We then use a thermal performance curve (TPC) to model monthly temperature-dependent individual somatic growth ($G$, kg per month) of cobia for each farm site over a 120 month period [@Klinger2017]. TPC equations used to calculate growth are presented in the 'Growth Model' section in the Supplementary Information.
+Temperature is one of the primary abiotic factors controlling growth in ectotherms, including cobia [@Brett1979], and obviously cannot be easily controlled in offshore mariculture farms [@Tidwell2012]. To reflect spatial differences in productivity across farms caused by temperature variation, we use 10 years (2005 - 2015) of remotely-sensed sea surface temperature (SST) data to calculate 1 km2 resolution  data layers of average monthly SST. We then use a thermal performance curve (TPC) to model monthly temperature-dependent individual somatic growth ($G$, kg per month) of cobia for each farm site over a 120 month period [@Klinger2017]. TPC equations used to calculate growth are presented in the 'Growth Model' section in the Supplementary Information and growth parameters are presented in Table S2.
 
 We assume that fingerlings at each farm are stocked at an initial weight of 15 grams and fish weight ($w$) in each month ($t$) is calculated as the cumulative growth since the stocking month ($t_s$):
 
 $$ w_{i,t} = \sum_{t_s}^{t} \bar{G}_{i,t} (1) $$
 
-We apply an instantaneous mortality rate of 0.024[@Benetti2008a; @Huang2011] and assume cobia are harvested when individual fish have grown to a harvestable size of 5 - 6 kg. We adopt $15 \frac{kg}{m^3}$ as a target harvest density for offshore mariculture from a previous Caribbean study [@Benetti2010]. Because growth rates vary across farm sites, we calculate the optimal number of stocked fingerlings ($n_0$) required to achieve the target harvest density of $15 \frac{kg}{m^3}$ (19,200 5 kg fish per 6,400 m^3^ cage). For each farm ($i$), we first calculate the number of grow out cycles ($g$)completed over the 120-month timeseries by dividing the cumulative individual growth by the target harvest weight: 
+We apply an instantaneous mortality rate of 0.024[@Benetti2008a; @Huang2011] and assume cobia are harvested when individual fish have grown to a harvestable size of 5 - 6 kg. We adopt $10 \frac{kg}{m^3}$ as a target harvest density for offshore mariculture, which is the average reported in  previous Caribbean study [@Benetti2010]. Because growth rates vary across farm sites, we calculate the optimal number of stocked fingerlings ($n_0$) required to achieve the target harvest density of $15 \frac{kg}{m^3}$ (19,200 5 kg fish per 6,400 m^3^ cage). For each farm ($i$), we first calculate the number of grow out cycles ($g$)completed over the 120-month timeseries by dividing the cumulative individual growth by the target harvest weight: 
 
 $$ g_i = \frac{\sum_{t=1}^{120} G_{i,t}}{5~kg} $$  
 
@@ -277,16 +295,17 @@ $$ TC_i = SC_i + \displaystyle\sum_{t=1}^T OC_{i,t} (4)$$
 
 Cost parameters were obtained from published literature or from personal communication with industry experts. Some parameters were fixed across our study region (Table S2) while others are a function of EEZ (Table S3) and/or vary by site within an EEZ. We assume costs of aquaculture infrastructure and installation increase with depth and distance from shore [@Nations2007]. 
 
-Start-up costs, which include initial capital expenditures ($E$) and installation costs ($I$) (, vary as functions of average site depth in meters $m$:
+Start-up costs, which include initial capital expenditures ($E$) and installation costs ($I$) , vary as functions of average site depth in meters $m$:
 
 $$ SC_i =  E_i(m_i) + I_i(m_i) (5)$$
 
-Operating costs are organized in two main categories: farm labor and maintenance costs as a function of distance from shore ($d_i$), EEZ-specific hourly salary ($s_z$) and fuel price ($g_z$), and costs associated with purchasing and feeding stocked fish $F$: 
+Operating costs ($OC$) for each farm ($i$) are calculated each month ($t$) as:  
 
-$$ OC_{i,t} = L_{i,t}(s_z,d_i,g_z) + F_{i,t}(n_{0,i,t}) (6)$$
-Fingerling and feed costs ($F$) include the total cost of stocked fingerlings ($\$1.50 * n_{t}$) plus the total cost of feed. Cost of feed is based on a feed price of \$2.50/kg and a tapered feeding strategy in which daily feed usage (30 days per month) corresponds to 3% of total farm biomass ($B$) for the first three months, 2% for months 4-8, and 1% thereafter. Labor costs ($L$) include the wages of workers and fuel requried to reach site based on distance from shore. For a breakdown of  a breakdown of start-up and details of labor and maintentace cost calculations see'Costs' section of Supplementary Information. 
+$$ OC_{i,t} = L_{i,t}(s_z,d_i,g_z) + M_{i,t}(SC_i)+(H*n_{0,i,t}) + F(B_{i,t})) (6)$$
 
-Farms earn revenue $R$ by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w_t$) reaches or exceeds 5 kg, otherwise $R = 0$. Revenue is a function of harvested biomass ($B$, kg) and cobia price ($p$), where $R_{i,t} = B_{i,t}p$. We assume the current global market price of $8.62/kg.
+Where $L$ represents monthly farm labor costs as a function of farm ($i$) distance from shore ($d$), and EEZ specific ($z$) hourly salary ($s$) and fuel price ($g$); $M$ represents monthly farm maintenance costs equal to 7% of start-up annually (0.583 monthly) [@Kam2008]; $H$ represents cost of per fingerling ($n_0$) and $F$ represents the monthly cost of feed as a function of farm biomass ($B_{i,t}$). Cost of feed is based on a feed price of \$2.00/kg and a tapered feeding strategy in which daily feed usage (30 days per month) corresponds to 3% of total farm biomass ($B$) for the first three months, 2% for months 4-8, and 1% thereafter. For details on start-up cost and operating cost calculations see'Costs' section of Supplementary Information. Values for all cost parameters are presented in Tables S2 and S3.
+
+Farms earn revenue $R$ by harvesting market weight (5 kg) cobia. Thus, farms only earn revenue in months where individual fish weight ($w_t$) reaches or exceeds 5 kg, otherwise $R = 0$. Revenue is a function of harvested biomass ($B$, kg) and cobia price ($p$), where $R_{i,t} = B_{i,t}p$. We assume a global market price of $8.62/kg [@Bezerra2016].
 
 $$ \pi_{i} = \sum R_{i} - TC_i (7)$$
 Cobia farms in the Caribbean are assumed to be price takers and thus production in month $t$ does not affect price in month $t+1$. Total farm profit ($\pi$) is the sum of revenues less total farm costs.
@@ -300,15 +319,15 @@ Production and NPV values for each EEZ are calculated for two main scenarios: 1.
 
 ## Discount Rate
 
-Lack of foreign investment due to perceived financial risk has been identified as a major barrier to aquaculture development in the Caribbean [@Nations2007]. Foreign investment risk reflects both political and economic risks in a country, which can be calculated into a single risk score using economic and socioeconomic indicators [@Bhalla1983]. Investment risk can be represented by adjusting the discount rate  when estimating returns on an investment [@Stanley1990]. We apply the Foreign Investment Risk Matrix (FIRM) method developed by Bhalla [-@Bhalla1983] and modified by McGowan [@McGowanJr2009], which utilizes  political and  economic  risk variables that are readily available for most countries to calculate an investment risk score for each country (See 'Risk Adjusted Discount Rate' section in Supplemenatry Information and Tables S4-S5). Risk scores are used to scale EEZ-specific discount rates (Table 1) between 10% and 25% (Table 1), which aligns with the range of discount rates found in the literature on bioeconomic modelling of aquaculture [@RuizCampo2018].
+Lack of foreign investment due to perceived financial risk has been identified as a major barrier to aquaculture development in the Caribbean [@Nations2007]. Foreign investment risk reflects both political and economic risks in a country, which can be calculated into a single risk score using economic and socioeconomic indicators [@Bhalla1983]. Investment risk can be represented by adjusting the discount rate  when estimating returns on an investment [@Stanley1990]. We use political and  economic  risk variables that are readily available for most countries to calculate an investment risk score for each country (See 'Risk Adjusted Discount Rate' section in Supplemenatry Information and Tables S4-S5). Risk scores are used to scale EEZ-specific discount rates between 10% and 25% (Table 1), which aligns with the range of discount rates found in the literature on bioeconomic modelling of aquaculture [@RuizCampo2018].
 
-Defining appropriate discount rates in bioeconomic models is often difficult and depends on many factors, particularly the cost of capital and project risk [@Stanley1990]. Therefore, in addition to our country specific discount rates representing investment risk, we also examine results assuming a fixed discount rate of 10.6 % across all farms. The fixed discount rate of 10.6 is based on the average discount rate found in a meta-analysis of published bioeconomic models for aquaculture from the last 25 years  [@RuizCampo2018].  
+Defining appropriate discount rates in bioeconomic models is often difficult and depends on many factors, particularly the cost of capital and project risk [@Stanley1990]. Therefore, in addition to our country specific discount rates representing investment risk, we also examine results assuming a fixed discount rate of 10.6 % across all farms. The fixed discount rate of 10.6 % is based on the average discount rate found in a meta-analysis of published bioeconomic models for aquaculture from the last 25 years  [@RuizCampo2018].  
 
 ## Sensitivity Analyses
 
 The use of current global market price of cobia is a large assumption in our model, as market dynamics in this rapidly developing industry are difficult to predict. Therefore, we evaluate the sensitivity of our results (annual Caribbean supply) to cobia prices ranging from \$1.00-$12.00 per kg.  
 
-
+The cost of feed typically represents the majority of aquaculture operating costs [ref]. Changes in price of feed is difficult to predict, and may be influenced by factors such as x, x, and x. To examine the sensitivity of our results to our assumed feed price of \$2.00/kg we also examine annual Caribbean supply assuming a 25% increase in the price of feed. 
 
 ## Data Availability
 
@@ -329,7 +348,7 @@ knitr::include_graphics(path = paste0(run_dir, 'Figures/growth_heatmap.png'))
 ```
 ------
 ```{r fig.cap = "Figure 4: Annualized profits per cobia aquaculture farm by Caribbean EEZ"}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/boxplot_annuity_disc_scenarios.png'))
+knitr::include_graphics(path = paste0(run_dir, 'Figures/boxplot_npv_disc_scenarios.png'))
 ```
 -----
 # Tables
@@ -425,13 +444,19 @@ $$\bar{G}_{i,t} = \frac{\sum_{y=1}^{10} G_{i,t,y}}{10} (11)$$
 
 ## Costs
 
-Initial capital expenditures ($E$) include the cost of 16 SeaStation fish cages (\$269,701 each) plus the cost of one 16-m-long support vessel and two 7-m-long motorboats. Installation costs ($I$) include the labor costs and equipment required for installing the culture system. A 10% increase in cage and installation costs are assigned to sites with depths greater than 50 meters to account for a more complex and time consuming installation procedure in deeper water [@Lester2018].
+Initial capital expenditures ($E$) for each farm ($i$) are calculated as:
+
+$$ E_i = (16 * C) + V + P (12)$$
+
+where 16 represents the number of cages per farm; $C$ is the cost per cage; $V$ is the total cost of one 16-m-long support vessel and two 7-m-long motorboats; and $P$ the cost of a 10 year offshore aquaculture permit equal to the current cost of 10 year offshore aquaculture permits in the Gulf of Mexico [@GMFMCGulfofMexicoFisheryManagementCouncil2009].
+
+Installation costs ($I$) at each farm ($i$) include the total labor costs and equipment required for installing the culture system as a function of average farm depth ($m_i$) in meters. A 10% increase in cage and installation costs are assigned to sites with depths greater than 50 meters to account for a more complex and time consuming installation procedure in deeper water [@Lester2018].
 
 Labor and maintenance costs ($L$) are modeled as follows: 
 
-$$ L_{i,t} = 2,720s_z + \frac{d_i}{3,219}60g_z (12) $$
+$$ L_{i,t} = 2,720s_z + \frac{d_i}{3,219}60g_z + m_i (13) $$
 
-Where 2,720 is the total monthly labor hours required at each site (17 full time workers); $s_z$ is the EEZ-specific hourly salary; $d_i$ is distance from shore (in meters); 3,219 is average fuel efficiency (meters per gallon); 60 is the number of one-way trips required per month for running the farm; and $g_z$ is the per-gallon cost of fuel as a function of EEZ. 
+Where 2,720 is the total monthly labor hours required at each site assuming 17 full-time employees [@Bezerra2016]; $s$ is the hourly salary for each EEZ $z$ (we apply the minimum wage found for each country; Table S3); $d$ is distance of farm $i$ from shore (in meters); 3,219 is average fuel efficiency (meters per gallon) of the support vessels [@Lester20018]; 60 is the number of one-way trips per month to the farm assuming one trip is made each day; $g$ is the per-gallon cost of fuel as a function of EEZ ($z$); and $m$ is the monthly maientenance cost for each farm $i$ equal to 0.585 % of the farms capital expentiures, or 7% of capital costs annually [@Knapp2008].
 
 ## Risk Adjusted Discount Rate 
 
