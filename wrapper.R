@@ -46,7 +46,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -87,7 +87,7 @@ econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in exist
 fix_int_stock <- FALSE# should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 process_growth <-FALSE # process growth data to get average growth and number of harvest cycles per cell
 run_sim <- FALSE# run population simulation to calculate feed costs
-run_econ <- TRUE # run economic analyses
+run_econ <- FALSE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
@@ -119,11 +119,15 @@ site_days <- 30
 disc_rate <- 0.10 # discount rate to use in addition to country specific rates. can be a vector.
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
 mainent<- 0.00583# 7% of capital costs annually from Knapp 
+
 # Load Data ---------------------------------------------------------------
 
 # load cell area data
 cell_area <- read_csv(file = paste0(boxdir, 'data/cell_area_df.csv')) %>% 
   dplyr::select(cell_no, study_area_km, suit_index)
+
+# Load average monthly temperature raster brick
+avg_month_temps <- brick(paste0(boxdir, 'results/sst/monthly_average_temps.grd'))
 
 # need to break up economic data prep and sim function 
 if (econ_prep_data == TRUE){

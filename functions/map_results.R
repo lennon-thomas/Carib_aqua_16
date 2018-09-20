@@ -464,12 +464,37 @@ growth_plot_df <- growth_df %>%
 # get overall caribbean avg growth to use as midpoint in heatmap
 carib_avg <- mean(growth_df$avg_growth, na.rm = T)
 
+# Get overall caribbean avg growth by month for midpoint
+carib_month_avg <- growth_df %>% 
+  group_by(Month) %>% 
+  summarize(month_avg_carib = mean(avg_growth, na.rm = T))
+
+# Join Caribbean average to plot data
+growth_plot_df <- growth_plot_df %>% 
+  left_join(carib_month_avg) %>% 
+  ungroup() %>% 
+  mutate(Month = fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")))
+
 ggplot(growth_plot_df, aes(y = fct_reorder(Territory1, total_growth),  x = Month, fill = growth)) +
   geom_tile() +
-  scale_fill_gradient2(midpoint = unique(carib_avg), low = muted("blue"), high = muted("red")) +
+  scale_fill_gradient2(midpoint = unique(carib_avg), low = muted("red"), high = muted("green")) +
   labs(y = "Country",
        x = "Month",
        fill = "Average\ngrowth (kg)")
+
+growth_plot_df %>% 
+  group_by(Territory1) %>% 
+  mutate(scaled_growth = growth / month_avg_carib) %>% 
+  ggplot(aes(y = fct_reorder(Territory1, total_growth),  x = Month, fill = scaled_growth)) +
+  geom_tile() +
+  scale_fill_gradient2(midpoint = 1, low = muted("purple"), high = muted("green")) +
+  labs(y = "Country",
+       x = "Month",
+       fill = "Average\ngrowth (kg)")
+
+growth_plot_df %>% 
+  mutate(Territory1 = fct_relevel(Territory1, total_growth)) %>% 
+  ggplot(aes(y = ,  x = Month))
 
 ggsave(paste0(fig_folder,'growth_heatmap.png'), width = 8, height = 6)
 
