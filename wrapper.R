@@ -38,9 +38,9 @@ library(scatterplot3d)
 carib_theme <- function() {
   theme_minimal() +
     theme(text         = element_text(size = 6),
-          title        = element_text(size = 10),
-          axis.text    = element_text(size = 8),
-          legend.text  = element_text(size = 8))
+          title        = element_text(size = 7),
+          axis.text    = element_text(size = 6),
+          legend.text  = element_text(size = 5))
 }
 
 # Run settings -------------------------------------------------------------
@@ -59,6 +59,8 @@ source(file = 'functions/plot_map.R')
 source(file = 'functions/supply_curves.R')
 source(file = "functions/econ_figures.R")
 source(file = "functions/map_results.R")
+source(file = "functions/calc_monthly_avgs.R")
+source(file = "functions/heatmaps.R")
 
 # Run name
 run_name = '2018-05-22'
@@ -78,11 +80,11 @@ if (dir.exists(run_dir) == F) {
   dir.create(data_folder,recursive = T)
   
 } else {
-  
   print('Folder already exists')
 }
 
 # Analysis sections
+monthly_avgs <- FALSE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock <- FALSE# should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
 process_growth <-FALSE # process growth data to get average growth and number of harvest cycles per cell
@@ -120,14 +122,11 @@ disc_rate <- 0.10 # discount rate to use in addition to country specific rates. 
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
 mainent<- 0.00583# 7% of capital costs annually from Knapp 
 
-# Load Data ---------------------------------------------------------------
+# Load and Process Data ---------------------------------------------------------------
 
 # load cell area data
 cell_area <- read_csv(file = paste0(boxdir, 'data/cell_area_df.csv')) %>% 
   dplyr::select(cell_no, study_area_km, suit_index)
-
-# Load average monthly temperature raster brick
-avg_month_temps <- brick(paste0(boxdir, 'results/sst/monthly_average_temps.grd'))
 
 # need to break up economic data prep and sim function 
 if (econ_prep_data == TRUE){
@@ -155,8 +154,22 @@ if (econ_prep_data == TRUE){
   econ_stack<-model_files[[3]]
  
 }
-  
-  # Calculate average growth, cycle length, and no. of fingerlings --------
+
+# Calculate and save csv of average monthly growth and temperature by cell
+
+if(monthly_avgs == TRUE) {
+  # Run monthly average function
+  monthly_temps_growth <- calc_monthly_avgs(boxdir, data_folder)
+  # Produce heatmap figure
+  heatmaps(avg_results = monthly_temps_growth, boxdir, figure_folder, carib_theme)
+ } else {
+  # Otherwise read in csv
+  monthly_temps_growth <- read_csv(file = paste0(data_folder, 'monthly_temp_and_growth.csv'))
+  # Produce heatmap figure
+  heatmaps(avg_results = monthly_temps_growth, boxdir, figure_folder, carib_theme)
+}
+
+# Calculate average growth, cycle length, and no. of fingerlings
 
  if(process_growth == TRUE) {
   
@@ -171,10 +184,6 @@ if (econ_prep_data == TRUE){
    avg_month_growth<-avg_growth(growth = growth)
    
    # Save avg monthly growth and initial stocking rasters
-   # writeRaster(avg_month_growth, paste0(data_folder,'avg_month_growth_stack.nc'), format = "CDF", overwrite =TRUE) ##getting weird error when trying to save this file
-   # writeRaster(stocking_n, paste0(data_folder,'initial_stocking_stack.nc'), format = "CDF", overwrite =TRUE)
-   # writeRaster(harvest_cycles, paste0(data_folder,'harvest_cycles.nc'), format = "CDF", overwrite =TRUE)
-   # writeRaster(harvest_cycle_length, paste0(data_folder,'harvest_cycle_length.nc'), format = "CDF", overwrite =TRUE)
    writeRaster(avg_month_growth, paste0(data_folder,'avg_month_growth_stack.grd'), overwrite =TRUE) ##getting weird error when trying to save this file
    writeRaster(stocking_n, paste0(data_folder,'initial_stocking_stack.grd'), overwrite =TRUE)
    writeRaster(harvest_cycles, paste0(data_folder,'harvest_cycles.grd'), overwrite =TRUE)

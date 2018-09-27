@@ -25,7 +25,7 @@ npv_df$eez<-as.factor(npv_df$eez)
 main_npv <- filter(npv_df, prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 1)
 
 cntr_risk<-countries %>%
-  select(country,risk_score,disc_rate)
+  dplyr::select(country,risk_score,disc_rate)
 
 cntry_disc_npv <- filter(npv_df, prices == 8.62 & disc_scenario == 'cntry' & feed_price_index == 1) %>%
   left_join(cntr_risk, by='country') 
@@ -35,7 +35,7 @@ cntry_disc_npv <- filter(npv_df, prices == 8.62 & disc_scenario == 'cntry' & fee
 # Use only profitable farms and divide total production by 10 for annual estimate
 supply_replace <- main_npv %>% 
   ungroup() %>% 
-  select(cell, country, total_harvest, study_area_km) %>% 
+  dplyr::select(cell, country, total_harvest, study_area_km) %>% 
   arrange(desc(total_harvest)) %>% 
   mutate(harvest_per_yr_mt = total_harvest / 1e3 / 10,
          all_supply = cumsum(harvest_per_yr_mt)) %>% 
@@ -251,7 +251,7 @@ C +
   theme(legend.position = 'bottom')
   
 
-ggsave(filename = paste0(figure_folder, '/boxplot_npv_disc_scenarios.png'), width = 6, height = 7)
+ggsave(filename = paste0(figure_folder, '/boxplot_npv_disc_scenarios.pdf'), width = 180, height = 185, units = 'mm')
 
 # Caribbean supply curve --------------------------------------------------
 

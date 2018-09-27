@@ -138,14 +138,14 @@ base <- ggplot() +
                     theme(legend.position = "none")
                        
     
-  ggsave(filename = paste0(fig_folder,'carib_suit_area.png'), width = 6, height = 5)
+  ggsave(filename = paste0(fig_folder,'carib_suit_area.pdf'), width = 88, height = 60, units = 'mm')
                                     
   suitable_plot_facet <- base_facet +
                           geom_raster(data = all_df, aes(x=long,y=lat,fill=suitable),fill="orange") +
                           theme(legend.position = "none") +
                           ggtitle("Suitable Areas for Offshore Mariculture")
 
-  ggsave(filename = paste0(fig_folder,'eez_suitable_area.png'), width = 12, height = 12)
+  ggsave(filename = paste0(fig_folder,'eez_suitable_area.pdf'), width = 88, height = 88, units = 'mm')
 
 ## Plot EEZ level suitability for just a couple of countries
   
@@ -155,19 +155,19 @@ base <- ggplot() +
     geom_raster(data = subset(all_df,Territory1 %in% c("Bahamas","Jamaica","Trinidad and Tobago")), aes(x=long,y=lat,fill=suitable),fill="orange") +
      #theme(legend.position="none") +
     carib_theme() +
-    theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
+    # theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
     #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
     xlab("Longitude") +
     ylab("Latitude") +
-    facet_wrap(~Territory1,scales = "free") +
-    theme(strip.text.x = element_text(size = 12)) 
+    facet_wrap(~Territory1,scales = "free") #+
+    # theme(strip.text.x = element_text(size = 12)) 
   
   suitable_plot_final <- suitable_plot + 
     suitable_three + 
     plot_layout(nrow = 2,
                 heights = c(0.75,0.25))
   
-  ggsave(filename = paste0(fig_folder,'carib_suitable_map.png'), width = 6.5, height = 6.5)
+  ggsave(filename = paste0(fig_folder,'carib_suitable_map.pdf'), width = 88, height = 130, units = 'mm')
   
   ggplot() +
     geom_polygon(data = subset(eez.water,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.1 , alpha = 0.5) +
@@ -270,7 +270,7 @@ ggsave(paste0(fig_folder,'econ_npv_prod_map.png'), width = 12, height = 10)
 
 eez_lookup <- all_df %>% 
   ungroup() %>% 
-  select(eez, Territory1) %>% 
+  dplyr::select(eez, Territory1) %>% 
   distinct() %>% 
   rename(country = Territory1)
 
@@ -278,7 +278,7 @@ prod_compare_A <- supply_summary %>%
   filter(country != "Caribbean") %>% 
   filter(disc_scenario == 'cntry' & feed_price_index == 1 & supply_scenario == "All farms") %>% 
   ungroup() %>% 
-  select(country, total_supply, total_npv, median_supply, median_npv, top95_supply, top95_npv) %>% 
+  dplyr::select(country, total_supply, total_npv, median_supply, median_npv, top95_supply, top95_npv) %>% 
   left_join(eez_lookup) %>% 
   ungroup()
 
@@ -288,7 +288,7 @@ prod_compare_B <- supply_summary %>%
   filter(country != "Caribbean") %>% 
   filter(disc_scenario == 'cntry' & feed_price_index == 1 & supply_scenario == "Profitable farms") %>% 
   ungroup() %>% 
-  select(country, total_supply, total_npv, median_supply, median_npv, top95_supply, top95_npv) %>% 
+  dplyr::select(country, total_supply, total_npv, median_supply, median_npv, top95_supply, top95_npv) %>% 
   left_join(eez_lookup) %>% 
   ungroup()
 
@@ -439,64 +439,54 @@ ggsave(paste0(fig_folder,'disc_scenario_npv_map.png'), width = 12, height = 10)
 
 # Boxplot of average growth by month
 
-cells <- as.vector(Which(avg_growth[[1]]>0, cells =TRUE))
-
-countries <- all_df %>%
-  dplyr::select(cell,Territory1)
-
-growth_df <- raster::as.data.frame(avg_growth) %>%
-  filter(!is.na(index_1)) %>%
-  cbind(cells) %>%
-  set_names(c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec","cell")) %>%
-  gather("Month","avg_growth",1:12)
-
-growth_df <- left_join(growth_df,countries)
- 
-growth_plot_df <- growth_df %>% 
-  group_by(Territory1, Month) %>% 
-  summarize(growth = mean(avg_growth, na.rm = T),
-            sd_growth  = sd(avg_growth, na.rm = T)) %>%
-  group_by(Territory1) %>% 
-  mutate(total_growth = sum(growth, na.rm = T)) %>% 
-  ungroup() %>% 
-  mutate(Month = fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")))
-
-# get overall caribbean avg growth to use as midpoint in heatmap
-carib_avg <- mean(growth_df$avg_growth, na.rm = T)
-
-# Get overall caribbean avg growth by month for midpoint
-carib_month_avg <- growth_df %>% 
-  group_by(Month) %>% 
-  summarize(month_avg_carib = mean(avg_growth, na.rm = T))
-
-# Join Caribbean average to plot data
-growth_plot_df <- growth_plot_df %>% 
-  left_join(carib_month_avg) %>% 
-  ungroup() %>% 
-  mutate(Month = fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")))
-
-ggplot(growth_plot_df, aes(y = fct_reorder(Territory1, total_growth),  x = Month, fill = growth)) +
-  geom_tile() +
-  scale_fill_gradient2(midpoint = unique(carib_avg), low = muted("red"), high = muted("green")) +
-  labs(y = "Country",
-       x = "Month",
-       fill = "Average\ngrowth (kg)")
-
-growth_plot_df %>% 
-  group_by(Territory1) %>% 
-  mutate(scaled_growth = growth / month_avg_carib) %>% 
-  ggplot(aes(y = fct_reorder(Territory1, total_growth),  x = Month, fill = scaled_growth)) +
-  geom_tile() +
-  scale_fill_gradient2(midpoint = 1, low = muted("purple"), high = muted("green")) +
-  labs(y = "Country",
-       x = "Month",
-       fill = "Average\ngrowth (kg)")
-
-growth_plot_df %>% 
-  mutate(Territory1 = fct_relevel(Territory1, total_growth)) %>% 
-  ggplot(aes(y = ,  x = Month))
-
-ggsave(paste0(fig_folder,'growth_heatmap.png'), width = 8, height = 6)
+# cells <- as.vector(Which(avg_growth[[1]]>0, cells =TRUE))
+# 
+# countries <- all_df %>%
+#   dplyr::select(cell,Territory1)
+# 
+# growth_df <- raster::as.data.frame(avg_growth) %>%
+#   filter(!is.na(index_1)) %>%
+#   cbind(cells) %>%
+#   set_names(c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec","cell")) %>%
+#   gather("Month","avg_growth",1:12)
+# 
+# growth_df <- left_join(growth_df,countries)
+#  
+# growth_plot_df <- growth_df %>% 
+#   group_by(Territory1, Month) %>% 
+#   summarize(growth = mean(avg_growth, na.rm = T),
+#             sd_growth  = sd(avg_growth, na.rm = T)) %>%
+#   group_by(Territory1) %>% 
+#   mutate(total_growth = sum(growth, na.rm = T)) %>% 
+#   ungroup() %>% 
+#   mutate(Month = fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")))
+# 
+# # get overall caribbean avg growth to use as midpoint in heatmap
+# carib_avg <- median(growth_df$avg_growth, na.rm = T)
+# 
+# # Get overall caribbean avg growth by country for midpoint calculation
+# carib_month_avg <- growth_df %>% 
+#   group_by(Territory1) %>% 
+#   summarize(month_avg_carib = mean(avg_growth, na.rm = T))
+# 
+# # Join Caribbean average to plot data
+# growth_plot_df <- growth_plot_df %>% 
+#   left_join(carib_month_avg) %>% 
+#   ungroup() %>% 
+#   mutate(Month = fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")))
+# 
+# # Heatmaps ----------------------------------------------------------------
+# 
+# # Growth heatmap with overall Caribbean average growth as midopoint
+# ggplot(growth_plot_df, aes(y = fct_reorder(Territory1, total_growth, .fun = sum),  x = Month, fill = growth)) +
+#   geom_tile() +
+#   geom_text(aes(label = round(growth, digits = 2))) +
+#   scale_fill_gradient2(midpoint = carib_avg, low = muted("blue"), high = muted("green")) +
+#   labs(y = "Country",
+#        x = "Month",
+#        fill = "Average\ngrowth (kg)")
+# 
+# ggsave(paste0(fig_folder,'growth_heatmap.png'), width = 8, height = 6)
 
 # #Box plot of avergage growth per month for whole Carib
 # ggplot(growth_df, aes(x=fct_relevel(Month, c("Jan","Feb","March","April","May","June","July","Aug","Sept","Oct","Nov","Dec")) ,y=avg_growth)) +
