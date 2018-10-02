@@ -86,7 +86,7 @@ land[is.na(land)]<-0.01
 
 land[land>0.01]<-NA
 
-shore_distance<-distance(land,progress='text')
+shore_distance<-distance(land,progress='text', filename = paste0("Suitability/tmp/dist_to_shore.tif"),doEdge=TRUE)
 
 
 study_area<-raster(paste(boxdir,"Suitability/tmp/carib_eez_raster.tif",sep=""))
@@ -95,7 +95,18 @@ final_shore<-mask(shore_distance,study_area)
 
 writeRaster(final_shore,filename=paste(boxdir,"economic/data/shore_distance",sep=""))
 
+
+## Distance to shore for suitability
 final_shore<-raster(paste(boxdir,"economic/data/shore_distance",sep=""))
+
+nm_final_shore<-calc(final_shore,function(x){x*0.000539957})
+
+nm_final_shore[nm_final_shore>25.5]<-0
+
+writeRaster(nm_final_shore,paste0(boxdir,"Suitability/tmp/distance_suitability.tif"))
+
+#eez<-readOGR(dsn=paste0(boxdir,"/Suitability/tmp"),layer="carib_eez_shape")
+
 
 png(filename=paste(boxdir,"economic/data/shore_distance.png",sep=""))
 

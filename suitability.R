@@ -128,6 +128,15 @@ coral<-mask(coral,raster_eez)
 
 # Plot rasters ------------------------------------------------------------
 
+#-----------------------------------------------------------------
+#----------------------------------------------------------------
+# Cells > 25 nm distance are 0 and < 25 nm are 1
+
+distance<-raster(paste0(boxdir,"Suitability/tmp/distance_suitability.tif"))
+
+distance[distance > 0]<-1
+
+
 if (plot_rasters == TRUE) {
 
 # eez
@@ -204,6 +213,17 @@ plot(coral,main=plottitle,legend.args=list(text="Oil Structure",side=3))
 
 dev.off()
 
+# Distance 
+
+png(file=paste(boxdir,"Suitability/plots/shore_distance.png",sep=""))
+
+plottitle<-("Distance from shore")
+
+plot(coral,main=plottitle,legend.args=list(text="nm from shore",side=3))
+
+dev.off()
+
+
 }
 
 
@@ -219,15 +239,16 @@ if (write_rasters == TRUE){
   writeRaster(ships,paste(boxdir,"Suitability/final/suitable_shipping.tif",sep=""),overwrite=TRUE)
   writeRaster(oil,paste(boxdir,"Suitability/final/suitable_oil.tif",sep=""),overwrite=TRUE)
   writeRaster(oil,paste(boxdir,"Suitability/final/coral.tif",sep=""),overwrite=TRUE)
+  writeRaster(distance,paste(boxdir,"Suitability/final/shore_distance.tif",sep=""),overwrite=TRUE)
 }
 
 #-----------------------------------------------------------------
 #----------------------------------------------------------------
 # Identify suitable cells based on all layers
 
-s = stack(carib_depth,MPA,current,ships,raster_eez,oil,coral)
+s = stack(carib_depth,MPA,current,ships,raster_eez,oil,coral,distance)
 
-s_final<-stackApply(s,indices=c(1,1,1,1,1,1,1),fun=prod,na.rm=TRUE)
+s_final<-stackApply(s,indices=c(1,1,1,1,1,1,1,1),fun=prod,na.rm=TRUE)
 
 all_suitable<-mask(s_final,raster_eez,maskvalues=NA,inverse=FALSE,filename=paste0(boxdir,"Suitability/results/suitable_areas.tif"),overwrite=TRUE)
 
@@ -305,7 +326,7 @@ write.csv(country_suitable.df, paste0( boxdir,"results/suitability/suit_df_summa
 # Create data frame of total suitable areasby cell
 
 
-layer<-c("Study area","Depth","MPA presence","Current speed","Coral presence","High shipping activity","Oil platform presence","Final suitable area")
+layer<-c("Study area","Depth","MPA presence","Current speed","Coral presence","High shipping activity","Oil platform presence","Distance from shore","Final suitable area")
 
 suit_layer_df <- tibble(Layers = layer, 
   suit_area = as.numeric(NA))
@@ -328,7 +349,7 @@ MPA<-area(MPA,na.rm =TRUE)
 suit_layer_df$suit_area[suit_layer_df$Layers== "MPA presence"]<-cellStats(MPA, stat = sum, na.rm = TRUE)
 
 
-current[current==0]<-NA)
+current[current==0]<-NA
 
 current<-area(current,na.rm = TRUE)
 suit_layer_df$suit_area[suit_layer_df$Layers== "Current speed"]<-cellStats(current, stat = sum, na.rm = TRUE)
@@ -345,6 +366,13 @@ oil[oil==0]<-NA
 oil<-area(oil,na.rm = TRUE)
 suit_layer_df$suit_area[suit_layer_df$Layers== "Oil platform presence"]<-cellStats(oil, stat = sum, na.rm = TRUE)
 
+distance[distance==0]<-NA
+distance<-area(distance,na.rm = TRUE)
+suit_layer_df$suit_area[suit_layer_df$Layers== "Distance from shore"]<-cellStats(distance, stat = sum, na.rm = TRUE)
+
+
+
+
 final_study_area<-suit_layer_df$suit_area[1]
 
 suit_layer_df<-suit_layer_df %>%
@@ -353,7 +381,7 @@ suit_layer_df<-suit_layer_df %>%
  
    colnames(suit_layer_df)<-c("Layer","Suitable Area (km^2)","% of Study Area")
 
-write.csv(suit_layer_df,paste0(boxdir, "results/suitability/suit_by_variable.csv")
+write.csv(suit_layer_df,paste0(boxdir, "results/suitability/suit_by_variable.csv"))
 
 ##Script should end here and the rest will be proceesed in results
 #-----------------------------------------------------------------
