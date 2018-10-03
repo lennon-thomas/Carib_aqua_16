@@ -46,7 +46,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -116,11 +116,12 @@ month_mort <- 1-survival ^ (1 / 12)
 int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
 no_trips <- 2 # number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
-avg_boat_spd <- 48.28    
+avg_boat_spd <- 15000 #15 km/hr from Rubino et al. 2008    
 site_days <- 30
 disc_rate <- 0.10 # discount rate to use in addition to country specific rates. can be a vector.
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
 mainent<- 0.00583# 7% of capital costs annually from Knapp 
+
 
 # Load and Process Data ---------------------------------------------------------------
 

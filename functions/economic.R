@@ -43,9 +43,9 @@ monthly_cost_est<-function (sim_results,
   suitable_economic<-suitable_economic %>%
     mutate(c_costs = (base_cost + (base_cost * depth_charge) + labor_installation + (labor_installation*depth_charge) + support_vessel + site_lease)) 
   
-  # Calculate monthly labor costs (same for all months)
+  # Calculate monthly labor costs (same for all months) multiply by 2 to account for 1 roundtrip every day
   suitable_economic<-suitable_economic %>%
-    mutate(total_monthly_labor = min_wage * site_hours * site_workers)
+    mutate(total_monthly_labor = (min_wage * site_hours * site_workers) + (shore_distance/avg_boat_spd*site_days*2*site_workers))
 
   
   # Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
