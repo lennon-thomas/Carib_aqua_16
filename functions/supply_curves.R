@@ -42,52 +42,49 @@ supply_curves <- function(cashflow,
     mutate(total_disc_revenue = cumsum(disc_revenue)) # take cumulative sum of discounted costs
    
   # Breakdown of costs before discounting
-  
-  cost_plot_df<-cashflow %>%
+  cost_plot_df <- cashflow %>% 
     group_by(cell) %>%
-    summarise(total_cap= sum(c_costs),
-              total_feed= sum(feed_cost),
-              fingerling = sum(fingerling_cost),
-              labor= sum(total_monthly_labor),
-              maint= sum(mo_maint_cost),
-              fuel=sum(mo_fuel_cost),
-              country=unique(Territory1)) %>%
-    ungroup() %>%
-    group_by(country)%>%
-    summarize(avg_cap= mean(total_cap),
-              avg_feed = mean(total_feed),
-              avg_fingerling = mean(fingerling),
-              avg_labor =  mean(labor),
-              avg_fuel = mean(fuel),
-              avg_main = mean(maint),
-            total_costs = sum(avg_cap,avg_feed,avg_fingerling,avg_labor,avg_main,avg_fuel)) %>%
-    mutate(perc_cap= avg_cap/total_costs*100,
-           perc_feed = avg_feed/total_costs*100,
-           perc_fingerlings = avg_fingerling/total_costs *100,
-           perc_labor = avg_labor/total_costs*100,
-           perc_fuel = avg_fuel/total_costs*100,
-           perc_main = avg_main/total_costs*100) %>%
-    ungroup() %>%
-    select(c(1:7)) %>%
-    gather("costs","value",-country)
+    summarise(
+      country    = unique(Territory1),
+      invest     = sum(invest_costs, na.rm = T),
+      total_cap  = sum(mo_capital_cost, na.rm = T),
+      total_feed = sum(feed_cost, na.rm = T),
+      fingerling = sum(fingerling_cost, na.rm = T),
+      labor      = sum(total_monthly_labor, na.rm = T),
+      maint      = sum(mo_maint_cost, na.rm = T),
+      fuel       = sum(mo_fuel_cost, na.rm = T)) %>%
+    mutate(cost_total = invest + total_cap + total_feed + fingerling + labor + maint + fuel,
+           cost_op    = cost_total - invest,
+           feed_perc_total = total_feed / cost_total * 100,
+           feed_perc_op    = total_feed / cost_op * 100,
+           fing_perc_total = fingerling / cost_total * 100,
+           fing_perc_op    = fingerling / cost_op * 100,
+           labor_perc_total = labor / cost_total * 100,
+           labor_perc_op    = labor / cost_op * 100,
+           maint_perc_total = maint / cost_total * 100,
+           maint_perc_op    = maint / cost_op * 100,
+           fuel_perc_total = fuel / cost_total * 100,
+           fuel_perc_op    = fuel / cost_op * 100,
+           cap_perc_total = total_cap / cost_total * 100,
+           cap_perc_op = total_cap / cost_op * 100) 
   
-  ggplot(cost_plot_df,aes(x=country,y=value,fill=costs)) +
-    geom_bar(stat = "identity") +
-    xlab("Country") +
-    ylab(" Average farm total 10 year costs (undiscounted)")+
-    theme_bw() +
-    theme(axis.text.x  = element_text(angle=90))
-  
-  ggsave(paste0(figure_folder,"average_eez_costs.png"))
-  
+  # Calculate percent monthly feed cost by cell
+  feed_cost_percs <- cost_plot_df %>% 
+    dplyr::select(cell, feed_perc_op) %>% 
+    rename(feed_cost_perc = feed_perc_op)
+    
+    # supply_costs %>%
+    # ungroup() %>%
+    # dplyr::select(cell, month, feed_cost, total_monthly_costs) %>%
+    # group_by(cell) %>%
+    # summarize(feed_cost_perc = sum(feed_cost, na.rm = T) / sum(total_monthly_costs, na.rm = T) * 100)
+    # 
   # Calculate discounted costs for a range of feed costs and discount rates
   supply_costs <- cashflow %>%
     mutate(feed_price_index = list(feed_price_index)) %>% 
     unnest() %>% 
-    mutate(feed_cost           = feed_cost * feed_price_index,
-           total_monthly_costs = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost  + c_costs+ mo_maint_cost,
-           c_costs = c_costs) %>%  #added c_costs to this but not sure if it is discounted correctly? 
-    dplyr::select(cell, eez, month, feed_price_index, feed_cost, total_monthly_costs, disc_rate, c_costs) %>%
+    mutate(feed_cost = feed_cost * feed_price_index) %>% 
+    dplyr::select(cell, eez, month, feed_price_index, feed_cost, total_monthly_costs, disc_rate) %>%
     group_by(eez) %>% 
     mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
            disc_scenario = list(c('cntry', as.character(discount_rates))),
@@ -97,13 +94,6 @@ supply_curves <- function(cashflow,
     unnest() %>%
     group_by(cell, disc_scenario, feed_price_index) %>%
     mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
-  
-  # Calculate median percent monthly feed cost by cell
-  feed_cost_percs <- supply_costs %>%
-    ungroup() %>%
-    dplyr::select(cell, month, feed_cost, total_monthly_costs, c_costs) %>%
-    group_by(cell) %>%
-    summarize(feed_cost_perc = sum(feed_cost, na.rm = T) / (sum(total_monthly_costs, na.rm = T) - sum(c_costs, na.rm = T)))
 
   # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
   no_costs <- filter(supply_costs, total_disc_costs == 0) 

@@ -10,6 +10,7 @@ monthly_cost_est<-function (sim_results,
                             no_cage,
                             labor_installation,
                             support_vessel,
+                            onshore_cost,
                             site_hours,
                             site_workers,
                             avg_boat_spd,
@@ -17,50 +18,60 @@ monthly_cost_est<-function (sim_results,
                             price_fingerlings,
                             cage_cost,
                             site_days,
+                            no_trips,
                             mainent)
 {
   
-  #Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
-  names(econ_stack)<-c("fuel_price","min_wage","permit_fee",
+  # Rename econstack layers- can't figure out how to preserve layer names when saving raster stack, so just reassing them here  
+  names(econ_stack) <- c("fuel_price","min_wage","permit_fee",
                        "risk_score","shore_distance","depth_charge",
-                       "distance_charge","eez","cell_no")
+                       "distance_charge","eez","cell_no") 
   
-  #Turn economic parameters into data frame
-  all_economic<-as.data.frame(econ_stack)
+  # Turn economic parameters into data frame
+  all_economic <- as.data.frame(econ_stack)
   
-  #subset only values for suitable cells
-  s_cells<-unique(sim_results$cell)
+  # subset only values for suitable cells
+  s_cells <- unique(sim_results$cell)
   
- # make sure it is actually taking the right cells here
-  
-  suitable_economic<- all_economic %>%
+  # make sure it is actually taking the right cells here
+  suitable_economic <- all_economic %>%
     filter(cell_no %in% s_cells)
   
-  # Calculate capital costs
+  # total cage costs
+  base_cost <- sum(cage_cost * no_cage)
   
-  base_cost<-sum(cage_cost*no_cage)
+  # Calculate investment costs (does not include vessel cost which is treated as an annual fixed cost)
+  suitable_economic <- suitable_economic %>% 
+    mutate(invest_costs = (base_cost + (base_cost * depth_charge) + labor_installation + (labor_installation * depth_charge) + site_lease)) 
+
+  # 
+  # suitable_economic <- suitable_economic %>%
+  #   mutate(invest_costs = (base_cost + (base_cost * depth_charge) + labor_installation + (labor_installation * depth_charge) + support_vessel + site_lease)) 
+  # 
   
-  suitable_economic<-suitable_economic %>%
-    mutate(c_costs = (base_cost + (base_cost * depth_charge) + labor_installation + (labor_installation*depth_charge) + support_vessel + site_lease)) 
+  # Calculate monthly fixed capital costs of boats (boat, onshore cost)
+  suitable_economic <- suitable_economic %>% 
+    mutate(mo_capital_cost = (support_vessel + onshore_cost) / 12)
   
   # Calculate monthly labor costs (same for all months) multiply by 2 to account for 1 roundtrip every day
-  suitable_economic<-suitable_economic %>%
-    mutate(total_monthly_labor = (min_wage * site_hours * site_workers) + (shore_distance/avg_boat_spd*site_days*2*site_workers))
-
+  suitable_economic <- suitable_economic %>%
+    mutate(total_monthly_labor = (min_wage * site_hours * site_workers) + (shore_distance/avg_boat_spd * site_days * 2* site_workers))
   
-  # Calculate monthly fuel costs (same for all months) for (2 trips every site day for 4 vessels)
+  # Calculate monthly fuel costs (same for all months) for 2 trips (on round trip) per day
+  suitable_economic <- suitable_economic %>%
+    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * no_trips) 
   
-  suitable_economic<-suitable_economic %>%
-    mutate(mo_fuel_cost = fuel_price * (shore_distance/fuel_eff) * site_days * 2 * 4) 
+  # convert into monthly costs                     
+  monthly_costs <- left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
+    dplyr::select(cell,month,alive,weight, harvest,feed,invest_costs, mo_capital_cost, total_monthly_labor,mo_fuel_cost,eez) 
   
-
-  
-  
-  #convert into monthly costs                     
-  monthly_costs<-left_join(sim_results,suitable_economic,by=c('cell'='cell_no'))  %>%
-    dplyr::select(cell,month,alive,weight, harvest,feed,c_costs,total_monthly_labor,mo_fuel_cost,eez) %>%
-    mutate(mo_maint_cost = mainent * c_costs)
+  # Add in maintenance costs of cages by using fraction of capital cost of cages (minus site lease, which is included in invest costs)
+  monthly_costs <- monthly_costs %>%
+    mutate(mo_maint_cost = mainent * (invest_costs - site_lease))
  
+  # set investment costs to 0 for all month except month zero
+  monthly_costs$invest_costs <- ifelse(monthly_costs$month==0, monthly_costs$invest_costs, 0)
+  
    # Match country names
   eez_shape<-readOGR(dsn = paste(boxdir,"Suitability/tmp/",sep=""),layer = "carib_eez_shape") 
   
@@ -68,24 +79,22 @@ monthly_cost_est<-function (sim_results,
     as_data_frame %>%
     dplyr::select(MRGID,Territory1)
   
-  monthly_costs$eez<-as.factor(monthly_costs$eez)
+  monthly_costs$eez <- as.factor(monthly_costs$eez)
   
-  monthly_costs<-left_join(monthly_costs,country,by = c('eez' = 'MRGID'))
-  #set capital costs to 0 for all month except month one
+  monthly_costs <- left_join(monthly_costs,country,by = c('eez' = 'MRGID'))
   
-  monthly_costs$c_costs<-ifelse(monthly_costs$month==0,monthly_costs$c_costs,0)                                
+  # convert NAs to 0s for non harvest months
+  monthly_costs$harvest[is.na(monthly_costs$harvest)] <- 0
   
   # Calculate all cost components and sum everything to get total monthly costs, revenues and profits
-  monthly_costs$harvest[is.na(monthly_costs$harvest)]<-0
-  
-  monthly_cashflow<-monthly_costs %>%
+  monthly_cashflow <- monthly_costs %>%
     mutate(feed_cost = feed * feed_price,
-           fingerling_cost = ifelse(weight==0.015,alive*price_fingerlings,
-                                    0),
-           total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost + mo_maint_cost,
-           total_monthly_costs = total_operating_cost + c_costs,
+           fingerling_cost = ifelse(weight==0.015,alive*price_fingerlings,0),
+           total_monthly_costs = total_monthly_labor + mo_capital_cost + mo_fuel_cost + feed_cost + fingerling_cost + mo_maint_cost,
+           # total_operating_cost = total_monthly_labor + mo_fuel_cost + feed_cost + fingerling_cost + mo_maint_cost,
+           # total_monthly_costs = total_operating_cost + c_costs,
            monthly_revenue = harvest * cobia_price,
-           cash_flow = monthly_revenue - total_operating_cost, # I think this should be 'total_monthly costs' instead
+           cash_flow = monthly_revenue - total_monthly_costs, 
            year=ifelse(month <= 12,1,                       #probably don't need this.
                        ifelse(month > 12 & month <= 24, 2,
                               ifelse( month >24 & month <= 36, 3,
@@ -123,7 +132,7 @@ monthly_cost_est<-function (sim_results,
 
 total_cost_raster<-function(monthly_costs,stocking_n)  {
   
-  total_cost_stack<-stocking_n
+  total_cost_stack <- stocking_n
   
   total_costs<-monthly_costs %>%
     group_by(cell) %>%

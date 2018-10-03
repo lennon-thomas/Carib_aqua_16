@@ -63,7 +63,7 @@ source(file = "functions/calc_monthly_avgs.R")
 source(file = "functions/heatmaps.R")
 
 # Run name
-run_name = 'nat_revisions'
+run_name = '2018-05-22'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -84,12 +84,12 @@ if (dir.exists(run_dir) == F) {
 }
 
 # Analysis sections
-monthly_avgs <- TRUE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
+monthly_avgs <- FALSE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock <- TRUE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <-TRUE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- TRUE # run population simulation to calculate feed costs
-run_econ <- TRUE # run economic analyses
+fix_int_stock <- FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+process_growth <- FALSE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- FALSE # run population simulation to calculate feed costs
+run_econ <- FALSE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
@@ -264,6 +264,7 @@ if(run_econ == TRUE) {
                                        no_cage,
                                        labor_installation,
                                        support_vessel,
+                                       onshore_cost,
                                        site_hours,
                                        site_workers,
                                        avg_boat_spd,
