@@ -46,7 +46,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'lennon'
+user <- 'tyler'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -63,7 +63,7 @@ source(file = "functions/calc_monthly_avgs.R")
 source(file = "functions/heatmaps.R")
 
 # Run name
-run_name = '2018-05-22'
+run_name = 'nat_revisions'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -84,18 +84,19 @@ if (dir.exists(run_dir) == F) {
 }
 
 # Analysis sections
-monthly_avgs <- FALSE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
+monthly_avgs <- TRUE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
-fix_int_stock <- FALSE# should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <-FALSE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- FALSE# run population simulation to calculate feed costs
-run_econ <- FALSE # run economic analyses
+fix_int_stock <- TRUE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
+process_growth <-TRUE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- TRUE # run population simulation to calculate feed costs
+run_econ <- TRUE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
 cage_cost <- 321000 #Kim et al. 2007 seastation cages that are half the volume are 269,000 and total equitment for startup is 321,000 so 500000 for larger cages seems reasonable US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
-support_vessel <- 158331 # US$ Bezerra et al. 2016: 16-m-long boat with a 6-cylinder motor and a hydraulic winch  #50000 # US$ 32'ft from Kam et al. 2003
+support_vessel <- 150000 # $US/year according to Rubino et al. (2008) and assuming 10 year timeperiod
+onshore_cost <- 30000 # $US/yr for docking costs according to Rubino et al. (2008)
 site_lease <- 10000 # Cost of 10 year permit in Gulf of Mexico
 labor_installation <- 52563 # US$ from Bezerra et al. 2016
 site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
@@ -112,15 +113,15 @@ cobia_price <- 8.62 # $US/kg# Bezerra et al. 2016
 fcr <- 1.75 # Benetti et al. 2010 for the whole Carib region. F.C.R. = Feed given / Animal weight gain. 
 feed_price <- 2 ##personal comm with Dr. Rombenso May 2018 that said 1.87/kg # in units of $/kg  ($1.64 from Bezerra et al. 2016)
 survival <- 0.75 # Benetti et al. 2007 over 12 monthes and Huang et al. 2011
-month_mort <- 1-survival ^ (1 / 12)
+month_mort <- 1 - survival ^ (1 / 12)
 int_weight <- 0.015 # kg (15 grams) Bezerra et al. 2016
 no_trips <- 2 # number of trips to farm per day
 sim_length <- 120 # length of simulation (months) 
-avg_boat_spd <- 15000 #15 km/hr from Rubino et al. 2008    
+avg_boat_spd <- 15000 # in meters per hour (15 km/hr from Rubino et al. 2008)    
 site_days <- 30
 disc_rate <- 0.10 # discount rate to use in addition to country specific rates. can be a vector.
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
-mainent<- 0.00583# 7% of capital costs annually from Knapp 
+mainent <- 0.00583 # 7% of capital costs annually from Knapp 
 
 
 # Load and Process Data ---------------------------------------------------------------
@@ -174,15 +175,15 @@ if(monthly_avgs == TRUE) {
 
  if(process_growth == TRUE) {
   
-   annual_prod<-ann_prod(growth = growth, start_weight = int_weight, harv_den = harv_den)  
+   annual_prod <- ann_prod(growth = growth, start_weight = int_weight, harv_den = harv_den)  
  
-   stocking_n<-annual_prod[[1]]
+   stocking_n <- annual_prod[[1]]
   
-   harvest_cycles<-annual_prod[[2]]
+   harvest_cycles <- annual_prod[[2]]
   
-   harvest_cycle_length<-annual_prod[[3]]
+   harvest_cycle_length <- annual_prod[[3]]
   
-   avg_month_growth<-avg_growth(growth = growth)
+   avg_month_growth <- avg_growth(growth = growth)
    
    # Save avg monthly growth and initial stocking rasters
    writeRaster(avg_month_growth, paste0(data_folder,'avg_month_growth_stack.grd'), overwrite =TRUE) ##getting weird error when trying to save this file
@@ -201,15 +202,16 @@ if(monthly_avgs == TRUE) {
     avg_month_growth<-brick(paste0(data_folder,'avg_month_growth_stack.grd'))
 
 }
-  #Fixes or caluclates intial stocking number
+  # Fixes or caluclates intial stocking number
   
   if (fix_int_stock == TRUE) {
 
-    stocking_n[stocking_n > 0]<-no_fingerlings
+    stocking_n[stocking_n > 0] <- no_fingerlings
   
   } else {
   
-    stocking_n<-stocking_n
+    stocking_n <- stocking_n
+    
   }
    
   # Run Projection ----------------------------------------------------------
@@ -269,6 +271,7 @@ if(run_econ == TRUE) {
                                        price_fingerlings,
                                        cage_cost,
                                        site_days,
+                                       no_trips,
                                        mainent)
   
   monthly_cashflow[is.na(monthly_cashflow)] <- 0
