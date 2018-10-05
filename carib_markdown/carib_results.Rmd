@@ -14,55 +14,16 @@ csl: scientific-reports.csl
 
 ```{r setup, warning=FALSE , echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = F, warning = F, fig.width = 6.5)
-
-figRef <- local({
-    tag <- numeric()
-    created <- logical()
-    used <- logical()
-    function(label, caption, prefix = options("figcap.prefix"), 
-        sep = options("figcap.sep"), prefix.highlight = options("figcap.prefix.highlight")) {
-        i <- which(names(tag) == label)
-        if (length(i) == 0) {
-            i <- length(tag) + 1
-            tag <<- c(tag, i)
-            names(tag)[length(tag)] <<- label
-            used <<- c(used, FALSE)
-            names(used)[length(used)] <<- label
-            created <<- c(created, FALSE)
-            names(created)[length(created)] <<- label
-        }
-        if (!missing(caption)) {
-            created[label] <<- TRUE
-            paste0(prefix.highlight, prefix, " ", i, sep, prefix.highlight, 
-                " ", caption)
-        } else {
-            used[label] <<- TRUE
-            paste(prefix, tag[label])
-        }
-    }
-})
-
-options(figcap.prefix = "Figure", figcap.sep = ":", figcap.prefix.highlight = "**")
 ```
 
 ```{r load_run, echo=FALSE}
 library(hrbrthemes)
 library(tidyverse)
 library(knitr)
-# library(rgdal)
 library(pander)
-# library(raster)
-# library(RefManageR)
 
 # Source functions
 source(file = '../functions/plot_map.R')
-
-## Set document themese
-font_family <- 'Calibri'
-font_size <- 18
-paper_theme <-  theme_ipsum(base_family="Calibri",base_size = 18,
-                          axis_title_size = font_size)
-theme_set(paper_theme)
 
 ## Set User (lennon/tyler) for rendering
 user <- 'tyler'
@@ -74,34 +35,14 @@ if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 run_name <- "2018-05-22"
 run_dir <- paste(boxdir,'results/',run_name, "/" ,sep = "")
 
-## Read in SI tables
-suit_data <- read.csv(paste0(boxdir,"results/tables/suit_data.csv"),stringsAsFactors = FALSE,fileEncoding="latin1")
-farm_specs <- read.csv(paste0(boxdir,"results/tables/farm_specs.csv"),check.names=FALSE)
-cost_tablea <- read.csv(paste0(boxdir,"results/tables/cost_table_a.csv"),check.names=FALSE)
-cost_tableb <- read.csv(paste0(boxdir,"results/tables/cost_table_b.csv"),check.names=FALSE)
-cost_table_ref <- read.csv(paste0(boxdir,"results/tables/cost_table_ref.csv"),check.names=FALSE)
-risk_parms <- read.csv(paste0(boxdir,"data/risk_parms.csv"))
+## Suitability by layer results
 suit_by_var <- read.csv(paste0(boxdir,"results/suitability/suit_by_variable.csv"))
-risk_var<-read_csv(paste0(boxdir,"results/tables/risk_variables.csv"))
-## Read in data tables
+
+## Suitability results by EEZ
 suit_eez_table <- read_csv(file = paste0(boxdir,filename = "results/suitability/suit_df_summary.csv")) %>%
   dplyr::select(c(2,3,4,5))
 
 colnames(suit_eez_table) <- c("Country", "Total EEZ Area (km^2^)", "Suitable area (km^2^)","Suitable area (% of EEZ)" )
-
-# Caribbean seafood production
-carib_production <- read_csv(file = paste0(boxdir, 'data/carib_seafood_2014.csv'))
-# 2014 total production
-carib_prod <- carib_production %>% 
-  summarize(prod = sum(Production_MT, na.rm = T)) %>% .$prod
-# 2014 aquaculture production
-carib_aqua_prod <- carib_production %>% 
-  filter(Type != 'Fisheries') %>% 
-  summarize(aqua_prod = sum(Production_MT, na.rm = T)) %>% .$aqua_prod
-# 2014 fishery production
-carib_fish_prod <- carib_production %>% 
-  filter(Type == 'Fisheries') %>% 
-  summarize(fish_prod = sum(Production_MT, na.rm = T)) %>% .$fish_prod
 
 # Results of supply analysis examining how much space required to replace Caribbean production and imports
 supply_replace <- read_csv(file = paste0(run_dir,'Results/supply_replace_results.csv'))
@@ -150,7 +91,7 @@ main_results_fixed <- carib_supply %>%
   select(c(1,3)) %>%
   set_names(c('key','Profitable_fixed'))
 
-
+# join scenarios into single main results table
 main_results<-left_join(main_results,main_results_fixed)
 
 # Main EEZ results
@@ -162,33 +103,27 @@ main_eez_results <- carib_supply %>%
 
 # EEZ scenario comparisons
 scenario_compare <- carib_supply %>%
-  # Investment risk scenario
+  # 10% scenario
   filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 1 & supply_scenario == 'Profitable farms') %>% 
   dplyr::select(country, total_supply, total_npv) %>% 
   rename(supply_fixed = total_supply,
          npv_fixed    = total_npv) %>% 
-  # Main scenario
+  # Main scenario (country risk)
   right_join(main_eez_results %>% 
               filter(supply_scenario == 'Profitable farms') %>% 
               dplyr::select(country, total_supply, total_npv) %>% 
               rename(supply_cntry = total_supply,
                      npv_cntry    = total_npv)) %>% 
-    # Main scenario
+  # Main scenario (country risk)
   right_join(main_eez_results %>% 
               filter(supply_scenario == 'All farms') %>% 
               dplyr::select(country, area, total_supply, total_npv) %>% 
               rename(suit_area  = area,
                      supply_all = total_supply,
                      npv_all    = total_npv)) %>% 
-  mutate(supply_diff = supply_all - supply_cntry,
-         supply_diff_perc = supply_diff / supply_all * 100,
+  mutate(supply_diff = supply_all - supply_cntry, # difference in suitable and country risk supply
+         supply_diff_perc = supply_diff / supply_all * 100, # % change in suitable and country risk supply
          npv_dff = (npv_fixed-npv_cntry)/npv_fixed * 100) %>% 
-  # # Feed price scenario
-  # left_join(carib_supply %>%
-  #             filter(prices == 8.62 & disc_scenario == "0.1" & feed_price_index == 0.9 & supply_scenario == 'Profitable farms') %>%
-  #             dplyr::select(country, total_supply, total_annuity) %>% 
-  #             rename(supply_feed = total_supply,
-  #                    annuity_feed    = total_annuity)) %>% 
   dplyr::select(country, suit_area, supply_all, npv_all, supply_cntry,npv_cntry, everything()) %>% 
   arrange(desc(supply_all))
   
@@ -220,9 +155,17 @@ If the only farms to be developed are those that are profitable after 10 years -
 
 When risk to foreign investors is incorporated as a country-specific discount rate (‘profitable risk’ scenario), production potential is further reduced to `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT. 
 
-In the Bahamas, which has the largest amount of suitable area, average annual production declines by `r round(scenario_compare$supply_diff[scenario_compare$country=='Bahamas'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Bahamas'], digits = 1)`%), while Cuba experiences a decline of `r round(scenario_compare$supply_diff[scenario_compare$country=='Cuba'] / 1e6 / 10, digits = 1)` MMT (`r round(scenario_compare$supply_diff_perc[scenario_compare$country=='Cuba'], digits = 1)`%). The Turks and Caicos and Haiti also both experience small declines (<1%). Overall, the potential annual production for the Caribbean is reduced to `r round(main_results[20,3] / 1e6 / 10, digits = 1)` MMT when only considering supply from profitable farm sites assuming a country specific discount rate that incorporates investment risk. 
+```{r}
+# Top four countries with largest decline in production when economics considered
+supply_decline <- scenario_compare %>% 
+  top_n(4, supply_diff_perc) %>% 
+  select(country, supply_diff_perc) %>% 
+  arrange(desc(supply_diff_perc))
+```
 
-In terms of value, the median farm 10-year NPV was \$/ `r round(main_results[10,3], digits =1)` assuming a fixed 10 % discount rate ('profitable fixed' scenario), and `r round(main_results[10,2], digits =1)`, or `r round((main_results[10,3]-main_results[10,2])/main_results[10,3]*100)`% lower (`r round(main_results[10,3])`) with the country specific discount rate that incorporates investment risk. 
+The biggest difference in production potential between the ‘suitable’ scenario and ‘profitable risk’ scenario is observed in The `r supply_decline$country[1]`, which has the largest amount of suitable area and experiences an `r round(supply_decline$supply_diff_perc[1], digits = 0)`% decrease in average annual production when economics and risks are incorporated, followed by `r supply_decline$country[2]` (`r round(supply_decline$supply_diff_perc[2], digits = 0)`% decline), `r supply_decline$country[3]` (`r round(supply_decline$supply_diff_perc[3], digits = 0)`% decline), and `r supply_decline$country[4]` (`r round(supply_decline$supply_diff_perc[4], digits = 0)`% decline).
+
+In terms of value, the median farm 10-year NPV was \$/ `r round(main_results[10,4], digits =1)` assuming a fixed 10 % discount rate ('profitable fixed' scenario), and `r round(main_results[10,3], digits =1)`, or `r round((main_results[10,4]-main_results[10,3])/main_results[10,4]*100)`% lower (`r round(main_results[10,3])`) with the country specific discount rate that incorporates investment risk. 
 
 # Discussion
 
@@ -232,11 +175,6 @@ Our results reveal remarkable potential; we estimate a total annual production o
 
 ```{r , fig.width=6, fig.cap = "Figure 1. Suitable areas (orange) for offshore cobia mariculture in the Caribbean."}
 knitr::include_graphics(path = paste0(run_dir,'Figures/carib_suitable_map.png'))
-```
-
-
-```{r , fig.height = 7.5, fig.cap = "Figure 2. Estimated total annual production of cobia from all suitable farm sites ('suitable' scenario) (panel a) annd only profitable farm sites assuming country specific discount rates that incoporate investment risk ('profitable risk' scenario;panel b)"}
-knitr::include_graphics(path = paste0(run_dir,'Figures/prod_compare_map.png'))
 ```
 
 
@@ -314,118 +252,4 @@ pander::pandoc.table(scenario_table,
                                    "NPV (suitable)",
                                    "NPV (profitable, country %)",
                                    "NPV (profitable, 10%)"))
-```
-
-# Supplementary Information
-
-```{r fig.cap="Figure S1. Seafood production in the Caribbean from 1950 - 2016 (data from: FAO 2016)"}
-knitr::include_graphics(path = paste0(boxdir,'results/carib_seafood_production.png'))
-```
-
-
-```{r, eval=F, fig.cap = "Figure S2. Distribution of A) feed conversion ratios; and B) harvest cycle length (months)"}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/fcr_histograms.png'))
-```
-
-
-```{r, fig.cap="Figure S3. Cobia supply curves under current feed costs ($1.65/kg) and a 10% reduction in feed cost."}
-knitr::include_graphics(path = paste0(run_dir, 'Figures/carib_supply_curves.png'))
-```
-
-
-```{r, results='asis'}
-# Make table of suitability data layers
-tbl1 <- suit_data %>%
-  rename(
-    Layer       = Spatial.Data.Layer,
-     Source      = Data.Source,
-       Criteria    = Suitability.Criteria
-    ) 
-
-
-tbb<-suit_by_var%>%
-  select(c(2:4)) 
- 
-tbb$Layer<-str_replace(tbb$Layer,c("Study area","Oil platform presence","Coral presence","Current speed","MPA presence","High shipping activity"),
-                                  c("EEZ","Oil Rigs","Coral Reefs","Current Velocity","Shipping","Marine Protected Areas","Shipping"))
-
-
-tbl1_final<-left_join(tbl1,tbb) %>%
-  arrange(desc(X..of.Study.Area))
-
-colnames (tbl1_final)<-(c("Data Layer","Year","Suitability Criteria","Data Source","Suitable Area (km^2)","% of Study Area"))
-
-pander::pandoc.table(tbl1_final, 
-             digits = 3,
-             split.tables = Inf,
-             keep.trailing.zeros = TRUE,
-             big.mark = ",",
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Table S1. Description of spatial data layers and criteria used to identify cells suitable for development of offshore aquaculture in the Caribbean and total suitable area found in the study area based on the layers suitability criteria")
-```
-
-
-```{r , results = 'asis'}
-pander::pandoc.table(cost_tablea, 
-             digits = 2,
-             split.tables = Inf,
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Table S2. Model parameters and values for the Thermal Performance Curve, and economic model")
-
-```
-
-
-```{r , results = 'asis'}
-pander::pandoc.table(cost_tableb, 
-             digits = 3,
-             keep.trailing.zeros=TRUE,
-             split.tables = Inf,
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Table S3a. EEZ specific economic model parameters")
-
-```
-
-
-```{r , results = 'asis'}
-pander::pandoc.table(cost_table_ref, 
-             digits = 2,
-             split.tables = Inf,
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Table S3b. Sources of EEZ specific economic model parameters")
-
-```
-
-
-```{r , results = 'asis'}
-
-risk_var<-risk_var %>%
-  select(c(1:3))
-
-pander::pandoc.table(risk_var, 
-             digits = 2,
-             split.tables = Inf,
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Table S4. McGowan and Moeller (2009) political economic variables used to calculate country specific foreign investment risk, the substitute variables used in this study for Caribbean island countries, and the data source used for the Caribbean substitute variables. The country's 2016 value for each variable was used with the exception of of GDP per capita (see Table S5)")
-
-```
-
-
-```{r results = 'asis'}
-
-colnames(risk_parms)<-c("Country","Regulatory Quality","Political Stability","Control of Corruption","CPI (%)","GDP per Capita","GDP per capita data source (data year)")
-
-pander::pandoc.table(risk_parms, 
-             digits = 3,
-             split.tables = Inf,
-             keep.trailing.zeros = TRUE,
-             big.mark =",",
-             # split.cells = c(15,5,120,15,10),
-             # justify = c("center","center","center","center","center"),
-             caption = "Table S5.Raw values of political and economic variables listed in Table S4 used to calculate country specific scores representing risk of foreign investment. References used for GDP per capita for countries that did not have data avaialble on UNCTADstat are also presented with the year represented in the data.") 
-
 ```
