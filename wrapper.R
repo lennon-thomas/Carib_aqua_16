@@ -46,7 +46,7 @@ carib_theme <- function() {
 # Run settings -------------------------------------------------------------
 
 ## Set User (lennon/tyler)
-user <- 'tyler'
+user <- 'lennon'
 
 if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/Blue Halo 2016/Carib_aqua_16/'}
 if(user == 'tyler')  { boxdir <-  '../../Box Sync/Carib_aqua_16/'}
@@ -63,7 +63,7 @@ source(file = "functions/calc_monthly_avgs.R")
 source(file = "functions/heatmaps.R")
 
 # Run name
-run_name = '2018-05-22'
+run_name = 'nat_revisions'
 
 # Paths to run folders 
 run_dir<-paste(boxdir,'results/',run_name, "/" ,sep = "")
@@ -84,12 +84,12 @@ if (dir.exists(run_dir) == F) {
 }
 
 # Analysis sections
-monthly_avgs <- FALSE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
+monthly_avgs <- TRUE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock <- FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <- FALSE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- FALSE # run population simulation to calculate feed costs
-run_econ <- FALSE # run economic analyses
+process_growth <- TRUE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- TRUE # run population simulation to calculate feed costs
+run_econ <- TRUE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
@@ -98,9 +98,9 @@ cage_cost <- 321000 #Kim et al. 2007 seastation cages that are half the volume a
 support_vessel <- 150000 # $US/year according to Rubino et al. (2008) and assuming 10 year timeperiod
 onshore_cost <- 30000 # $US/yr for docking costs according to Rubino et al. (2008)
 site_lease <- 10000 # Cost of 10 year permit in Gulf of Mexico
-labor_installation <- 52563 # US$ from Bezerra et al. 2016
+labor_installation <- 52563*2.655 # US$ from Bezerra et al. 2016 scaled to the volume of our farm
 site_hours <- 160 # monthly hours per worker per month (8*4 weeks * 5 days)
-site_workers <- 17 # Bezerra et al. 2016 .  open blue employs over 200 full time people.
+site_workers <- 40 # Bezerra et al. 2016 . has 17 scaled to our farm volume open blue employs over 200 full time people. 1 admin 1 prod manager 1 boat captain and 37 crew
 fuel_eff <- 3219 # average fuel efficiency (meters per gallon)~2 miles per gallon
 no_fingerlings <- 256000 # fixed fingerlings per farm
 price_fingerlings <- 1.50 # between 1.37-1.93 personal comm with Dr. Rombenso May 2018# # $US/fingerling Bezerra et al. 2016
@@ -122,13 +122,18 @@ site_days <- 30
 disc_rate <- 0.10 # discount rate to use in addition to country specific rates. can be a vector.
 feed_rate <- c(0.03, 0.02, 0.01, 0.01) # feed rate is 2% body weight Benetti et al. 2010
 mainent <- 0.00583 # 7% of capital costs annually from Knapp 
-
+elec<-0.09 # 0.09% of monthly operating costs Bezerra et al. 2016
 
 # Load and Process Data ---------------------------------------------------------------
 
 # load cell area data
 cell_area <- read_csv(file = paste0(boxdir, 'data/cell_area_df.csv')) %>% 
   dplyr::select(cell_no, study_area_km, suit_index)
+
+suit_map<-raster(paste0(boxdir,"Suitability/results/suitable_areas.tif"))
+
+suit_map[suit_map>0]<-1
+suit_map[suit_map==0]<-NA
 
 # need to break up economic data prep and sim function 
 if (econ_prep_data == TRUE){
@@ -178,12 +183,20 @@ if(monthly_avgs == TRUE) {
    annual_prod <- ann_prod(growth = growth, start_weight = int_weight, harv_den = harv_den)  
  
    stocking_n <- annual_prod[[1]]
+   
+   stocking_n<-mask(stocking_n,suit_map)
   
    harvest_cycles <- annual_prod[[2]]
+   
+   harvest_cycles<-mask(harvest_cycles,suit_map)
   
    harvest_cycle_length <- annual_prod[[3]]
+   
+   harvest_cycle_length<-mask(harvest_cycles,suit_map)
   
    avg_month_growth <- avg_growth(growth = growth)
+   
+   avg_month_growth<-mask(avg_month_growth,suit_map)
    
    # Save avg monthly growth and initial stocking rasters
    writeRaster(avg_month_growth, paste0(data_folder,'avg_month_growth_stack.grd'), overwrite =TRUE) ##getting weird error when trying to save this file
@@ -306,13 +319,14 @@ if(run_econ == TRUE) {
   # Run supply curve analysis
   supply_curves_results <- supply_curves(cashflow = monthly_cashflow, 
                                          cobia_price = cobia_price, 
-                                         prices = c(5.75,6, 6.5, 7, 7.5, 8, 9, 9.5,10,10.50,11,11.50,12,12.50),
+                                         prices = c(6, 6.5, 7, 7.5, 8, 9, 9.5,10,10.50,11),
                                          feed_price_index = c(1, 1.25),
                                          discount_rates = disc_rate,
                                          eezs = countries, 
                                          area = cell_area,
                                          figure_folder = figure_folder, 
-                                         result_folder = result_folder)
+                                         result_folder = result_folder,
+                                         elec)
   
   # Extract supply curve results
   npv_df <- supply_curves_results[['npv']]

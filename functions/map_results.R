@@ -97,7 +97,8 @@
     left_join(suit_coords) 
   
   
-  all_df <- dplyr::rename(all_df, Territory1 = country) 
+ 
+  # all_df <- dplyr::rename(all_df, Territory1 = country) 
 
 # Create base map of land and water in Carib ------------------------------
 
@@ -169,19 +170,19 @@ base <- ggplot() +
   
   ggsave(filename = paste0(fig_folder,'carib_suitable_map.pdf'), width = 88, height = 130, units = 'mm')
   
-  ggplot() +
-    geom_polygon(data = subset(eez.water,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.1 , alpha = 0.5) +
-    geom_polygon(data = subset(eez.land,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
-    geom_raster(data = subset(all_df,Territory1 %in% c("Haiti") & npv > 0), aes(x=long,y=lat,fill=npv)) +
-    scale_fill_viridis() +
-    #theme(legend.position="none") +
-    carib_theme() +
-    theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
-    #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
-    xlab("Longitude") +
-    ylab("Latitude")
-   
-  ggsave(filename = paste0(fig_folder,'Haiti_npv_map.png'), width = 5, height = 6)
+  # ggplot() +
+  #   geom_polygon(data = subset(eez.water,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "lightblue", colour = "black", size = 0.1 , alpha = 0.5) +
+  #   geom_polygon(data = subset(eez.land,Territory1 %in% c("Haiti")),aes(x = long,y = lat,group = group), fill =  "white", colour = "black", size = 0.1) +
+  #   geom_raster(data = subset(all_df,Territory1 %in% c("Haiti") & npv > 0), aes(x=long,y=lat,fill=npv)) +
+  #   scale_fill_viridis() +
+  #   #theme(legend.position="none") +
+  #   carib_theme() +
+  #   theme(title=element_text(size=14), axis.title=element_text(size = 10)) +
+  #   #   coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) +
+  #   xlab("Longitude") +
+  #   ylab("Latitude")
+  #  
+  # ggsave(filename = paste0(fig_folder,'Haiti_npv_map.png'), width = 5, height = 6)
   
 # Production by EEZ map ---------------------------------------------------------
 
@@ -356,6 +357,8 @@ prod_compare_A +
   prod_compare_C +
   plot_layout(ncol = 1) +
   theme(plot.margin = unit(c(0,0,0,0), "cm"))
+
+ggarrange(prod_compare_A,prod_compare_B,prod_compare_C, nrow=3, ncol=1, common.legend = TRUE,legend="right")
 
 ggsave(paste0(fig_folder,'prod_compare_map.png'), width = 6, height = 10) 
 
