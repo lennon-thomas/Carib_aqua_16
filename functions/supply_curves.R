@@ -12,7 +12,8 @@ supply_curves <- function(cashflow,
                           eezs,
                           area,
                           result_folder,
-                          figure_folder) 
+                          figure_folder,
+                          elec) 
   {
   
   # insert current price into vector of prices
@@ -41,9 +42,36 @@ supply_curves <- function(cashflow,
     group_by(cell, disc_scenario, prices) %>%
     mutate(total_disc_revenue = cumsum(disc_revenue)) # take cumulative sum of discounted costs
    
+    # supply_costs %>%
+    # ungroup() %>%
+    # dplyr::select(cell, month, feed_cost, total_monthly_costs) %>%
+    # group_by(cell) %>%
+    # summarize(feed_cost_perc = sum(feed_cost, na.rm = T) / sum(total_monthly_costs, na.rm = T) * 100)
+    # 
+  # Calculate discounted costs for a range of feed costs and discount rates
+  supply_costs <- cashflow %>%
+    mutate(feed_price_index = list(feed_price_index)) %>% 
+    unnest() %>% 
+    mutate(feed_cost = feed_cost * feed_price_index,
+           monthly_costs = total_monthly_labor + mo_capital_cost + mo_fuel_cost + feed_cost + fingerling_cost + mo_maint_cost,
+           total_monthly_costs = monthly_costs + (monthly_costs*elec)) %>% 
+    # dplyr::select(cell, eez, month, feed_price_index, feed_cost, total_monthly_costs, disc_rate) %>%
+    group_by(eez) %>% 
+    mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
+           disc_scenario = list(c('cntry', as.character(discount_rates))),
+           disc_costs = pmap(list(month, total_monthly_costs, disc_rate), 
+                              function(month, total_monthly_costs, disc_rate) total_monthly_costs / (1 + disc_rate) ^ (month * 1/12))) %>%
+                          
+    unnest() %>%
+    group_by(cell, disc_scenario, feed_price_index) %>%
+    mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
+
+  # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
+  no_costs <- filter(supply_costs, total_disc_costs == 0) 
+  
   # Breakdown of costs before discounting
-  cost_plot_df <- cashflow %>% 
-    group_by(cell) %>%
+  cost_plot_df <- supply_costs %>% 
+    group_by(cell, disc_scenario, feed_price_index) %>%
     summarise(
       country    = unique(Territory1),
       invest     = sum(invest_costs, na.rm = T),
@@ -66,37 +94,12 @@ supply_curves <- function(cashflow,
            fuel_perc_total = fuel / cost_total * 100,
            fuel_perc_op    = fuel / cost_op * 100,
            cap_perc_total = total_cap / cost_total * 100,
-           cap_perc_op = total_cap / cost_op * 100) 
+           cap_perc_op = total_cap / cost_op * 100)  
   
   # Calculate percent monthly feed cost by cell
   feed_cost_percs <- cost_plot_df %>% 
-    dplyr::select(cell, feed_perc_op) %>% 
+    dplyr::select(cell, disc_scenario, feed_price_index, feed_perc_op) %>% 
     rename(feed_cost_perc = feed_perc_op)
-    
-    # supply_costs %>%
-    # ungroup() %>%
-    # dplyr::select(cell, month, feed_cost, total_monthly_costs) %>%
-    # group_by(cell) %>%
-    # summarize(feed_cost_perc = sum(feed_cost, na.rm = T) / sum(total_monthly_costs, na.rm = T) * 100)
-    # 
-  # Calculate discounted costs for a range of feed costs and discount rates
-  supply_costs <- cashflow %>%
-    mutate(feed_price_index = list(feed_price_index)) %>% 
-    unnest() %>% 
-    mutate(feed_cost = feed_cost * feed_price_index) %>% 
-    dplyr::select(cell, eez, month, feed_price_index, feed_cost, total_monthly_costs, disc_rate) %>%
-    group_by(eez) %>% 
-    mutate(disc_rate = list(c(unique(disc_rate), discount_rates)),
-           disc_scenario = list(c('cntry', as.character(discount_rates))),
-           disc_costs = pmap(list(month, total_monthly_costs, disc_rate), 
-                              function(month, total_monthly_costs, disc_rate) total_monthly_costs / (1 + disc_rate) ^ (month * 1/12))) %>%
-                          
-    unnest() %>%
-    group_by(cell, disc_scenario, feed_price_index) %>%
-    mutate(total_disc_costs = cumsum(disc_costs)) # take cumulative sum of discounted costs
-
-  # Find cells with zero costs ( !! find out why this is happeneing !!  ) - fixed now
-  no_costs <- filter(supply_costs, total_disc_costs == 0) 
   
   # Join discounted costs with discounted revenues before summing NPV
   cashflow_disc <- supply %>%
