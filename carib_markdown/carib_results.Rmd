@@ -243,13 +243,13 @@ scenario_table <- scenario_compare %>%
          npv_cntry = round(npv_cntry / 1e9, digits = 2))
 
 pander::pandoc.table(scenario_table,
-                     caption = 'Table 3. Supply (MT) and 10 year Net Present Value (NPV) under 4 different scenarios',
+                     caption = 'Table 3. Average annual supply (MMT) and 10 year Net Present Value (NPV) under 4 different scenarios',
                      split.tables = Inf,
                      col.names = c('Country',
                                    "Supply (suitable)",
+                                   "Supply (profitable, 10 %)",
                                    "Supply (profitable, country %)",
-                                   "Supply (profitable, 10%)",
                                    "NPV (suitable)",
-                                   "NPV (profitable, country %)",
-                                   "NPV (profitable, 10%)"))
+                                   "NPV (profitable, 10 %)",
+                                   "NPV (profitable, country %)"))
 ```
