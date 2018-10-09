@@ -234,11 +234,10 @@ bpC<-left_join(bpC,med_bpC)
 C<-  ggplot(bpC,aes(x = fct_reorder(country,rel_change), y = npv / 1e6, color = disc_scenario)) +
   geom_boxplot() +
   scale_color_brewer(palette = 'Paired', 
-                     labels = c("10 %", "Country specific")) +
+                     labels = c("'profitable uniform'", "'profitable risk'")) +
   labs(x = 'Country',
        y = 'NPV ($USD, millions)',
-       color = "Discount rate",
-       title = "Distribution of farm NPV by EEZ") +
+       color = "Scenario") +
   carib_theme()
 
 # Calculate Caribbean boxplot stats
