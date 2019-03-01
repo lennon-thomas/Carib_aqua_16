@@ -32,7 +32,7 @@ if(user == 'lennon') { boxdir <- '/Users/lennonthomas/Box Sync/Waitt Institute/B
 if(user == 'tyler')  { boxdir <- '../../../Box Sync/Carib_aqua_16/'}
 
 # Specify run directory to source results from
-run_name <- "2018-05-22"
+run_name <- "nat_revisions"
 run_dir <- paste(boxdir,'results/',run_name, "/" ,sep = "")
 
 ## Suitability by layer results
@@ -165,7 +165,7 @@ supply_decline <- scenario_compare %>%
 
 The biggest difference in production potential between the ‘suitable’ scenario and ‘profitable risk’ scenario is observed in The `r supply_decline$country[1]`, which has the largest amount of suitable area and experiences an `r round(supply_decline$supply_diff_perc[1], digits = 0)`% decrease in average annual production when economics and risks are incorporated, followed by `r supply_decline$country[2]` (`r round(supply_decline$supply_diff_perc[2], digits = 0)`% decline), `r supply_decline$country[3]` (`r round(supply_decline$supply_diff_perc[3], digits = 0)`% decline), and `r supply_decline$country[4]` (`r round(supply_decline$supply_diff_perc[4], digits = 0)`% decline).
 
-In terms of value, the median farm 10-year NPV was \$/ `r round(main_results[10,4], digits =1)` assuming a fixed 10 % discount rate ('profitable fixed' scenario), and `r round(main_results[10,3], digits =1)`, or `r round((main_results[10,4]-main_results[10,3])/main_results[10,4]*100)`% lower (`r round(main_results[10,3])`) with the country specific discount rate that incorporates investment risk. 
+In terms of value, the median farm 10-year NPV (millions) was `r round(main_results[10,4] / 1e6, digits =1)` assuming a fixed 10 % discount rate ('profitable fixed' scenario), and `r round(main_results[10,3] / 1e6, digits =1)`, or `r round((main_results[10,4]-main_results[10,3])/main_results[10,4]*100)`% lower (`r round(main_results[10,3]/1e6)`) with the country specific discount rate that incorporates investment risk. 
 
 # Discussion
 
