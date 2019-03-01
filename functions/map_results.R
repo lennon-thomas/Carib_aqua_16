@@ -115,7 +115,7 @@ base <- ggplot() +
         carib_theme() +
         xlab("Longitude") +
         ylab("Latitude") +
-        coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30))
+        coord_fixed(xlim =c(-85.5,-57.4),ylim = c(9.95,30)) 
 
 #ggsave( paste0(fig_folder,"study_area.png"), width = 6, height = 5)
 
@@ -359,7 +359,7 @@ prod_compare_A +
   theme(plot.margin = unit(c(0,0,0,0), "cm"))
 
 ggarrange(prod_compare_A,prod_compare_B,prod_compare_C, nrow=3, ncol=1, common.legend = TRUE,legend="right")
-
+ggsave(filename = paste0(fig_folder,'prod_compare_map.pdf'), width = 88, height = 225, units = 'mm')
 ggsave(paste0(fig_folder,'prod_compare_map.png'), width = 6, height = 10) 
 
 # Box plots of total production --------------------------------------------

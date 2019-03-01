@@ -84,17 +84,17 @@ if (dir.exists(run_dir) == F) {
 }
 
 # Analysis sections
-monthly_avgs <- TRUE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
+monthly_avgs <- FALSE # Process SST and growth rasters to save CSV of monthly average temps and growth for suitable cells
 econ_prep_data <-  FALSE # prep economic data files (TRUE) or just read in existing files (FALSE)
 fix_int_stock <- FALSE # should the number of fingerlings used to stock each farm be fixed? false means they will be calculated to reach a stock density = havest density
-process_growth <- TRUE # process growth data to get average growth and number of harvest cycles per cell
-run_sim <- TRUE # run population simulation to calculate feed costs
-run_econ <- TRUE # run economic analyses
+process_growth <- FALSE # process growth data to get average growth and number of harvest cycles per cell
+run_sim <- FALSE # run population simulation to calculate feed costs
+run_econ <- FALSE # run economic analyses
 
 # Parameters --------------------------------------------------------------
 
 # Constant parameters
-cage_cost <- 321000 #Kim et al. 2007 seastation cages that are half the volume are 269,000 and total equitment for startup is 321,000 so 500000 for larger cages seems reasonable US$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
+cage_cost <- 321000 #Lipton et al. 2007 seastation cages that are half the volume are $269,000 and total equitment for startup is $321,000 sUS$ cage and installation Lipton and Kim. For 3000 m^3 cages and this includes all the gear (anchors, etc) 
 support_vessel <- 150000 # $US/year according to Rubino et al. (2008) and assuming 10 year timeperiod
 onshore_cost <- 30000 # $US/yr for docking costs according to Rubino et al. (2008)
 site_lease <- 10000 # Cost of 10 year permit in Gulf of Mexico
